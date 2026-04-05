@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
@@ -15,13 +18,7 @@ const path = require("path");
 
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -234,16 +231,16 @@ if (role === "seller") {
         const verificationLink =
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
-        await transporter.sendMail({
-            from: `"PuntoLocal" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Verifica tu cuenta",
-            html: `
-                <h2>Bienvenido a PuntoLocal</h2>
-                <p>Haz click para verificar tu cuenta:</p>
-                <a href="${verificationLink}">Verificar Email</a>
-            `
-        });
+        await resend.emails.send({
+  from: "PuntoCerca <no-reply@puntocerca.com.ar>",
+  to: email,
+  subject: "Verifica tu cuenta",
+  html: `
+    <h2>Bienvenido a PuntoCerca</h2>
+    <p>Haz click para verificar tu cuenta:</p>
+    <a href="${verificationLink}">Verificar Email</a>
+  `
+});
 
         res.status(201).json({
             message: "Usuario creado. Revisa tu email para verificar tu cuenta."
@@ -370,18 +367,18 @@ app.post('/api/resend-verification', csrfProtection, async (req, res) => {
         const verificationLink =
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
-        await transporter.sendMail({
-            from: `"PuntoLocal" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Verifica tu cuenta - PuntoLocal",
-            html: `
-                <h2>Verifica tu cuenta</h2>
-                <p>Haz click en el siguiente enlace:</p>
-                <a href="${verificationLink}">
-                    Verificar Email
-                </a>
-            `
-        });
+        await resend.emails.send({
+  from: "onboarding@resend.dev",
+  to: email,
+  subject: "Verifica tu cuenta - PuntoCerca",
+  html: `
+    <h2>Verifica tu cuenta</h2>
+    <p>Haz click en el siguiente enlace:</p>
+    <a href="${verificationLink}">
+      Verificar Email
+    </a>
+  `
+});
 
         res.json({
             message: "Email de verificación reenviado."
