@@ -136,6 +136,21 @@ setTimeout(() => {
 
   export async function loadStores(category = null, subcategory_id = null) {
 
+  // 🔥 si no viene del menú, leer selects (si existen)
+  if (!category) {
+    const select = document.getElementById("filterCategory");
+    if (select && select.value) {
+      category = select.value;
+    }
+  }
+
+  if (!subcategory_id) {
+    const subSelect = document.getElementById("filterSubcategory");
+    if (subSelect && subSelect.value) {
+      subcategory_id = subSelect.value;
+    }
+  }
+
       Object.values(storeMarkers).forEach(marker => {
           map.removeLayer(marker);
       });
