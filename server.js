@@ -734,7 +734,7 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
         store_id,
         brand,
         size,
-        stock,
+        stock ? parseInt(stock) : 0,
         extra,
         colors || [], 
         category,
