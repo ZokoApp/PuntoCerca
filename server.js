@@ -90,7 +90,7 @@ const csrfProtection = csrf({
     cookie: {
         httpOnly: false,
         sameSite: "strict",
-        secure: false
+        secure: process.env.NODE_ENV === "production"
     }
 });
 
