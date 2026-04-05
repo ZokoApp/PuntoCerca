@@ -112,9 +112,9 @@ document.getElementById("loginForm")
       method: "POST",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-        "x-csrf-token": csrfToken
-      },
+  "Content-Type": "application/json",
+  "CSRF-Token": csrfToken
+},
       body: JSON.stringify(data)
     });
 
@@ -150,7 +150,7 @@ document.getElementById("resendBtn")
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      "x-csrf-token": csrfToken
+      "CSRF-Token": csrfToken
     },
     body: JSON.stringify({ email })
   });
