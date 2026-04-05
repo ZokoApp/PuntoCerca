@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil - PuntoCerca</title>
+
+<link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="bg-gray-50">
+
+<!-- NAV -->
+<nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
+  <div class="text-orange-600 font-bold text-xl">PuntoLocal</div>
+  <a href="/" class="text-gray-600 hover:text-orange-500">Inicio</a>
+</nav>
+
+<!-- CONTENEDOR -->
+<div class="max-w-5xl mx-auto mt-10 space-y-6">
+
+  <!-- HEADER -->
+  <div class="bg-white rounded-xl shadow p-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold">Mi perfil</h1>
+      <p class="text-gray-500 text-sm">Gestioná tu cuenta</p>
+    </div>
+  </div>
+
+  <!-- INFO USUARIO -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">Información</h2>
+
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <p class="text-gray-500">Nombre</p>
+        <p id="userName" class="font-medium"></p>
+      </div>
+
+      <div>
+        <p class="text-gray-500">Email</p>
+        <p id="userEmail" class="font-medium"></p>
+      </div>
+
+      <div>
+        <p class="text-gray-500">Tipo</p>
+        <p id="userRole" class="font-medium"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAVORITOS -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">Tiendas favoritas</h2>
+    <div id="favoritesList" class="grid gap-4"></div>
+  </div>
+
+  <!-- SIGUIENDO -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">Tiendas que sigues</h2>
+    <div id="followingList" class="grid gap-4"></div>
+  </div>
+
+</div>
+
+<script>
+async function loadProfile(){
+  try{
+    const res = await fetch("/api/me", {
+      credentials:"include"
+    });
+
+    if(!res.ok){
+      window.location.href = "/login";
+      return;
+    }
+
+    const user = await res.json();
+
+    document.getElementById("userName").innerText = user.name;
+    document.getElementById("userEmail").innerText = user.email;
+    document.getElementById("userRole").innerText = user.role;
+
+  }catch(err){
+    console.error(err);
+  }
+}
+
+async function loadFavorites(){
+  try{
+    const res = await fetch("/api/favorites", {
+      credentials:"include"
+    });
+
+    const stores = await res.json();
+
+    const container = document.getElementById("favoritesList");
+
+    if(!stores.length){
+      container.innerHTML = "<p class='text-gray-500'>No tienes favoritos aún</p>";
+      return;
+    }
+
+    stores.forEach(store => {
+      const div = document.createElement("div");
+
+      div.className = "flex justify-between items-center border rounded-lg p-3 hover:shadow transition";
+
+      div.innerHTML = `
+        <div>
+          <strong>${store.name}</strong><br>
+          <span class="text-sm text-gray-500">${store.city || ""}</span>
+        </div>
+
+        <button 
+          onclick="goToStore(${store.id})"
+          class="text-sm bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600"
+        >
+          Ver
+        </button>
+      `;
+
+      container.appendChild(div);
+    });
+
+  }catch(err){
+    console.error(err);
+  }
+ }
+
+async function loadFollowing(){
+  try{
+    const res = await fetch("/api/following", {
+      credentials:"include"
+    });
+
+    const stores = await res.json();
+
+    const container = document.getElementById("followingList");
+
+    if(!stores.length){
+      container.innerHTML = "<p class='text-gray-500'>No sigues tiendas aún</p>";
+      return;
+    }
+
+    stores.forEach(store => {
+      const div = document.createElement("div");
+
+      div.className = "flex justify-between items-center border rounded-lg p-3 hover:shadow transition";
+
+      div.innerHTML = `
+        <div>
+          <strong>${store.name}</strong>
+        </div>
+
+        <div class="flex gap-2">
+          <button 
+            onclick="goToStore(${store.id})"
+            class="text-sm bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300"
+          >
+            Ver
+          </button>
+
+          <button 
+            onclick="unfollow(${store.id})"
+            class="text-sm bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+          >
+            Dejar
+          </button>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  }catch(err){
+    console.error(err);
+  }
+}
+
+// acciones
+function goToStore(id){
+  window.location.href = `/store/${id}`;
+}
+
+async function unfollow(id){
+  await fetch(`/api/follow/${id}`, {
+    method:"DELETE",
+    credentials:"include"
+  });
+
+  loadFollowing();
+}
+
+// INIT
+loadProfile();
+loadFavorites();
+loadFollowing();
+</script>
+
+</body>
+</html>

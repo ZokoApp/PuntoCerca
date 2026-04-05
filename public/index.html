@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuntoCerca</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="/css/output.css">
+<link rel="stylesheet" href="/css/components/map.css">
+<link rel="stylesheet" href="/css/components/cards.css">
+<link rel="stylesheet" href="/css/components/offers.css">
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="sticky top-0 z-50 bg-white">
+
+ 
+  
+  <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center"> 
+
+    <a href="/" class="flex items-center gap-2">
+      <img src="/img/logo.png" alt="PuntoCerca" style="height: 180px;">
+    </a>
+
+    <div id="navRight" class="flex items-center gap-6">
+
+      <a href="/" class="hover:text-orange-600 transition">Inicio</a>
+
+      <a href="/login" id="loginLink"
+        class="hover:text-orange-600 transition">
+        Login
+      </a>
+
+      <a href="/register.html" id="registerLink"
+        class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700 transition">
+        Registrate
+      </a>
+
+      <div id="userMenu" class="hidden relative">
+
+        <button id="userMenuBtn"
+          class="flex items-center gap-2 font-semibold text-gray-700 hover:text-orange-600 transition">
+          <span id="userName"></span>
+          <span>▾</span>
+        </button>
+
+        <div id="userDropdown"
+          class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg hidden">
+
+          <a id="myStoreLink" href="#"
+            class="block px-4 py-2 hover:bg-gray-50">
+            Mi tienda
+          </a>
+
+          <a href="#"
+  id="dashboardLink"
+  class="block px-4 py-2 hover:bg-gray-50">
+  Dashboard
+</a>
+
+          <button id="logoutBtn"
+            class="w-full text-left px-4 py-2 hover:bg-gray-50">
+            Logout
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</nav>
+
+  <section class="bg-gray-50 border-t border-gray-200"> 
+  <div class="max-w-7xl mx-auto px-6 py-3 flex justify-center gap-10 text-sm font-medium text-gray-700">
+
+    <a href="/stores" class="hover:text-orange-600 transition">
+      Tiendas destacadas
+    </a>
+
+    <a href="/offers" class="hover:text-orange-600 transition">
+      Ofertas del día
+    </a>
+
+    <a href="/products" class="hover:text-orange-600 transition">
+      Productos
+    </a>
+
+    <a href="/map" class="hover:text-orange-600 transition">
+      Ver mapa
+    </a>
+
+  </div>
+</section>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="flex-grow">
+
+  <!-- ================= HERO ================= -->
+  <section class="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-24">
+    <div class="max-w-4xl mx-auto text-center px-6">
+      
+      <h1 class="text-4xl md:text-5xl font-bold mb-6">
+        Encuentra Servicios cerca de ti
+      </h1>
+
+      <p class="text-lg mb-8 opacity-90">
+        Descubre negocios locales, explora productos y conecta fácilmente.
+      </p>
+
+      <div class="flex flex-col md:flex-row justify-center gap-4">
+  <input 
+    id="searchInput"
+    type="text" 
+    placeholder="Busca Negocios, Productos, Marcas y Más"
+    class="px-6 py-3 rounded-full text-gray-700 w-full md:w-96 focus:outline-none shadow-md"
+  >
+  <button 
+    id="searchBtn"
+    class="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition shadow-md"
+  >
+    Buscar
+  </button>
+</div>
+
+    </div>
+  </section>
+
+  <!-- ================= MENÚ CATEGORÍAS MARKETPLACE ================= -->
+<section class="bg-white relative z-[9999]">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center gap-8 py-4 text-sm font-medium text-gray-700">
+
+<!-- GASTRONOMÍA -->
+<div class="relative group">
+<button onclick="loadStores('Gastronomía'); return false;" class="hover:text-orange-600 transition">
+Gastronomía
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Gastronomía',1); return false;" class="block px-4 py-2 hover:bg-gray-50">Restaurante</a>
+<a href="#" onclick="loadStores('Gastronomía',2); return false;" class="block px-4 py-2 hover:bg-gray-50">Pizzería</a>
+<a href="#" onclick="loadStores('Gastronomía',3); return false;" class="block px-4 py-2 hover:bg-gray-50">Bar</a>
+<a href="#" onclick="loadStores('Gastronomía',4); return false;" class="block px-4 py-2 hover:bg-gray-50">Cafetería</a>
+<a href="#" onclick="loadStores('Gastronomía',5); return false;" class="block px-4 py-2 hover:bg-gray-50">Heladería</a>
+</div>
+</div>
+
+<!-- COMERCIO -->
+<div class="relative group">
+<button onclick="loadStores('Comercio'); return false;" class="hover:text-orange-600 transition">
+Comercio
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Comercio',6); return false;" class="block px-4 py-2 hover:bg-gray-50">Ropa</a>
+<a href="#" onclick="loadStores('Comercio',7); return false;" class="block px-4 py-2 hover:bg-gray-50">Electrónica</a>
+<a href="#" onclick="loadStores('Comercio',8); return false;" class="block px-4 py-2 hover:bg-gray-50">Ferretería</a>
+<a href="#" onclick="loadStores('Comercio',9); return false;" class="block px-4 py-2 hover:bg-gray-50">Librería</a>
+</div>
+</div>
+
+<!-- BELLEZA -->
+<div class="relative group">
+<button onclick="loadStores('Belleza'); return false;" class="hover:text-orange-600 transition">
+Belleza
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Belleza',10); return false;" class="block px-4 py-2 hover:bg-gray-50">Peluquería</a>
+<a href="#" onclick="loadStores('Belleza',11); return false;" class="block px-4 py-2 hover:bg-gray-50">Barbería</a>
+<a href="#" onclick="loadStores('Belleza',12); return false;" class="block px-4 py-2 hover:bg-gray-50">Estética</a>
+<a href="#" onclick="loadStores('Belleza',13); return false;" class="block px-4 py-2 hover:bg-gray-50">Spa</a>
+</div>
+</div>
+
+<!-- SALUD -->
+<div class="relative group">
+<button onclick="loadStores('Salud'); return false;" class="hover:text-orange-600 transition">
+Salud
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Salud',14); return false;" class="block px-4 py-2 hover:bg-gray-50">Clínica</a>
+<a href="#" onclick="loadStores('Salud',15); return false;" class="block px-4 py-2 hover:bg-gray-50">Odontología</a>
+<a href="#" onclick="loadStores('Salud',16); return false;" class="block px-4 py-2 hover:bg-gray-50">Farmacia</a>
+<a href="#" onclick="loadStores('Salud',17); return false;" class="block px-4 py-2 hover:bg-gray-50">Psicología</a>
+</div>
+</div>
+
+<!-- SERVICIOS -->
+<div class="relative group">
+<button onclick="loadStores('Servicios'); return false;" class="hover:text-orange-600 transition">
+Servicios
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Servicios',18); return false;" class="block px-4 py-2 hover:bg-gray-50">Electricista</a>
+<a href="#" onclick="loadStores('Servicios',19); return false;" class="block px-4 py-2 hover:bg-gray-50">Plomería</a>
+<a href="#" onclick="loadStores('Servicios',20); return false;" class="block px-4 py-2 hover:bg-gray-50">Gasista</a>
+<a href="#" onclick="loadStores('Servicios',21); return false;" class="block px-4 py-2 hover:bg-gray-50">Técnico PC</a>
+<a href="#" onclick="loadStores('Servicios',22); return false;" class="block px-4 py-2 hover:bg-gray-50">Reparaciones</a>
+</div>
+</div>
+
+<!-- AUTOMOTOR -->
+<div class="relative group">
+<button onclick="loadStores('Automotor'); return false;" class="hover:text-orange-600 transition">
+Automotor
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Automotor',23); return false;" class="block px-4 py-2 hover:bg-gray-50">Taller mecánico</a>
+<a href="#" onclick="loadStores('Automotor',24); return false;" class="block px-4 py-2 hover:bg-gray-50">Lavadero</a>
+<a href="#" onclick="loadStores('Automotor',25); return false;" class="block px-4 py-2 hover:bg-gray-50">Gomería</a>
+<a href="#" onclick="loadStores('Automotor',26); return false;" class="block px-4 py-2 hover:bg-gray-50">Repuestos</a>
+</div>
+</div>
+
+<!-- EDUCACIÓN -->
+<div class="relative group">
+<button onclick="loadStores('Educación'); return false;" class="hover:text-orange-600 transition">
+Educación
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Educación',27); return false;" class="block px-4 py-2 hover:bg-gray-50">Instituto</a>
+<a href="#" onclick="loadStores('Educación',28); return false;" class="block px-4 py-2 hover:bg-gray-50">Clases particulares</a>
+<a href="#" onclick="loadStores('Educación',29); return false;" class="block px-4 py-2 hover:bg-gray-50">Academia</a>
+</div>
+</div>
+
+<!-- DEPORTES -->
+<div class="relative group">
+<button onclick="loadStores('Deportes'); return false;" class="hover:text-orange-600 transition">
+Deportes
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Deportes',30); return false;" class="block px-4 py-2 hover:bg-gray-50">Gimnasio</a>
+<a href="#" onclick="loadStores('Deportes',31); return false;" class="block px-4 py-2 hover:bg-gray-50">Escuela deportiva</a>
+<a href="#" onclick="loadStores('Deportes',32); return false;" class="block px-4 py-2 hover:bg-gray-50">Club</a>
+</div>
+</div>
+
+<!-- MASCOTAS -->
+<div class="relative group">
+<button onclick="loadStores('Mascotas'); return false;" class="hover:text-orange-600 transition">
+Mascotas
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Mascotas',33); return false;" class="block px-4 py-2 hover:bg-gray-50">Veterinaria</a>
+<a href="#" onclick="loadStores('Mascotas',34); return false;" class="block px-4 py-2 hover:bg-gray-50">Pet Shop</a>
+<a href="#" onclick="loadStores('Mascotas',35); return false;" class="block px-4 py-2 hover:bg-gray-50">Peluquería canina</a>
+</div>
+</div>
+
+<!-- HOGAR -->
+<div class="relative group">
+<button onclick="loadStores('Hogar'); return false;" class="hover:text-orange-600 transition">
+Hogar
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Hogar',36); return false;" class="block px-4 py-2 hover:bg-gray-50">Mueblería</a>
+<a href="#" onclick="loadStores('Hogar',37); return false;" class="block px-4 py-2 hover:bg-gray-50">Decoración</a>
+<a href="#" onclick="loadStores('Hogar',38); return false;" class="block px-4 py-2 hover:bg-gray-50">Construcción</a>
+</div>
+</div>
+
+<!-- PROFESIONALES -->
+<div class="relative group">
+<button onclick="loadStores('Profesionales'); return false;" class="hover:text-orange-600 transition">
+Profesionales
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Profesionales',39); return false;" class="block px-4 py-2 hover:bg-gray-50">Abogado</a>
+<a href="#" onclick="loadStores('Profesionales',40); return false;" class="block px-4 py-2 hover:bg-gray-50">Contador</a>
+<a href="#" onclick="loadStores('Profesionales',41); return false;" class="block px-4 py-2 hover:bg-gray-50">Arquitecto</a>
+<a href="#" onclick="loadStores('Profesionales',42); return false;" class="block px-4 py-2 hover:bg-gray-50">Marketing</a>
+</div>
+</div>
+
+<!-- EVENTOS -->
+<div class="relative group">
+<button onclick="loadStores('Eventos'); return false;" class="hover:text-orange-600 transition">
+Eventos
+</button>
+<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
+<a href="#" onclick="loadStores('Eventos',43); return false;" class="block px-4 py-2 hover:bg-gray-50">Salón de eventos</a>
+<a href="#" onclick="loadStores('Eventos',44); return false;" class="block px-4 py-2 hover:bg-gray-50">Catering</a>
+<a href="#" onclick="loadStores('Eventos',45); return false;" class="block px-4 py-2 hover:bg-gray-50">Fotografía</a>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+  <!-- ================= MAPA ================= -->
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="rounded-2xl overflow-hidden shadow-xl border border-gray-200 relative">
+      <div id="map" class="h-[500px] w-full"></div>
+
+      <div id="storePreview" class="store-preview hidden"></div>
+    </div>
+  </div>
+</section>
+
+  <!-- ================= OFERTAS ================= -->
+  <section id="ofertas" class="py-16">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-3xl font-bold mb-8 text-orange-600">
+      🔥 Ofertas del Día
+    </h2>
+
+    <div class="relative">
+      <button id="prevOffers"
+        class="absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❮
+      </button>
+
+      <div id="dailyOffers" class="flex gap-6 overflow-x-auto scroll-smooth pb-4"></div>
+
+      <button id="nextOffers"
+        class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❯
+      </button>
+    </div>
+  </div>
+</section>
+
+  <!-- ================= TIENDAS ================= -->
+  <section id="tiendas" class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-8">
+        Tiendas Destacadas
+      </h2>
+
+      <div class="relative">
+        <button id="prevStores"
+          class="absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition">
+          ❮
+        </button>
+
+        <div id="stores" class="flex gap-6 overflow-x-auto scroll-smooth pb-4"></div>
+
+        <button id="nextStores"
+          class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition">
+          ❯
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRODUCTOS ================= -->
+  <section class="py-16">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-8">
+        Productos Destacados
+      </h2>
+
+      <div class="relative">
+        <button id="prevProducts"
+          class="absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition">
+          ❮
+        </button>
+
+        <div id="products" class="flex gap-6 overflow-x-auto scroll-smooth pb-4"></div>
+
+        <button id="nextProducts"
+          class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition">
+          ❯
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="bg-gray-900 text-gray-300 py-10 mt-12">
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+
+    <div>
+      <h3 class="text-white font-semibold mb-3">PuntoCerca</h3>
+      <p class="text-sm text-gray-400">
+        Plataforma que conecta comercios locales con personas cercanas.
+      </p>
+    </div>
+
+    <div>
+      <h3 class="text-white font-semibold mb-3">Enlaces</h3>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/" class="hover:text-white transition">Inicio</a></li>
+        <li><a href="/register.html" class="hover:text-white transition">Crear Cuenta</a></li>
+        <li><a href="/login" class="hover:text-white transition">Login</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="text-white font-semibold mb-3">Contacto</h3>
+      <p class="text-sm text-gray-400">
+        soporte@puntocerca.com
+      </p>
+    </div>
+
+  </div>
+
+  <div class="border-t border-gray-700 mt-8 pt-4 text-center text-sm text-gray-500">
+    © 2026 PuntoLocal - Todos los derechos reservados
+  </div>
+</footer>
+
+
+
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script type="module" src="/js/app.js"></script>
+<script src="/js/core/auth.js"></script>
+
+</body>
+</html>

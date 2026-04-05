@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrar Tienda - PuntoCerca</title>
+
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body{
+background:#f5f6fa;
+font-family: Arial, sans-serif;
+}
+
+.register-container{
+max-width:1100px;
+margin:60px auto;
+background:white;
+border-radius:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.08);
+display:grid;
+grid-template-columns:1fr 1fr;
+overflow:hidden;
+}
+
+.register-left{
+background:linear-gradient(135deg,#ff6a00,#ff8c42);
+color:white;
+padding:60px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.register-left h2{
+font-size:34px;
+margin-bottom:20px;
+}
+
+.register-right{
+padding:60px;
+}
+
+.register-right h3{
+margin-bottom:30px;
+color:#ff6a00;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.form-group{
+display:flex;
+flex-direction:column;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+padding:12px 15px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:14px;
+}
+
+.form-group textarea{
+resize:none;
+height:90px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+outline:none;
+border-color:#ff6a00;
+}
+
+.full-width{
+grid-column:span 2;
+}
+
+#mapSelector{
+height:300px;
+width:100%;
+border-radius:15px;
+margin-top:10px;
+}
+
+.search-btn{
+background:#ff6a00;
+color:white;
+border:none;
+padding:12px;
+border-radius:12px;
+cursor:pointer;
+font-weight:600;
+transition:0.3s;
+}
+
+.search-btn:hover{
+background:#ff7f1f;
+}
+
+.submit-btn{
+width:100%;
+background:#ff6a00;
+color:white;
+padding:14px;
+border:none;
+border-radius:30px;
+font-size:16px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.submit-btn:hover{
+background:#ff7f1f;
+}
+
+.file-label{
+font-size:13px;
+margin-bottom:5px;
+color:#555;
+}
+
+footer{
+background:#1f1f1f;
+color:white;
+padding:30px;
+text-align:center;
+margin-top:60px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+<div class="logo">PuntoCerca</div>
+<ul>
+<li><a href="/">Inicio</a></li>
+<li><a href="/register-store" class="btn">Registrar Tienda</a></li>
+</ul>
+</nav>
+
+<div class="register-container">
+
+<div class="register-left">
+<h2>Únete a PuntoLocal</h2>
+<p>
+Registra tu negocio y empieza a aparecer en el mapa.
+Crea tu perfil profesional estilo red social y conecta con clientes reales.
+</p>
+</div>
+
+<div class="register-right">
+<h3>Crear Perfil Profesional</h3>
+
+<form id="storeForm" class="form-grid" enctype="multipart/form-data">
+
+<!-- DATOS BÁSICOS -->
+
+<div class="form-group">
+<input type="text" name="name" placeholder="Nombre de la tienda" required>
+</div>
+
+<div class="form-group">
+<input type="text" name="phone" placeholder="Teléfono" required>
+</div>
+
+<div class="form-group">
+<input type="text" name="street" placeholder="Dirección (ej: San Martín 1234)" required>
+</div>
+
+<div class="form-group">
+<input type="text" name="city" placeholder="Ciudad" required>
+</div>
+
+<div class="form-group full-width">
+<button type="button" id="searchAddress" class="search-btn">
+Buscar dirección en el mapa
+</button>
+</div>
+
+<div class="form-group full-width">
+<input type="email" name="email" placeholder="Email de contacto" required>
+</div>
+
+<div class="form-group">
+<input type="password" name="password" placeholder="Contraseña" required>
+</div>
+
+<div class="form-group">
+<input type="password" id="confirmPassword" placeholder="Confirmar contraseña" required>
+</div>
+
+<!-- NUEVOS CAMPOS PROFESIONALES -->
+
+<div class="form-group full-width">
+  <label>Categoría</label>
+  <select id="category" name="category" required></select>
+</div>
+
+<div class="form-group full-width">
+  <label>Subcategoría</label>
+  <select id="subcategory" name="subcategory_id" required></select>
+</div>
+
+<div class="form-group full-width">
+  <textarea name="description" placeholder="Describe tu negocio..."></textarea>
+</div>
+
+<div class="form-group">
+  <label class="file-label">Logo (PNG recomendado)</label>
+  <input type="file" name="logo" accept="image/*">
+</div>
+
+<div class="form-group">
+  <label class="file-label">Imagen de portada</label>
+  <input type="file" name="cover" accept="image/*">
+</div>
+
+<!-- MAPA -->
+
+<div class="form-group full-width">
+<h4 style="color:#ff6a00;">Selecciona la ubicación en el mapa</h4>
+<div id="mapSelector"></div>
+</div>
+
+<div class="form-group full-width">
+<button type="submit" class="submit-btn">
+Crear Perfil
+</button>
+</div>
+
+</form>
+
+</div>
+</div>
+
+<footer>
+<p>© 2026 PuntoCerca - Todos los derechos reservados</p>
+<p style="opacity:0.6;">
+Marketplace local para conectar negocios y clientes
+</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="js/register.js"></script>
+
+</body>
+</html>

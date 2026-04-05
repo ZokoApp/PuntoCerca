@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil Tienda - PuntoCerca</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/store.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="store-page">
+
+ <nav class="store-nav">
+  <div class="store-nav__inner">
+
+    <a href="/" class="store-nav__brand">
+      PuntoCerca
+    </a>
+
+    <div class="store-nav__right">
+  <a href="/" class="store-nav__link">Inicio</a>
+
+  <div id="ownerActions" class="store-owner-actions" style="display:none;">
+    <a href="/dashboard" class="store-nav__link">Dashboard</a>
+    <a href="#storeProducts" class="store-nav__link">Mis productos</a>
+    <a href="/new-product" class="store-nav__link">Publicar producto</a>
+    <a href="/edit-store" class="store-nav__link">Editar tienda</a>
+    <button id="logoutBtn" class="store-nav__logout" type="button">Logout</button>
+  </div>
+</div>
+
+  </div>
+</nav>
+  <header class="store-hero">
+    <div id="storeCover" class="store-cover">
+      <div class="store-cover__overlay"></div>
+    </div>
+
+    <div class="store-hero__content">
+      <div id="storeLogo" class="store-logo"></div>
+    </div>
+  </header>
+
+  <main class="store-main">
+    <section class="store-card">
+
+      <div class="store-header">
+        <div class="store-header__info">
+          <h1 id="storeName" class="store-title"></h1>
+          <div id="storeCategory" class="store-category"></div>
+          <div id="storeAddress" class="store-meta"></div>
+          <div id="storeStats" class="store-stats"></div>
+        </div>
+
+        <div class="store-header__actions">
+          <a id="whatsappBtn" class="btn btn-whatsapp" target="_blank">WhatsApp</a>
+          <button id="mapButton" class="btn btn-primary" type="button">Ver ubicación</button>
+        
+          <button id="followBtn" class="btn btn-follow" type="button">Seguir</button>
+        </div>
+      </div>
+
+      <section class="store-section">
+        <h2 class="section-title">Sobre la tienda</h2>
+        <p id="storeDescription" class="store-description"></p>
+        <div id="ownerInfo" class="owner-box"></div>
+      </section>
+
+      <section class="store-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Ubicación</h2>
+            <p class="section-subtitle">Encontrá esta tienda en el mapa</p>
+          </div>
+        </div>
+
+        <div id="storeMap" class="store-map"></div>
+      </section>
+
+      <section class="store-section products-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Productos</h2>
+            <p class="section-subtitle">Explorá lo que ofrece esta tienda</p>
+          </div>
+
+          <input 
+  type="text" 
+  id="searchProducts" 
+  placeholder="Buscar productos..."
+  style="width:250px;padding:8px;margin-bottom:15px;border-radius:10px;border:1px solid #ddd;"
+/>
+
+          <button id="addProductBtn" class="btn btn-primary btn-add-product" style="display:none;">
+  + Agregar producto
+</button>
+        </div>
+
+        <div id="storeProducts" class="products-grid"></div>
+      </section>
+
+    </section>
+  </main>
+
+  <div id="productModal" class="modal hidden">
+    <div class="modal-content modal-content--product">
+      <div class="modal-header">
+        <h2>Nuevo producto</h2>
+        <button id="closeModal" class="modal-close cancel" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <input id="productName" type="text" placeholder="Nombre">
+          <input id="productPrice" type="number" placeholder="Precio">
+          <input id="productBrand" type="text" placeholder="Marca (opcional)">
+          <input id="productSize" type="text" placeholder="Talle / tamaño (opcional)">
+          <input id="productStock" type="number" placeholder="Stock">
+          <input id="productImage" type="text" placeholder="URL imagen">
+        </div>
+
+        <div class="form-checks">
+          <label class="checkbox-row">
+            <input type="checkbox" id="isFood">
+            <span>Producto alimenticio</span>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="needsPrescription">
+            <span>Requiere receta</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="saveProduct" class="btn btn-primary" type="button">Guardar</button>
+        <button class="btn btn-light cancel" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewProductModal" class="modal hidden">
+    <div class="modal-content modal-content--view">
+      <div class="modal-header">
+        <h2>Detalle del producto</h2>
+        <button id="closeViewModal" class="modal-close cancel" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <img id="viewImage" class="view-product-image" alt="Producto">
+
+        <div class="view-product-info">
+          <h3 id="viewName" class="view-product-title"></h3>
+          <div id="viewBrand" class="view-product-brand"></div>
+          <div id="viewPrice" class="view-product-price"></div>
+          <div id="viewBadges" class="view-product-badges"></div>
+        </div>
+      </div>
+
+      <div class="modal-actions modal-actions--between">
+        <div id="productActions"></div>
+        <button class="btn btn-light cancel" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/store-products.js"></script>
+  <script src="/js/store-ui.js"></script>
+</body>
+</html>

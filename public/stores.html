@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tiendas</title>
+  <link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow p-4">
+  <a href="/" class="text-orange-600 font-bold text-xl">PuntoCerca</a>
+</nav>
+
+<main class="max-w-6xl mx-auto p-6">
+
+  <!-- FILTROS -->
+  <div class="flex gap-3 mb-6 flex-wrap">
+
+    <select id="filterCategory" class="border p-2 rounded-lg">
+      <option value="">Todos los rubros</option>
+    </select>
+
+    <select id="filterSort" class="border p-2 rounded-lg">
+      <option value="">Ordenar por</option>
+      <option value="rating">⭐ Mejor calificadas</option>
+      <option value="distance">📍 Más cercanas</option>
+    </select>
+
+  </div>
+
+  <!-- GRID -->
+  <div id="storesContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+</main>
+
+<script src="/js/stores-page.js"></script>
+
+</body>
+</html>

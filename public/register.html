@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro - PuntoCerca</title>
+
+<link rel="stylesheet" href="/css/output.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-white/20 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+    <div class="text-2xl font-bold text-orange-600">
+      PuntoCerca
+    </div>
+    <a href="/" class="text-gray-700 hover:text-orange-600 transition">
+      Inicio
+    </a>
+  </div>
+</nav>
+
+<!-- CONTENIDO -->
+<section class="flex-grow py-20">
+  <div class="max-w-3xl mx-auto px-6">
+
+    <div class="bg-white rounded-2xl shadow-xl p-10">
+
+      <h2 class="text-3xl font-bold text-orange-600 mb-8">
+        Crear Cuenta
+      </h2>
+
+      <!-- ROLE SELECTOR -->
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <button type="button"
+          class="role-btn border-2 border-orange-500 bg-orange-50 rounded-xl py-4 font-semibold transition"
+          data-role="user">
+           Usuario
+        </button>
+
+        <button type="button"
+          class="role-btn border-2 border-gray-300 rounded-xl py-4 font-semibold transition hover:border-orange-400"
+          data-role="seller">
+          Vendedor
+        </button>
+      </div>
+
+      <form id="registerForm" class="space-y-6">
+
+        <input type="text" id="name" placeholder="Nombre completo"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <input type="email" id="email" placeholder="Email"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <input type="password" id="password" placeholder="Contraseña"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <input type="password" id="confirmPassword"
+          placeholder="Confirmar contraseña"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <!-- SELLER -->
+        <div id="sellerFields" class="hidden space-y-6 pt-6 border-t">
+
+          <h3 class="text-xl font-semibold text-orange-600">
+            Datos de la tienda
+          </h3>
+
+          <input type="text" id="storeName" placeholder="Nombre de la tienda"
+            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none">
+
+          <!-- CATEGORÍA -->
+          <select id="storeCategory"
+            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none">
+            <option value="">Seleccionar categoría</option>
+            <option value="Gastronomía">Gastronomía</option>
+            <option value="Comercio">Comercio</option>
+            <option value="Belleza">Belleza y Estética</option>
+            <option value="Salud">Salud</option>
+            <option value="Servicios">Servicios Técnicos</option>
+            <option value="Automotor">Automotor</option>
+            <option value="Educación">Educación</option>
+            <option value="Deportes">Deportes y Recreación</option>
+            <option value="Mascotas">Mascotas</option>
+            <option value="Hogar">Hogar y Construcción</option>
+            <option value="Profesionales">Servicios Profesionales</option>
+            <option value="Eventos">Eventos</option>
+          </select>
+
+          <!-- SUBCATEGORÍA -->
+          <select id="storeSubcategory"
+            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none hidden">
+          </select>
+
+          <div class="flex gap-2">
+            <input type="text" id="storeStreet"
+              placeholder="Dirección"
+              class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none">
+
+            <button type="button" id="searchAddress"
+              class="bg-orange-600 text-white px-4 rounded-xl hover:bg-orange-700 transition">
+              Buscar
+            </button>
+          </div>
+
+          <input type="text" id="storeCity" placeholder="Ciudad"
+            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none">
+
+          <input type="text" id="storePhone" placeholder="Teléfono"
+            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none">
+
+          <div class="rounded-xl overflow-hidden shadow-lg border">
+            <div id="mapSelector" class="h-80"></div>
+          </div>
+
+        </div>
+
+        <button type="submit"
+          class="w-full bg-orange-600 text-white py-4 rounded-full font-semibold hover:bg-orange-700 transition shadow-md hover:shadow-lg">
+          Registrarse
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-gray-300 py-6">
+  <div class="max-w-7xl mx-auto px-6 text-center text-sm">
+    ©️ 2026 PuntoCerca - Plataforma de comercios locales
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+let csrfToken = null;
+
+/* ================================
+   OBTENER CSRF TOKEN
+================================ */
+async function getCsrfToken() {
+  const response = await fetch("/api/csrf-token", {
+    credentials: "include"
+  });
+  const data = await response.json();
+  csrfToken = data.csrfToken;
+}
+
+/* ================================
+   ROLE SELECTOR
+================================ */
+let selectedRole = "user";
+let selectedLat = -32.9442;
+let selectedLng = -60.6505;
+
+document.querySelectorAll(".role-btn").forEach(btn=>{
+  btn.addEventListener("click", function(){
+
+    document.querySelectorAll(".role-btn").forEach(b=>{
+      b.classList.remove("border-orange-500","bg-orange-50");
+      b.classList.add("border-gray-300");
+    });
+
+    this.classList.add("border-orange-500","bg-orange-50");
+    this.classList.remove("border-gray-300");
+
+    selectedRole = this.dataset.role;
+
+    document.getElementById("sellerFields")
+      .classList.toggle("hidden", selectedRole !== "seller");
+
+    setTimeout(()=> map.invalidateSize(), 200);
+  });
+});
+
+/* ================================
+   SUBCATEGORÍAS
+================================ */
+const subcategories = {
+  "Gastronomía": ["Restaurante","Pizzería","Bar","Cafetería","Heladería","Panadería","Rotisería","Parrilla","Comida rápida"],
+  "Comercio": ["Ropa","Electrónica","Ferretería","Librería","Supermercado","Kiosco"],
+  "Belleza": ["Peluquería","Barbería","Estética","Spa","Uñas"],
+  "Salud": ["Clínica","Odontología","Kinesiología","Farmacia","Psicología"],
+  "Servicios": ["Electricista","Plomería","Gasista","Técnico PC","Reparaciones"],
+  "Automotor": ["Taller mecánico","Lavadero","Gomería","Repuestos"],
+  "Educación": ["Instituto","Clases particulares","Academia"],
+  "Deportes": ["Gimnasio","Escuela deportiva","Club"],
+  "Mascotas": ["Veterinaria","Pet Shop","Peluquería canina"],
+  "Hogar": ["Mueblería","Decoración","Construcción"],
+  "Profesionales": ["Abogado","Contador","Arquitecto","Marketing"],
+  "Eventos": ["Salón de eventos","Catering","Fotografía"]
+};
+
+const categorySelect = document.getElementById("storeCategory");
+const subcategorySelect = document.getElementById("storeSubcategory");
+
+categorySelect.addEventListener("change", function() {
+
+  const selected = this.value;
+  subcategorySelect.innerHTML = "";
+
+  if (!selected || !subcategories[selected]) {
+    subcategorySelect.classList.add("hidden");
+    return;
+  }
+
+  subcategorySelect.classList.remove("hidden");
+  subcategorySelect.innerHTML = '<option value="">Seleccionar subcategoría</option>';
+
+  subcategories[selected].forEach(sub => {
+    subcategorySelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+  });
+});
+
+/* ================================
+   MAPA
+================================ */
+const map = L.map('mapSelector').setView([selectedLat, selectedLng], 13);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap & Carto',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+let marker = L.marker([selectedLat, selectedLng], { draggable:true }).addTo(map);
+
+marker.on("dragend", async function(){
+  const pos = marker.getLatLng();
+  selectedLat = pos.lat;
+  selectedLng = pos.lng;
+
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`
+  );
+
+  const data = await response.json();
+
+  if(data.display_name){
+    document.getElementById("storeStreet").value = data.display_name;
+  }
+});
+
+/* ================================
+   SUBMIT
+================================ */
+document.getElementById("registerForm").addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  if (!csrfToken) {
+    await getCsrfToken();
+  }
+
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if(password !== confirmPassword){
+    alert("Las contraseñas no coinciden");
+    return;
+  }
+
+  const data = {
+    name: document.getElementById("name").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    password: password,
+    role: selectedRole
+  };
+
+  if(selectedRole === "seller"){
+
+    if(!categorySelect.value || !subcategorySelect.value){
+      alert("Selecciona categoría y subcategoría");
+      return;
+    }
+
+    data.store = {
+      name: document.getElementById("storeName").value.trim(),
+      category: categorySelect.value,
+      subcategory: subcategorySelect.value,
+      street: document.getElementById("storeStreet").value.trim(),
+      city: document.getElementById("storeCity").value.trim(),
+      phone: document.getElementById("storePhone").value.trim(),
+      lat: selectedLat,
+      lng: selectedLng
+    };
+  }
+
+  const response = await fetch('/api/register',{
+    method:'POST',
+    credentials: "include",
+    headers:{
+      'Content-Type':'application/json',
+      'x-csrf-token': csrfToken
+    },
+    body:JSON.stringify(data)
+  });
+
+  const result = await response.json();
+
+  if(!response.ok){
+    alert(result.error || "Error en registro");
+    return;
+  }
+
+  alert("Revisa tu email para confirmar tu cuenta 📩");
+  window.location.href="/";
+});
+
+getCsrfToken();
+
+</script>
+
+</body>
+</html>

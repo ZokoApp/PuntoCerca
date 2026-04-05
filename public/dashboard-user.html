@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Usuario</title>
+
+<link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="bg-gray-100 flex">
+
+<!-- SIDEBAR -->
+<aside class="w-64 bg-gray-900 text-white min-h-screen p-6">
+
+  <h2 class="text-2xl font-bold text-orange-500 mb-8">PuntoCerca</h2>
+
+  <nav class="flex flex-col gap-4 text-sm">
+
+    <a href="#" class="hover:text-orange-400">Resumen</a>
+
+    <a href="#productsSection">Productos guardados</a>
+
+    <a href="#followingSection" class="hover:text-orange-400">
+      Siguiendo
+    </a>
+
+    
+    <a href="/" class="mt-10 text-gray-400 hover:text-white">
+      ← Volver al inicio
+    </a>
+
+  </nav>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8">
+
+  <div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold">Dashboard</h1>
+
+  <a href="/profile" 
+     class="text-sm bg-gray-200 px-3 py-1 rounded-lg hover:bg-gray-300">
+    Ver perfil
+  </a>
+</div>
+
+  <!-- INFO USUARIO -->
+  <div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">Mi cuenta</h2>
+
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+
+  <div>
+    <p class="text-gray-500 text-sm">Nombre</p>
+    <p id="userName" class="font-semibold"></p>
+  </div>
+
+  <div>
+    <p class="text-gray-500 text-sm">Email</p>
+    <p id="userEmail" class="font-semibold"></p>
+  </div>
+
+  <div>
+    <p class="text-gray-500 text-sm">Tipo</p>
+    <p id="userRole" class="font-semibold"></p>
+  </div>
+
+</div>
+  </div>
+
+  <!-- SIGUIENDO -->
+  <div id="followingSection" class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">Tiendas que sigues</h2>
+
+   <div id="followingList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+  </div>
+
+  <div id="productsSection" class="bg-white rounded-xl shadow p-6 mt-6">
+  <h2 class="text-lg font-semibold mb-4">Productos guardados</h2>
+
+  <div id="productsList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+</div>
+
+
+</main>
+
+<script>
+
+async function loadUser(){
+
+  try{
+    const res = await fetch("/api/me", {
+      credentials:"include"
+    });
+
+    if(!res.ok){
+      window.location.href = "/login";
+      return;
+    }
+
+    const user = await res.json();
+
+    document.getElementById("userName").innerText = user.name;
+    document.getElementById("userEmail").innerText = user.email;
+    document.getElementById("userRole").innerText = user.role;
+
+  }catch(err){
+    console.error(err);
+  }
+
+}
+
+async function loadFavoriteProducts(){
+
+  try {
+
+    const res = await fetch("/api/product-favorites", {
+      credentials: "include"
+    });
+
+    const products = await res.json();
+
+    const container = document.getElementById("productsList");
+    container.innerHTML = "";
+
+    if(!products.length){
+      container.innerHTML = "<p class='text-gray-500'>No guardaste productos</p>";
+      return;
+    }
+
+    products.forEach(p => {
+
+      const div = document.createElement("div");
+      div.className = "border rounded-xl p-2 cursor-pointer hover:shadow";
+
+      div.innerHTML = `
+        <img src="${p.image_url}" class="w-full h-32 object-cover rounded-lg mb-2">
+        <p class="text-sm font-semibold">${p.name}</p>
+        <p class="text-orange-600 font-bold text-sm">
+          $${parseFloat(p.price).toLocaleString()}
+        </p>
+      `;
+
+      div.onclick = () => {
+        window.location.href = `/product/${p.id}`;
+      };
+
+      container.appendChild(div);
+
+    });
+
+  } catch(err){
+    console.error(err);
+  }
+}
+
+
+
+async function loadFollowing(){
+
+  const res = await fetch("/api/following", {
+    credentials:"include"
+  });
+
+  const stores = await res.json();
+
+  const container = document.getElementById("followingList");
+  container.innerHTML = "";
+
+  if(!stores.length){
+    container.innerHTML = "<p class='text-gray-500'>No sigues tiendas</p>";
+    return;
+  }
+
+  stores.forEach(s => {
+
+    const div = document.createElement("div");
+div.className = "border rounded-xl overflow-hidden cursor-pointer hover:shadow transition bg-white";
+
+div.innerHTML = `
+  <div class="h-32 bg-gray-100 flex items-center justify-center">
+    <img src="${s.logo_url || '/img/default-store.png'}" 
+         class="max-h-full object-contain">
+  </div>
+
+  <div class="p-3">
+    <h3 class="text-sm font-semibold">${s.name}</h3>
+    <p class="text-xs text-gray-500">${s.city || ""}</p>
+
+    <div class="flex gap-2 mt-2">
+      <button class="view-btn bg-gray-200 px-2 py-1 rounded text-xs">
+        Ver
+      </button>
+
+      <button class="unfollow-btn bg-red-500 text-white px-2 py-1 rounded text-xs">
+        Dejar
+      </button>
+    </div>
+  </div>
+`;
+// 👉 ir a tienda
+div.querySelector(".view-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  goToStore(s.id);
+});
+
+// 👉 dejar de seguir
+div.querySelector(".unfollow-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  unfollow(s.id);
+});
+
+// 👉 click en toda la card
+div.onclick = () => {
+  goToStore(s.id);
+};
+
+    div.innerHTML = `
+      <div>
+  <strong>${s.name}</strong><br>
+  <span class="text-sm text-gray-500">${s.city || ""}</span>
+</div>
+
+      <div class="flex gap-2">
+        <button onclick="goToStore(${s.id})" class="bg-gray-200 px-2 py-1 rounded text-sm">
+          Ver
+        </button>
+
+        <button onclick="unfollow(${s.id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm">
+          Dejar
+        </button>
+      </div>
+    `;
+
+    container.appendChild(div);
+    
+
+  });
+
+}
+
+function goToStore(id){
+  window.location.href = `/store/${id}`;
+}
+
+async function unfollow(id){
+
+  await fetch(`/api/follow/${id}`, {
+    method:"DELETE",
+    credentials:"include"
+  });
+
+  loadFollowing();
+}
+
+// INIT
+loadUser();
+
+loadFollowing();
+
+loadFavoriteProducts();
+
+</script>
+
+</body>
+</html>

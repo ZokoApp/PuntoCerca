@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - PuntoCerca</title>
+
+<link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+    <div class="text-2xl font-bold text-orange-600">
+      PuntoCerca
+    </div>
+    <a href="/" class="text-gray-700 hover:text-orange-600 transition">
+      Inicio
+    </a>
+  </div>
+</nav>
+
+<!-- CONTENIDO -->
+<section class="flex-grow py-24">
+  <div class="max-w-md mx-auto px-6">
+
+    <div class="bg-white rounded-2xl shadow-xl p-10">
+
+      <h2 class="text-3xl font-bold text-orange-600 mb-8 text-center">
+        Iniciar Sesión
+      </h2>
+
+      <form id="loginForm" class="space-y-6">
+
+        <input type="email" id="email"
+          placeholder="Email"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <input type="password" id="password"
+          placeholder="Contraseña"
+          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
+          required>
+
+        <button type="submit"
+          class="w-full bg-orange-600 text-white py-4 rounded-full font-semibold hover:bg-orange-700 transition shadow-md">
+          Ingresar
+        </button>
+
+        <p class="text-center text-sm mt-4">
+  ¿No recibiste el email de verificación?
+</p>
+
+<button id="resendBtn"
+class="w-full mt-2 bg-gray-200 py-3 rounded-xl hover:bg-gray-300 transition">
+  Reenviar email
+</button>
+
+      </form>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-gray-300 py-6">
+  <div class="max-w-7xl mx-auto px-6 text-center text-sm">
+    ©️ 2026 PuntoCerca - Plataforma de comercios locales
+  </div>
+</footer>
+
+<script>
+
+let csrfToken = null;
+
+/* ================================
+   OBTENER CSRF TOKEN
+================================ */
+async function getCsrfToken() {
+
+  const response = await fetch("/api/csrf-token", {
+    credentials: "include"
+  });
+
+  const data = await response.json();
+  csrfToken = data.csrfToken;
+}
+
+/* ================================
+   LOGIN
+================================ */
+document.getElementById("loginForm")
+.addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  if (!csrfToken) {
+    await getCsrfToken();
+  }
+
+  const data = {
+    email: document.getElementById("email").value.trim(),
+    password: document.getElementById("password").value.trim()
+  };
+
+  try {
+
+    const response = await fetch("/api/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": csrfToken
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || "Error en login");
+      return;
+    }
+
+    alert("Bienvenido " + result.name);
+    window.location.href = "/";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error de conexión con el servidor");
+  }
+
+});
+
+document.getElementById("resendBtn")
+.addEventListener("click", async () => {
+
+  const email = document.getElementById("email").value.trim();
+
+  if(!email){
+    alert("Ingresa tu email primero.");
+    return;
+  }
+
+  const response = await fetch("/api/resend-verification", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "x-csrf-token": csrfToken
+    },
+    body: JSON.stringify({ email })
+  });
+
+  const result = await response.json();
+
+  alert(result.message || result.error);
+
+});
+
+/* Obtener token al cargar */
+getCsrfToken();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - PuntoCerca</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="dashboard-page">
+
+  <aside class="dashboard-sidebar">
+    <a href="/" class="sidebar-link">
+   Inicio
+</a>
+    <div class="sidebar-brand">PuntoCerca</div>
+
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="sidebar-link active">Resumen</a>
+      <a href="#productsSection" class="sidebar-link">Productos</a>
+      <a href="/new-product" class="sidebar-link">Crear producto</a>
+      <a href="#" id="editStoreLink" class="sidebar-link">Editar tienda</a>
+      <a href="/" class="sidebar-link">Ver marketplace</a>
+    </nav>
+  </aside>
+
+  <main class="dashboard-main">
+
+    <header class="dashboard-header">
+      <div>
+        <p class="dashboard-kicker">Panel del vendedor</p>
+        <h1 class="dashboard-title">Dashboard</h1>
+      </div>
+
+      <div class="dashboard-header-right">
+        <span id="dashboardUserName" class="dashboard-user">Cargando...</span>
+      </div>
+    </header>
+
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <span class="metric-label">Tienda</span>
+        <strong id="metricStoreName" class="metric-value">-</strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-label">Productos</span>
+        <strong id="metricProducts" class="metric-value">0</strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-label">Seguidores</span>
+        <strong id="metricFollowers" class="metric-value">0</strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-label">Visitas</span>
+        <strong id="metricViews" class="metric-value">0</strong>
+      </article>
+    </section>
+
+    <section class="panel-card quick-actions">
+      <div class="panel-head">
+        <div>
+          <h2>Acciones rápidas</h2>
+          <p>Gestioná tu tienda desde un solo lugar</p>
+        </div>
+      </div>
+
+      <div class="quick-actions-grid">
+        <a href="/new-product" class="quick-action action-primary">
+          <span class="quick-action-title">+ Agregar producto</span>
+          <span class="quick-action-text">Publicá un nuevo producto</span>
+        </a>
+
+        <a href="#" id="quickEditStore" class="quick-action">
+          <span class="quick-action-title">Editar tienda</span>
+          <span class="quick-action-text">Actualizá logo, portada y descripción</span>
+        </a>
+
+        <a href="#" id="quickViewStore" class="quick-action">
+          <span class="quick-action-title">Ver mi tienda</span>
+          <span class="quick-action-text">Abrí tu perfil público</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="productsSection" class="panel-card">
+      <div class="panel-head panel-head--space">
+        <div>
+          <h2>Mis productos</h2>
+
+          <div class="dashboard-section">
+  <h2>Tiendas que seguís</h2>
+  <div id="followingStores"></div>
+</div>
+          <p>Listado completo de lo publicado en tu tienda</p>
+        </div>
+
+        <a href="/new-product" class="btn-primary">+ Nuevo producto</a>
+      </div>
+
+      <div id="dashboardProducts" class="dashboard-products-grid"></div>
+    </section>
+
+    <div class="dashboard-section">
+  <h2>Tiendas que seguís</h2>
+  <div id="followingStores"></div>
+</div>
+
+  </main>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

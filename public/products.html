@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Productos</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <nav>
+  <div class="logo">PuntoCerca</div>
+
+  <ul>
+    <li><a href="/">Inicio</a></li>
+    <li><a href="/products">Productos</a></li>
+    <li><a href="/map">Mapa</a></li>
+  </ul>
+</nav>
+<a href="#" onclick="history.back()" class="back-btn">← Volver</a>
+
+  <div class="products-topbar">
+
+  <div class="products-title">
+    <h1>Productos</h1>
+    <span>Explorá lo que hay cerca tuyo</span>
+  </div>
+
+  <div class="products-actions">
+
+    <div class="search-box">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Buscar productos..."
+      />
+      <span class="search-icon"></span>
+    </div>
+
+    <select id="filterSelect" class="filter-select">
+      <option value="">Ordenar</option>
+      <option value="cheap"> Más baratos</option>
+      <option value="expensive"> Más caros</option>
+      <option value="best"> Mejor valorados</option>
+    </select>
+
+  </div>
+
+</div>
+  <!-- 🛒 LISTA -->
+  <div id="productsContainer"></div>
+
+  <script src="/js/products.js"></script>
+
+</body>
+</html>

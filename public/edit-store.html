@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editar Tienda</title>
+
+<link rel="stylesheet" href="/css/dashboard.css">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+<aside class="dashboard-sidebar">
+  <div class="sidebar-brand">PuntoCerca</div>
+
+  <nav class="sidebar-nav">
+    <a href="/dashboard" class="sidebar-link">Dashboard</a>
+    <a href="#" class="sidebar-link active">Editar tienda</a>
+  </nav>
+</aside>
+
+<main class="dashboard-main">
+
+  <header class="dashboard-header">
+    <h1 class="dashboard-title">Editar tienda</h1>
+  </header>
+
+  <section class="panel-card">
+
+    <form id="editStoreForm" class="form-grid">
+
+      <div class="form-group">
+        <label>Nombre</label>
+        <input id="name" required>
+      </div>
+
+      <div class="form-group">
+  <label>Categoría</label>
+  <select id="category"></select>
+</div>
+
+<div class="form-group">
+  <label>Subcategoría</label>
+  <div id="subcategoryContainer" class="subcategory-container"></div>
+</div>
+
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input id="phone">
+      </div>
+
+      <div class="form-group">
+        <label>Ciudad</label>
+        <input id="city">
+      </div>
+
+      <!-- DIRECCIÓN -->
+<div class="form-group full">
+  <label>Dirección</label>
+
+  <div class="location-box">
+    <span id="streetDisplay">Seleccionar ubicación</span>
+    <button type="button" id="openMap">📍</button>
+  </div>
+</div>
+
+<!-- DATOS EXTRA -->
+<div class="form-group">
+  <label>Local</label>
+  <input id="local" placeholder="Ej: Local 3">
+</div>
+
+<div class="form-group">
+  <label>Piso / Dpto</label>
+  <input id="apartment" placeholder="Ej: 2B">
+</div>
+
+<div class="form-group full">
+  <label>Referencias</label>
+  <input id="references" placeholder="Ej: Portón negro, frente a la plaza">
+</div>
+
+      <div class="form-group full">
+        <label>Descripción</label>
+        <textarea id="description"></textarea>
+      </div>
+
+      <!-- LOGO -->
+<div class="upload-box" id="logoBox">
+  <img id="logoPreview" src="" alt="Logo">
+  <span>Cambiar logo</span>
+  <input type="file" id="logoFile" accept="image/*">
+</div>
+
+<!-- PORTADA -->
+<div class="upload-box cover" id="coverBox">
+  <img id="coverPreview" src="" alt="Portada">
+  <span>Cambiar portada</span>
+  <input type="file" id="coverFile" accept="image/*">
+</div>
+      <button class="btn-primary full">Guardar cambios</button>
+
+    </form>
+
+  </section>
+
+</main>
+
+<div id="mapModal" class="map-modal hidden">
+
+  <div class="map-content">
+
+    <!-- HEADER -->
+    <div class="map-header">
+      <h3>Ubicación de la tienda</h3>
+      <button id="closeMap" class="map-close">✕</button>
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="map-search">
+      <input id="searchAddress" placeholder="Buscar dirección o zona...">
+    </div>
+
+    <!-- MAPA -->
+    <div id="map" class="map-box"></div>
+
+    <!-- FOOTER -->
+    <div class="map-footer">
+      <button id="saveLocation" class="btn-save-location">
+        Guardar ubicación
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="/js/edit-store.js"></script>
+
+</body>
+</html>
