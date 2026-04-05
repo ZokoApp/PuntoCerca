@@ -145,6 +145,19 @@ document.getElementById("resendBtn")
     return;
   }
 
+  document.getElementById("resendBtn")
+.addEventListener("click", async () => {
+
+  const email = document.getElementById("email").value.trim();
+
+  if(!email){
+    alert("Ingresa tu email primero.");
+    return;
+  }
+
+  // 🔥 AGREGÁ ESTA LÍNEA
+  await getCsrfToken();
+
   const response = await fetch("/api/resend-verification", {
     method: "POST",
     credentials: "include",
