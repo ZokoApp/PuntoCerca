@@ -113,7 +113,7 @@ document.getElementById("loginForm")
       credentials: "include",
       headers: {
   "Content-Type": "application/json",
-  "CSRF-Token": csrfToken
+  "x-csrf-token": csrfToken
 },
       body: JSON.stringify(data)
     });
@@ -137,6 +137,7 @@ document.getElementById("loginForm")
 
 document.getElementById("resendBtn")
 .addEventListener("click", async () => {
+  console.log("CLICK RESEND");
 
   const email = document.getElementById("email").value.trim();
 
@@ -154,7 +155,7 @@ document.getElementById("resendBtn")
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "CSRF-Token": csrfToken
+        "x-csrf-token": csrfToken
       },
       body: JSON.stringify({ email })
     });
