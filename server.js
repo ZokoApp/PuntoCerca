@@ -231,16 +231,20 @@ if (role === "seller") {
         const verificationLink =
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
-        await resend.emails.send({
-  from: "PuntoCerca <no-reply@puntocerca.com.ar>",
+        const data = await resend.emails.send({
+  from: "onboarding@resend.dev",
   to: email,
-  subject: "Verifica tu cuenta",
+  subject: "Verifica tu cuenta - PuntoCerca",
   html: `
-    <h2>Bienvenido a PuntoCerca</h2>
-    <p>Haz click para verificar tu cuenta:</p>
-    <a href="${verificationLink}">Verificar Email</a>
+    <h2>Verifica tu cuenta</h2>
+    <p>Haz click en el siguiente enlace:</p>
+    <a href="${verificationLink}">
+      Verificar Email
+    </a>
   `
 });
+
+console.log("RESEND RESPONSE:", data);
 
         res.status(201).json({
             message: "Usuario creado. Revisa tu email para verificar tu cuenta."
