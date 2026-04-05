@@ -723,8 +723,8 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
 
     const result = await pool.query(
       `INSERT INTO products
-(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
       RETURNING *`,
       [
         name,
