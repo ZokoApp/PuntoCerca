@@ -16,6 +16,7 @@ const path = require("path");
 
 
 
+
 require('dotenv').config();
 
 
@@ -24,21 +25,27 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads/");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "puntocerca",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
   },
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
 });
 
 const upload = multer({
   storage,
-  limits: { files: 5 } // máximo 5 imágenes
+  limits: { files: 5 }
 });
-
 /* ================================
    TOKEN CONFIG
 ================================ */
@@ -635,7 +642,7 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
     let images = [];
 
     if (req.files && req.files.length > 0) {
-      images = req.files.map(file => "/uploads/" + file.filename);
+      images = req.files.map(file => file.path);
     }
 
     const mainImage = images[0] || null;
@@ -709,15 +716,15 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
     let images = [];
 
     if (req.files && req.files.length > 0) {
-      images = req.files.map(file => "/uploads/" + file.filename);
+      images = req.files.map(file => file.path);
     }
 
     const mainImage = images[0] || null;
 
     const result = await pool.query(
       `INSERT INTO products
-      (name, price, image_url, images, store_id, brand, size, stock, extra, colors, category)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
       RETURNING *`,
       [
         name,
@@ -1147,11 +1154,11 @@ let cover_url = null;
 
 // archivos
 if (req.files?.logo) {
-  logo_url = "/uploads/" + req.files.logo[0].filename;
+  logo_url = req.files.logo[0].path;
 }
 
 if (req.files?.cover) {
-  cover_url = "/uploads/" + req.files.cover[0].filename;
+  cover_url = req.files.cover[0].path;
 }
 
 let subcategoriesToSave = null;
