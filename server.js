@@ -1375,6 +1375,10 @@ app.get('/api/stores/slug/:slug', async (req, res) => {
 
 });
 
+app.get('/store/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/store.html'));
+});
+
 
 /* ================================
    VERIFY EMAIL
