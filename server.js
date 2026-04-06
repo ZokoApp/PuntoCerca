@@ -1040,7 +1040,7 @@ app.get('/api/stores', async (req, res) => {
 
     if (subcategory_id) {
   values.push(subcategory_id);
-  conditions.push(`$${values.length} = ANY(subcategory_ids)`);
+  conditions.push(`$${values.length}::int = ANY(subcategory_ids)`);
 }
 
     if (conditions.length) {
