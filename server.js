@@ -1287,9 +1287,48 @@ app.get('/profile', (req, res) => {
   res.sendFile(__dirname + '/public/profile.html');
 });
 
+app.get('/api/store-by-slug/:slug', async (req, res) => {
 
-app.get('/store/:id', (req, res) => {
-    res.sendFile(__dirname + '/public/store.html');
+  const { slug } = req.params;
+
+  try {
+
+    const result = await pool.query(
+      `SELECT * FROM stores WHERE slug = $1`,
+      [slug]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Tienda no encontrada" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+
+});
+
+
+app.get('/:slug', (req, res) => {
+
+  const slug = req.params.slug;
+
+  // ⚠️ evitar conflictos con otras rutas
+  if (
+    slug === "api" ||
+    slug === "login" ||
+    slug === "register" ||
+    slug === "products" ||
+    slug === "map" ||
+    slug === "offers"
+  ) {
+    return;
+  }
+
+  res.sendFile(path.join(__dirname, 'public/store.html'));
 });
 
 app.get('/stores', (req, res) => {
@@ -1314,6 +1353,27 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
+app.get('/api/stores/slug/:slug', async (req, res) => {
+
+  try {
+
+    const result = await pool.query(
+      `SELECT * FROM stores WHERE slug = $1`,
+      [req.params.slug]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Tienda no encontrada" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo tienda" });
+  }
+
+});
 
 
 /* ================================

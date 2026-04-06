@@ -247,7 +247,7 @@ ${subcategories}
   const mapBtn = card.querySelector(".btn-map");
 
   viewBtn.addEventListener("click", () => {
-      window.location.href = `/store/${store.id}`;
+      window.location.href = `/${store.slug}`;
   });
 
   mapBtn.addEventListener("click", () => {
@@ -337,9 +337,9 @@ if (store.subcategory_ids) {
         ${productsHTML}
       </div>
 
-      <a href="/store/${store.id}" class="btn-primary">
-        Ver tienda
-      </a>
+      <a href="/${store.slug}" class="btn-primary">
+  Ver tienda
+</a>
 
     </div>
   `;

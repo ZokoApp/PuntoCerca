@@ -4,7 +4,7 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 
-const storeId = window.location.pathname.split("/").pop();
+const storeSlug = window.location.pathname.split("/").pop();
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
@@ -36,7 +36,7 @@ async function loadStore(){
 
   try {
 
-    const res = await fetch(`/api/stores/${storeId}`);
+    const res = await fetch(`/api/stores/slug/${storeSlug}`);
     const store = await res.json();
 
     storeData = store;
