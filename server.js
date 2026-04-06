@@ -1038,8 +1038,8 @@ app.get('/api/stores', async (req, res) => {
       conditions.push(`category = $${values.length}`);
     }
 
-    if (subcategory_id) {
-  values.push(subcategory_id);
+    iif (subcategory_id) {
+  values.push(JSON.stringify([subcategory_id]));
 
   conditions.push(`
     subcategory_ids @> $${values.length}::jsonb
