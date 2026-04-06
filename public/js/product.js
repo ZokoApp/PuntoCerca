@@ -180,21 +180,28 @@ favBtn.addEventListener("click", async () => {
   }
 });
   // =============================
-  // WHATSAPP
-  // =============================
-  document.getElementById("contactBtn").addEventListener("click", () => {
+// WHATSAPP
+// =============================
+document.getElementById("contactBtn").addEventListener("click", () => {
 
-    const mensaje = `Hola! Quiero consultar por este producto:
+  if (!product.store_phone) {
+    alert("Esta tienda no tiene teléfono cargado");
+    return;
+  }
+
+  const telefono = product.store_phone.replace(/\D/g, "");
+
+  const mensaje = `Hola! Quiero consultar por este producto:
 
 ${product.name}
-$${product.price}
+$${parseFloat(product.price).toLocaleString()}
+
+¿Está disponible?
 
 ${window.location.href}`;
 
-    const telefono = "549XXXXXXXXXX";
-
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`);
-  });
+  window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
+});
 
   // =============================
   // COMENTARIOS

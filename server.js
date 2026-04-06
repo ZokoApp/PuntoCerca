@@ -541,11 +541,12 @@ app.get('/api/products/:id', async (req, res) => {
     // 🔥 producto + tienda
     const result = await pool.query(`
       SELECT 
-        p.*, 
-        s.name as store_name
-      FROM products p
-      LEFT JOIN stores s ON p.store_id = s.id
-      WHERE p.id = $1
+  p.*, 
+  s.name as store_name,
+  s.phone as store_phone
+FROM products p
+LEFT JOIN stores s ON p.store_id = s.id
+WHERE p.id = $1
     `, [id]);
 
     if (!result.rows.length) {
