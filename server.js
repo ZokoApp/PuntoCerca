@@ -548,7 +548,8 @@ app.get('/api/products/:id', async (req, res) => {
       SELECT 
   p.*, 
   s.name as store_name,
-  s.phone as store_phone
+  s.phone as store_phone,
+  s.slug as store_slug
 FROM products p
 LEFT JOIN stores s ON p.store_id = s.id
 WHERE p.id = $1
