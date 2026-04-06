@@ -231,12 +231,12 @@ ${subcategories}
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
-card.innerHTML = `
+ccard.innerHTML = `
   <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
 
-  <h3>${store.name}</h3>
+  <h3 style="text-align:center;">${store.name}</h3>
 
-  <p style="font-size:13px;color:#666;margin:4px 0;">
+  <p style="font-size:13px;color:#666;margin:4px 0;text-align:center;">
      ${store.street || "Sin dirección"}
   </p>
 
