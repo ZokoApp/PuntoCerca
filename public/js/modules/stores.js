@@ -253,8 +253,9 @@ card.innerHTML = `
   <h3 style="text-align:center;">${store.name}</h3>
 
   <p class="status-badge ${open ? 'open' : 'closed'}">
-    ${open ? '🟢 Abierto' : '🔴 Cerrado'}
-  </p>
+  <span class="dot"></span>
+  ${open ? 'Abierto' : 'Cerrado'}
+</p>
 
   <p style="font-size:13px;color:#666;margin:4px 0;text-align:center;">
     📍 ${store.street || "Sin dirección"}
