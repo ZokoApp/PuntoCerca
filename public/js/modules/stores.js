@@ -227,21 +227,32 @@ ${subcategories}
 
           storeMarkers[store.id] = marker;
 
-          const card = document.createElement("div");
-  card.className = "card";
-  card.setAttribute("data-id", store.id);
           card.innerHTML = `
-      <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
-      <h3>${store.name}</h3>
-      <div class="card-buttons">
-          <button class="btn-view">
-              Ver tienda
-          </button>
-          <button class="btn-map">
-              Ver en mapa
-          </button>
-      </div>
-  `;
+  <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
+
+  <h3>${store.name}</h3>
+
+  <p style="font-size:13px;color:#666;margin:4px 0;">
+     ${store.street || "Sin dirección"}
+  </p>
+
+  <p style="font-size:13px;color:#f59e0b;margin-bottom:8px;">
+    ${
+      store.rating_count > 0
+        ? `⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})`
+        : "Sin valoraciones"
+    }
+  </p>
+
+  <div class="card-buttons">
+      <button class="btn-view">
+          Ver tienda
+      </button>
+      <button class="btn-map">
+          Ver en mapa
+      </button>
+  </div>
+`;
 
   const viewBtn = card.querySelector(".btn-view");
   const mapBtn = card.querySelector(".btn-map");
