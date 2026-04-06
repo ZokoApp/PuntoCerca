@@ -417,3 +417,40 @@ scroll-behavior: smooth;
 .follow-card a:hover {
   opacity: 0.85;
 }
+
+.status-badge {
+  display: block;
+  margin: 6px auto;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  width: fit-content;
+}
+
+/* ABIERTO */
+.status-badge.open {
+  background: #22c55e;
+  color: white;
+  animation: pulseGreen 1.5s infinite;
+}
+
+/* CERRADO */
+.status-badge.closed {
+  background: #ef4444;
+  color: white;
+  animation: pulseRed 1.5s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(1); box-shadow: 0 0 5px rgba(34,197,94,0.6); }
+  50% { transform: scale(1.08); box-shadow: 0 0 20px rgba(34,197,94,1); }
+  100% { transform: scale(1); box-shadow: 0 0 5px rgba(34,197,94,0.6); }
+}
+
+@keyframes pulseRed {
+  0% { transform: scale(1); box-shadow: 0 0 5px rgba(239,68,68,0.6); }
+  50% { transform: scale(1.08); box-shadow: 0 0 20px rgba(239,68,68,1); }
+  100% { transform: scale(1); box-shadow: 0 0 5px rgba(239,68,68,0.6); }
+}
