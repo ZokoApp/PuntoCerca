@@ -63,6 +63,21 @@ const SUBCATEGORY_MAP = {
   export let activeCard = null;
 
   const usedPositions = {};
+function isStoreOpen(store) {
+  if (!store.is_open) return false;
+  if (!store.opening_time || !store.closing_time) return false;
+
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const [oh, om] = store.opening_time.split(":").map(Number);
+  const [ch, cm] = store.closing_time.split(":").map(Number);
+
+  const open = oh * 60 + om;
+  const close = ch * 60 + cm;
+
+  return current >= open && current <= close;
+}
 
 function getPositionKey(lat, lng) {
   return `${Number(lat).toFixed(5)}_${Number(lng).toFixed(5)}`;
@@ -228,6 +243,7 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
+        const open = isStoreOpen(store);
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
@@ -236,11 +252,15 @@ card.innerHTML = `
 
   <h3 style="text-align:center;">${store.name}</h3>
 
-  <p style="font-size:13px;color:#666;margin:4px 0;text-align:center;">
-     ${store.street || "Sin dirección"}
+  <p class="status-badge ${open ? 'open' : 'closed'}">
+    ${open ? '🟢 Abierto' : '🔴 Cerrado'}
   </p>
 
-  <p style="font-size:13px;color:#f59e0b;margin-bottom:8px;">
+  <p style="font-size:13px;color:#666;margin:4px 0;text-align:center;">
+    📍 ${store.street || "Sin dirección"}
+  </p>
+
+  <p style="font-size:13px;color:#f59e0b;margin-bottom:8px;text-align:center;">
     ${
       store.rating_count > 0
         ? `⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})`
