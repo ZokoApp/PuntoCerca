@@ -1038,7 +1038,7 @@ app.get('/api/stores', async (req, res) => {
       conditions.push(`category = $${values.length}`);
     }
 
-    iif (subcategory_id) {
+    if (subcategory_id) {
   values.push(JSON.stringify([subcategory_id]));
 
   conditions.push(`
