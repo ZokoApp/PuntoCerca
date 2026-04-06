@@ -51,6 +51,8 @@ async function loadUser(){
 
 async function loadStore(){
 
+  console.log("STORE DATA:", store);
+
   try {
 
     const res = await fetch(`/api/stores/slug/${storeSlug}`);
