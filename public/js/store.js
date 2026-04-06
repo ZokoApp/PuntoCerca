@@ -4,6 +4,23 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 
+function isStoreOpen(store) {
+  if (!store.is_open) return false;
+
+  if (!store.opening_time || !store.closing_time) return false;
+
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  const [openH, openM] = store.opening_time.split(":").map(Number);
+  const [closeH, closeM] = store.closing_time.split(":").map(Number);
+
+  const openTime = openH * 60 + openM;
+  const closeTime = closeH * 60 + closeM;
+
+  return currentTime >= openTime && currentTime <= closeTime;
+}
+
 const storeSlug = window.location.pathname.split("/").pop();
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -280,10 +297,16 @@ function renderStore(store){
 
   // INFO
   document.getElementById("storeName").innerText = store.name;
+  const open = isStoreOpen(store);
+
+const statusHTML = open
+  ? `<span style="color:green;font-weight:bold;">🟢 Abierto</span>`
+  : `<span style="color:red;font-weight:bold;">🔴 Cerrado</span>`;
+
+document.getElementById("storeStatus").innerHTML = statusHTML;
   document.getElementById("storeCategory").innerText = store.category || "";
   document.getElementById("storeAddress").innerText =
-  store.street || "Sin dirección";
-
+  `${store.street || ''} ${store.local || ''}`.trim() || "Sin dirección";
   document.getElementById("storeDescription").innerText =
     store.description || "";
 
@@ -291,7 +314,7 @@ function renderStore(store){
     `⭐ ${store.rating_avg || 0} (${store.rating_count || 0}) • 👁 ${store.views || 0} visitas`;
 
   // seguidores
-  fetch(`/api/store-followers/${storeId}`)
+  fetch(`/api/store-followers/${store.id}`)
     .then(res => res.json())
     .then(data => {
       const stats = document.getElementById("storeStats");
