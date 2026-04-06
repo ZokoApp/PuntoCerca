@@ -5,7 +5,12 @@ document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
 
-  const storeId = window.location.pathname.split("/").pop();
+  const storeRes = await fetch(`/api/stores/slug/${slug}`);
+const store = await storeRes.json();
+
+const storeId = store.id;
+
+  const slug = window.location.pathname.split("/").pop();
 
   // 🔐 verificar si es dueño
   try {
@@ -14,8 +19,8 @@ async function init() {
     if (resUser.ok) {
       const user = await resUser.json();
 
-      const storeRes = await fetch(`/api/stores/${storeId}`);
-      const store = await storeRes.json();
+      const storeRes = await fetch(`/api/stores/slug/${slug}`);
+const store = await storeRes.json();
 
       if (store.user_id === user.id) {
         isOwner = true;
