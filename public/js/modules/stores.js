@@ -227,7 +227,11 @@ ${subcategories}
 
           storeMarkers[store.id] = marker;
 
-          card.innerHTML = `
+          const card = document.createElement("div");
+card.className = "card";
+card.setAttribute("data-id", store.id);
+
+card.innerHTML = `
   <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
 
   <h3>${store.name}</h3>
@@ -245,12 +249,8 @@ ${subcategories}
   </p>
 
   <div class="card-buttons">
-      <button class="btn-view">
-          Ver tienda
-      </button>
-      <button class="btn-map">
-          Ver en mapa
-      </button>
+      <button class="btn-view">Ver tienda</button>
+      <button class="btn-map">Ver en mapa</button>
   </div>
 `;
 
