@@ -77,7 +77,7 @@ console.log("IMAGES:", product.images);
 
   const storeLink = document.getElementById("storeLink");
   storeLink.innerText = product.store_name;
-  storeLink.href = `/store/${product.store_id}`;
+  storeLink.href = `/${product.store_slug}`;
 
   // =============================
 // GALERÍA DE IMÁGENES
