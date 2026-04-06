@@ -1039,8 +1039,15 @@ app.get('/api/stores', async (req, res) => {
     }
 
     if (subcategory_id) {
-  values.push(subcategory_id);
-  conditions.push(`subcategory_ids IS NOT NULL AND $${values.length}::int = ANY(subcategory_ids)`);
+  values.push(parseInt(subcategory_id));
+
+  conditions.push(`
+    subcategory_ids IS NOT NULL 
+    AND EXISTS (
+      SELECT 1 FROM unnest(subcategory_ids) AS x
+      WHERE x = $${values.length}
+    )
+  `);
 }
 
     if (conditions.length) {
