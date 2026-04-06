@@ -229,10 +229,15 @@ app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
 const userId = userResult.rows[0].id;
 
 if (role === "seller") {
+    const slug = name
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '');
+
     await pool.query(
-        `INSERT INTO stores (user_id, name)
-         VALUES ($1, $2)`,
-        [userId, name]
+        `INSERT INTO stores (user_id, name, slug)
+         VALUES ($1, $2, $3)`,
+        [userId, name, slug]
     );
 }
 

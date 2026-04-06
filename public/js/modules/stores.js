@@ -247,7 +247,9 @@ ${subcategories}
   const mapBtn = card.querySelector(".btn-map");
 
   viewBtn.addEventListener("click", () => {
-      window.location.href = `/${store.slug}`;
+     window.location.href = store.slug 
+  ? `/${store.slug}` 
+  : `/store/${store.id}`;
   });
 
   mapBtn.addEventListener("click", () => {
