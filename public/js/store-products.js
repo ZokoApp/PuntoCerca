@@ -5,12 +5,13 @@ document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
 
-  const storeRes = await fetch(`/api/stores/slug/${slug}`);
-const store = await storeRes.json();
-
-const storeId = store.id;
-
   const slug = window.location.pathname.split("/").pop();
+
+  // 🔥 obtener tienda por slug
+  const storeRes = await fetch(`/api/stores/slug/${slug}`);
+  const store = await storeRes.json();
+
+  const storeId = store.id;
 
   // 🔐 verificar si es dueño
   try {
@@ -18,9 +19,6 @@ const storeId = store.id;
 
     if (resUser.ok) {
       const user = await resUser.json();
-
-      const storeRes = await fetch(`/api/stores/slug/${slug}`);
-const store = await storeRes.json();
 
       if (store.user_id === user.id) {
         isOwner = true;
