@@ -1083,6 +1083,74 @@ app.get('/api/my-store', authMiddleware, async (req, res) => {
 });
 
 /* ================================
+   CREATE STORE (ONBOARDING)
+================================ */
+
+app.post('/api/stores', authMiddleware, async (req, res) => {
+
+  const { name, city, phone } = req.body;
+
+  try {
+
+    // 🔒 verificar si ya tiene tienda
+    const existing = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        error: "Ya tienes una tienda creada"
+      });
+    }
+
+    // 🔥 generar slug limpio
+    const baseSlug = name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    // 🔁 asegurar slug único
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM stores WHERE slug = $1`,
+        [slug]
+      );
+
+      if (check.rows.length === 0) break;
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    // ✅ crear tienda
+    const result = await pool.query(
+      `INSERT INTO stores (user_id, name, slug, city, phone)
+       VALUES ($1,$2,$3,$4,$5)
+       RETURNING *`,
+      [
+        req.user.id,
+        name,
+        slug,
+        city || null,
+        phone || null
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error creando tienda" });
+  }
+
+});
+
+/* ================================
    GET STORE BY ID
 ================================ */
 
