@@ -21,7 +21,23 @@ function isStoreOpen(store) {
   return currentTime >= openTime && currentTime <= closeTime;
 }
 
-const storeSlug = window.location.pathname.split("/").pop();
+// ===============================
+// DETECTAR ID O SLUG
+// ===============================
+
+const pathParts = window.location.pathname.split("/");
+
+// ejemplo:
+// /store/3  → ["", "store", "3"]
+
+let storeId = null;
+let storeSlug = null;
+
+if (pathParts[1] === "store") {
+  storeId = pathParts[2];
+} else {
+  storeSlug = pathParts[1];
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
@@ -53,8 +69,18 @@ async function loadStore(){
 
   try {
 
-    const res = await fetch(`/api/stores/slug/${storeSlug}`);
-    const store = await res.json();
+    let res;
+
+if (storeId) {
+  res = await fetch(`/api/stores/${storeId}`);
+} else if (storeSlug) {
+  res = await fetch(`/api/stores/slug/${storeSlug}`);
+} else {
+  console.error("No hay ID ni slug");
+  return;
+}
+
+const store = await res.json();
 
     
 
