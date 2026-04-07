@@ -161,55 +161,76 @@ categorySelect.addEventListener("change", () => {
   loadSubcategories(categorySelect.value);
 });
 
-  // =============================
-  // CARGAR DATOS
-  // =============================
+ // =============================
+// CARGAR DATOS
+// =============================
+
+if (store) {
+
+  // ✏️ EDITAR TIENDA
 
   document.getElementById("name").value = store.name || "";
-  // setear categoría
-categorySelect.value = store.category || "";
+  categorySelect.value = store.category || "";
 
-// cargar subcategorías + seleccionar la correcta
   let selectedSubs = [];
 
-if (store.subcategory_ids) {
-  try {
-    selectedSubs = typeof store.subcategory_ids === "string"
-      ? JSON.parse(store.subcategory_ids)
-      : store.subcategory_ids;
-  } catch {
-    selectedSubs = [];
+  if (store.subcategory_ids) {
+    try {
+      selectedSubs = typeof store.subcategory_ids === "string"
+        ? JSON.parse(store.subcategory_ids)
+        : store.subcategory_ids;
+    } catch {
+      selectedSubs = [];
+    }
+  } else if (store.subcategory_id) {
+    selectedSubs = [parseInt(store.subcategory_id)];
   }
-} else if (store.subcategory_id) {
-  selectedSubs = [parseInt(store.subcategory_id)];
-}
 
-loadSubcategories(store.category, selectedSubs);
+  loadSubcategories(store.category, selectedSubs);
+
   document.getElementById("phone").value = store.phone || "";
   document.getElementById("city").value = store.city || "";
+
   const streetDisplay = document.getElementById("streetDisplay");
 
-if (store.street) {
-  const parts = store.street.split(",");
+  if (store.street) {
+    const parts = store.street.split(",");
+    let streetPart = parts[0].trim();
 
-  let streetPart = parts[0].trim();
+    if (/^\d+/.test(streetPart)) {
+      const [number, ...rest] = streetPart.split(" ");
+      streetPart = `${rest.join(" ")} ${number}`;
+    }
 
-  // 🔥 SI VIENE "2153 Rosa Silvestre" → lo invertimos
-  if (/^\d+/.test(streetPart)) {
-    const [number, ...rest] = streetPart.split(" ");
-    streetPart = `${rest.join(" ")} ${number}`;
+    streetDisplay.textContent = streetPart;
+    streetDisplay.dataset.fullAddress = store.street;
+  } else {
+    streetDisplay.textContent = "Seleccionar ubicación";
   }
 
-  streetDisplay.textContent = streetPart;
-  streetDisplay.dataset.fullAddress = store.street;
-} else {
-  streetDisplay.textContent = "Seleccionar ubicación";
-}
   document.getElementById("description").value = store.description || "";
   document.getElementById("local").value = store.local || "";
-  document.getElementById("apartment").value = store.apartment || ""; 
+  document.getElementById("apartment").value = store.apartment || "";
   document.getElementById("references").value = store.reference_notes || "";
 
+  // previews
+  document.getElementById("logoPreview").src =
+    store.logo_url || "/img/default.png";
+
+  document.getElementById("coverPreview").src =
+    store.cover_url || "/img/default-cover.jpg";
+
+} else {
+
+  // 🆕 CREAR TIENDA
+
+  console.log("Modo creación limpio");
+
+  loadSubcategories(categorySelect.value);
+
+  document.getElementById("logoPreview").src = "/img/default.png";
+  document.getElementById("coverPreview").src = "/img/default-cover.jpg";
+}
   // =============================
   // PREVIEW INICIAL
   // =============================
@@ -266,8 +287,8 @@ if (store.street) {
 
 let map = null;
 let marker = null;
-let selectedLat = store.lat || null;
-let selectedLng = store.lng || null;
+let selectedLat = store ? store.lat : null;
+let selectedLng = store ? store.lng : null;
 
 const mapModal = document.getElementById("mapModal");
 const openMapBtn = document.getElementById("openMap");
@@ -277,7 +298,7 @@ const searchAddressInput = document.getElementById("searchAddress");
 
 function createStoreIcon() {
   return L.icon({
-    iconUrl: store.logo_url || "/img/default.png",
+    iconUrl: (store && store.logo_url) ? store.logo_url : "/img/default.png",
     iconSize: [42, 42],
     iconAnchor: [21, 42],
     popupAnchor: [0, -36],
