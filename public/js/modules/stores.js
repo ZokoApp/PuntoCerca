@@ -243,7 +243,9 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-        const open = isStoreOpen(store);
+       const open = store.opening_time
+  ? isStoreOpen(store)
+  : store.is_open;
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
