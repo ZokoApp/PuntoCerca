@@ -267,10 +267,13 @@ app.get('/product/:id', (req, res) => {
 });
 
 
-app.post('/api/stores', authMiddleware, upload.fields([
-  { name: "logo", maxCount: 1 },
-  { name: "cover", maxCount: 1 }
-]), async (req, res) => {
+app.post('/api/stores',
+  authMiddleware,
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "cover", maxCount: 1 }
+  ]),
+  async (req, res) => {
 
   try {
 
@@ -289,6 +292,42 @@ app.post('/api/stores', authMiddleware, upload.fields([
       lng
     } = req.body;
 
+    // 🔒 evitar duplicados
+    const existing = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        error: "Ya tienes una tienda creada"
+      });
+    }
+
+    // 🔥 GENERAR SLUG
+    const baseSlug = name
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM stores WHERE slug = $1`,
+        [slug]
+      );
+
+      if (check.rows.length === 0) break;
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     let logo_url = null;
     let cover_url = null;
 
@@ -302,12 +341,13 @@ app.post('/api/stores', authMiddleware, upload.fields([
 
     const result = await pool.query(
       `INSERT INTO stores 
-      (user_id, name, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+      (user_id, name, slug, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
       RETURNING *`,
       [
         req.user.id,
         name,
+        slug,
         description,
         phone,
         city,
@@ -324,7 +364,7 @@ app.post('/api/stores', authMiddleware, upload.fields([
       ]
     );
 
-    res.json(result.rows[0]);
+    res.status(201).json(result.rows[0]);
 
   } catch (error) {
     console.error(error);
@@ -1148,73 +1188,6 @@ app.get('/api/my-store', authMiddleware, async (req, res) => {
 
 });
 
-/* ================================
-   CREATE STORE (ONBOARDING)
-================================ */
-
-app.post('/api/stores', authMiddleware, async (req, res) => {
-
-  const { name, city, phone } = req.body;
-
-  try {
-
-    // 🔒 verificar si ya tiene tienda
-    const existing = await pool.query(
-      `SELECT id FROM stores WHERE user_id = $1`,
-      [req.user.id]
-    );
-
-    if (existing.rows.length > 0) {
-      return res.status(400).json({
-        error: "Ya tienes una tienda creada"
-      });
-    }
-
-    // 🔥 generar slug limpio
-    const baseSlug = name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
-
-    let slug = baseSlug;
-    let counter = 1;
-
-    // 🔁 asegurar slug único
-    while (true) {
-      const check = await pool.query(
-        `SELECT id FROM stores WHERE slug = $1`,
-        [slug]
-      );
-
-      if (check.rows.length === 0) break;
-
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
-
-    // ✅ crear tienda
-    const result = await pool.query(
-      `INSERT INTO stores (user_id, name, slug, city, phone)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING *`,
-      [
-        req.user.id,
-        name,
-        slug,
-        city || null,
-        phone || null
-      ]
-    );
-
-    res.status(201).json(result.rows[0]);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error creando tienda" });
-  }
-
-});
 
 /* ================================
    GET STORE BY ID
