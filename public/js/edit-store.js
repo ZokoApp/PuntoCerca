@@ -231,16 +231,7 @@ if (store) {
   document.getElementById("logoPreview").src = "/img/default.png";
   document.getElementById("coverPreview").src = "/img/default-cover.jpg";
 }
-  // =============================
-  // PREVIEW INICIAL
-  // =============================
-
-  document.getElementById("logoPreview").src =
-    store.logo_url || "/img/default.png";
-
-  document.getElementById("coverPreview").src =
-    store.cover_url || "/img/default-cover.jpg";
-
+  
   // =============================
   // CLICK EN CAJAS
   // =============================
