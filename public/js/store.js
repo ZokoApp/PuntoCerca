@@ -51,12 +51,12 @@ async function loadUser(){
 
 async function loadStore(){
 
-  console.log("STORE DATA:", store);
-
   try {
 
     const res = await fetch(`/api/stores/slug/${storeSlug}`);
     const store = await res.json();
+
+    console.log("STORE DATA:", store); 
 
     storeData = store;
 
@@ -69,7 +69,11 @@ async function loadStore(){
     setupMap(store);
     handleUIByRole(store);
 
-    // ✅ NUEVO: verificar si sigue la tienda
+    if (!currentUser) {
+  if (followBtn) followBtn.style.display = "none";
+}
+
+    
     if(currentUser && !isOwner){
       checkFollowing(store.id);
     }
@@ -301,9 +305,28 @@ function renderStore(store){
   document.getElementById("storeName").innerText = store.name;
   const open = isStoreOpen(store);
 
-const statusHTML = open
-  ? `<span style="color:green;font-weight:bold;">🟢 Abierto</span>`
-  : `<span style="color:red;font-weight:bold;">🔴 Cerrado</span>`;
+cconst statusHTML = `
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:6px;
+    font-weight:bold;
+    color:${open ? '#16a34a' : '#dc2626'};
+  ">
+    <span style="
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:${open ? '#16a34a' : '#dc2626'};
+      box-shadow:0 0 12px ${open ? 'rgba(22,163,74,.7)' : 'rgba(220,38,38,.7)'};
+      animation:${open ? 'pulseGreen 1.2s infinite' : 'pulseRed 1.2s infinite'};
+      display:inline-block;
+    "></span>
+    ${open ? 'Abierto' : 'Cerrado'}
+  </div>
+`;
 
 document.getElementById("storeStatus").innerHTML = statusHTML;
   document.getElementById("storeCategory").innerText = store.category || "";
