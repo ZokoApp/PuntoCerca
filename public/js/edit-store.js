@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   store = await res.json();
 }
 
-  store = await res.json();
+  
 
   // =============================
 // CATEGORÍAS (LOAD)
@@ -506,12 +506,16 @@ if (store && store.id) {
   });
 }
 
-      if(res.ok){
-        alert("Tienda actualizada 🚀");
-        window.location.href = `/store/${store.id}`; // 🔥 ya corregido
-      } else {
-        alert("Error al guardar");
-      }
+      if (res.ok) {
+  const savedStore = await res.json();
+
+  alert(store ? "Tienda actualizada 🚀" : "Tienda creada 🚀");
+
+  window.location.href = `/${savedStore.slug}`;
+} else {
+  const errorData = await res.json().catch(() => ({}));
+  alert(errorData.error || "Error al guardar");
+}
 
     } catch (err){
       console.error(err);
