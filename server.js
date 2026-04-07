@@ -266,6 +266,72 @@ app.get('/product/:id', (req, res) => {
     res.sendFile(__dirname + '/public/product.html');
 });
 
+
+app.post('/api/stores', authMiddleware, upload.fields([
+  { name: "logo", maxCount: 1 },
+  { name: "cover", maxCount: 1 }
+]), async (req, res) => {
+
+  try {
+
+    const { 
+      name, 
+      description, 
+      phone, 
+      city, 
+      category, 
+      subcategory_ids,
+      street,
+      local,
+      apartment,
+      reference_notes,
+      lat,
+      lng
+    } = req.body;
+
+    let logo_url = null;
+    let cover_url = null;
+
+    if (req.files?.logo) {
+      logo_url = req.files.logo[0].path;
+    }
+
+    if (req.files?.cover) {
+      cover_url = req.files.cover[0].path;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO stores 
+      (user_id, name, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+      RETURNING *`,
+      [
+        req.user.id,
+        name,
+        description,
+        phone,
+        city,
+        category,
+        subcategory_ids,
+        street,
+        local,
+        apartment,
+        reference_notes,
+        lat || null,
+        lng || null,
+        logo_url,
+        cover_url
+      ]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error creando tienda" });
+  }
+
+});
 /* ================================
    LOGIN
 ================================ */
