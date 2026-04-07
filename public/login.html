@@ -50,13 +50,13 @@
         </button>
 
         <p class="text-center text-sm mt-4">
-  ¿No recibiste el email de verificación?
-</p>
+          ¿No recibiste el email de verificación?
+        </p>
 
-<button id="resendBtn" type="button"
-class="w-full mt-2 bg-gray-200 py-3 rounded-xl hover:bg-gray-300 transition">
-  Reenviar email
-</button>
+        <button id="resendBtn" type="button"
+          class="w-full mt-2 bg-gray-200 py-3 rounded-xl hover:bg-gray-300 transition">
+          Reenviar email
+        </button>
 
       </form>
 
@@ -77,14 +77,12 @@ class="w-full mt-2 bg-gray-200 py-3 rounded-xl hover:bg-gray-300 transition">
 let csrfToken = null;
 
 /* ================================
-   OBTENER CSRF TOKEN
+   CSRF
 ================================ */
 async function getCsrfToken() {
-
   const response = await fetch("/api/csrf-token", {
     credentials: "include"
   });
-
   const data = await response.json();
   csrfToken = data.csrfToken;
 }
@@ -112,9 +110,9 @@ document.getElementById("loginForm")
       method: "POST",
       credentials: "include",
       headers: {
-  "Content-Type": "application/json",
-  "x-csrf-token": csrfToken
-},
+        "Content-Type": "application/json",
+        "x-csrf-token": csrfToken
+      },
       body: JSON.stringify(data)
     });
 
@@ -125,8 +123,48 @@ document.getElementById("loginForm")
       return;
     }
 
-    alert("Bienvenido " + result.name);
-    window.location.href = "/";
+    // 🔥 LOGIN INTELIGENTE
+    try {
+
+      const meRes = await fetch("/api/me", {
+        credentials: "include"
+      });
+
+      if (!meRes.ok) {
+        window.location.href = "/";
+        return;
+      }
+
+      const user = await meRes.json();
+
+      alert("Bienvenido " + user.name);
+
+      // 👤 usuario normal
+      if (user.role !== "seller") {
+        window.location.href = "/";
+        return;
+      }
+
+      // 🧑‍💼 seller → ver si tiene tienda
+      const storeRes = await fetch("/api/my-store", {
+        credentials: "include"
+      });
+
+      if (storeRes.status === 404) {
+        // 🚨 NO tiene tienda
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      const store = await storeRes.json();
+
+      // ✅ tiene tienda
+      window.location.href = "/" + store.slug;
+
+    } catch (err) {
+      console.error(err);
+      window.location.href = "/";
+    }
 
   } catch (error) {
     console.error(error);
@@ -135,9 +173,11 @@ document.getElementById("loginForm")
 
 });
 
+/* ================================
+   RESEND EMAIL
+================================ */
 document.getElementById("resendBtn")
 .addEventListener("click", async () => {
-  console.log("CLICK RESEND");
 
   const email = document.getElementById("email").value.trim();
 
@@ -170,7 +210,7 @@ document.getElementById("resendBtn")
   }
 
 });
-/* Obtener token al cargar */
+
 getCsrfToken();
 
 </script>
