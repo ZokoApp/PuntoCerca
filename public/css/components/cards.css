@@ -360,3 +360,57 @@
   justify-content: center;
   text-align: center;
 }
+
+.mini-product {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.mini-product:hover {
+  transform: scale(1.05);
+}
+
+.preview-image-wrapper {
+  position: relative;
+}
+
+.preview-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  background: rgba(255,255,255,0.95);
+  padding: 6px 10px;
+  border-radius: 20px;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.preview-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.preview-status.open {
+  color: #22c55e;
+}
+
+.preview-status.open .dot {
+  background: #22c55e;
+  animation: pulseDotGreen 1.2s infinite;
+}
+
+.preview-status.closed {
+  color: #ef4444;
+}
+
+.preview-status.closed .dot {
+  background: #ef4444;
+  animation: pulseDotRed 1.2s infinite;
+}
