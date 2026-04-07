@@ -9,11 +9,11 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
+{ v4: uuidv4 } = require('uuid');
+jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
-const csrf = require('csurf');
+cookieParser = require('cookie-parser');
+csrf = require('csurf');
 const multer = require("multer");
 const path = require("path");
 
@@ -213,7 +213,19 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
 
 app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
 
-    const { name, email, password, role } = req.body;
+    const { 
+  name, 
+  email, 
+  password, 
+  role,
+  store_name,
+  category,
+  street,
+  city,
+  phone,
+  lat,
+  lng
+} = req.body;
 
     try {
 
@@ -231,15 +243,29 @@ app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
 const userId = userResult.rows[0].id;
 
 if (role === "seller") {
-    const slug = name
+
+    const storeName = store_name || name;
+
+    const slug = storeName
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w-]+/g, '');
 
     await pool.query(
-        `INSERT INTO stores (user_id, name, slug)
-         VALUES ($1, $2, $3)`,
-        [userId, name, slug]
+        `INSERT INTO stores 
+        (user_id, name, slug, category, street, city, phone, lat, lng)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [
+          userId,
+          storeName,
+          slug,
+          category || null,
+          street || null,
+          city || null,
+          phone || null,
+          lat || null,
+          lng || null
+        ]
     );
 }
 
