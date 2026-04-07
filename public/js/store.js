@@ -4,10 +4,14 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 
+/* ================================
+   STATUS
+================================ */
+
 function isStoreOpen(store) {
   if (!store.is_open) return false;
 
-  if (!store.opening_time || !store.closing_time) return false;
+  if (!store.opening_time || !store.closing_time) return store.is_open;
 
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -21,14 +25,39 @@ function isStoreOpen(store) {
   return currentTime >= openTime && currentTime <= closeTime;
 }
 
-// ===============================
-// DETECTAR ID O SLUG
-// ===============================
+function updateStoreStatus(store) {
+  const open = isStoreOpen(store);
+
+  const statusHTML = `
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin-top:6px;
+      font-weight:bold;
+      color:${open ? '#16a34a' : '#dc2626'};
+    ">
+      <span style="
+        width:10px;
+        height:10px;
+        border-radius:50%;
+        background:${open ? '#16a34a' : '#dc2626'};
+        box-shadow:0 0 12px ${open ? 'rgba(22,163,74,.7)' : 'rgba(220,38,38,.7)'};
+        display:inline-block;
+      "></span>
+      ${open ? 'Abierto' : 'Cerrado'}
+    </div>
+  `;
+
+  document.getElementById("storeStatus").innerHTML = statusHTML;
+}
+
+/* ================================
+   DETECTAR ID / SLUG
+================================ */
 
 const pathParts = window.location.pathname.split("/");
-
-// ejemplo:
-// /store/3  → ["", "store", "3"]
 
 let storeId = null;
 let storeSlug = null;
@@ -38,6 +67,10 @@ if (pathParts[1] === "store") {
 } else {
   storeSlug = pathParts[1];
 }
+
+/* ================================
+   INIT
+================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
@@ -51,14 +84,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadUser(){
   try {
     const res = await fetch("/api/me", { credentials: "include" });
-
     if(res.ok){
       currentUser = await res.json();
     }
-
-  } catch (err){
-    console.log("Usuario no logueado");
-  }
+  } catch {}
 }
 
 /* ================================
@@ -71,22 +100,18 @@ async function loadStore(){
 
     let res;
 
-if (storeId) {
-  res = await fetch(`/api/stores/${storeId}`);
-} else if (storeSlug) {
-  res = await fetch(`/api/stores/slug/${storeSlug}`);
-} else {
-  console.error("No hay ID ni slug");
-  return;
-}
+    if (storeId) {
+      res = await fetch(`/api/stores/${storeId}`);
+    } else if (storeSlug) {
+      res = await fetch(`/api/stores/slug/${storeSlug}`);
+    } else {
+      return;
+    }
 
-const store = await res.json();
-
-    
+    const store = await res.json();
 
     storeData = store;
 
-    // 🔐 detectar dueño
     if(currentUser && store.user_id === currentUser.id){
       isOwner = true;
     }
@@ -95,8 +120,6 @@ const store = await res.json();
     setupMap(store);
     handleUIByRole(store);
 
-    
-    
     if(currentUser && !isOwner){
       checkFollowing(store.id);
     }
@@ -107,168 +130,130 @@ const store = await res.json();
 }
 
 /* ================================
-   UI SEGÚN ROL
+   UI POR ROL
 ================================ */
 
 function handleUIByRole(store){
 
-  const addBtn = document.getElementById("addProductBtn");
   const whatsappBtn = document.getElementById("whatsappBtn");
   const mapBtn = document.getElementById("mapButton");
   const followBtn = document.getElementById("followBtn");
-  const editBtn = document.getElementById("editStoreBtn");
 
   if(isOwner){
 
-    // MOSTRAR NAV DE DUEÑO
-const ownerActions = document.getElementById("ownerActions");
+    // NAV OWNER
+    const ownerActions = document.getElementById("ownerActions");
+    if(ownerActions) ownerActions.style.display = "flex";
 
-if(ownerActions){
-  ownerActions.style.display = "flex";
-}
-
-const logoutBtn = document.getElementById("logoutBtn");
-
-if(logoutBtn){
-  logoutBtn.addEventListener("click", async () => {
-
-    try {
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"  
-      });
-
-      window.location.href = "/";
-
-    } catch {
-      alert("Error cerrando sesión");
+    const logoutBtn = document.getElementById("logoutBtn");
+    if(logoutBtn){
+      logoutBtn.onclick = async () => {
+        await fetch("/api/logout", { method:"POST", credentials:"include" });
+        window.location.href = "/";
+      };
     }
 
-  });
-}
-
-
-
-    //  OCULTAR botones de visitante
+    // OCULTAR VISITANTE
     if(whatsappBtn) whatsappBtn.style.display = "none";
     if(mapBtn) mapBtn.style.display = "none";
     if(followBtn) followBtn.style.display = "none";
 
-  
-    
+    // 👉 CONTROL ABIERTO/CERRADO
+    const ownerControl = document.getElementById("ownerStatusControl");
+
+    if(ownerControl){
+      ownerControl.style.display = "block";
+
+      const select = document.getElementById("storeStatusSelect");
+
+      if(select){
+        select.value = store.is_open ? "true" : "false";
+
+        select.onchange = async () => {
+          const newValue = select.value === "true";
+
+          try {
+            const res = await fetch(`/api/stores/${store.id}`, {
+              method: "PUT",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ is_open: newValue })
+            });
+
+            if(res.ok){
+              store.is_open = newValue;
+              updateStoreStatus(store);
+            } else {
+              alert("Error actualizando estado");
+            }
+
+          } catch {
+            alert("Error de conexión");
+          }
+        };
+      }
+    }
 
   } else {
 
-    // 👤 VISITANTE
-
-    if(addBtn) addBtn.style.display = "none";
-    if(editBtn) editBtn.style.display = "none";
+    // VISITANTE
 
     if(whatsappBtn){
+      whatsappBtn.style.display = "inline-block";
 
-  whatsappBtn.style.display = "inline-block";
-
-  if(currentUser){
-
-    // ✅ usuario logueado → comportamiento normal
-    if(store.phone){
-      whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g,'')}`;
+      if(currentUser){
+        if(store.phone){
+          whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g,'')}`;
+        }
+      } else {
+        whatsappBtn.onclick = (e) => {
+          e.preventDefault();
+          window.location.href = "/login";
+        };
+      }
     }
 
-  } else {
-
-    // 🚫 NO logueado → bloquear y forzar login
-    whatsappBtn.href = "#";
-
-    whatsappBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-
-      alert("Tenés que iniciar sesión para contactar con la tienda");
-
-      // opcional: redirigir
-      window.location.href = "/login";
-    });
-
-  }
-}
     if(mapBtn){
-      mapBtn.style.display = "inline-block";
+      mapBtn.onclick = () => {
+        document.getElementById("storeMap").scrollIntoView({ behavior:'smooth' });
+      };
+    }
 
-      mapBtn.addEventListener("click", () => {
-        document.getElementById("storeMap").scrollIntoView({
-          behavior:'smooth'
+    if(followBtn && currentUser){
+      followBtn.style.display = "inline-block";
+
+      followBtn.onclick = async () => {
+        const isFollowing = followBtn.innerText === "Siguiendo";
+
+        await fetch(`/api/follow${isFollowing ? "/" + store.id : ""}`, {
+          method: isFollowing ? "DELETE" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: isFollowing ? null : JSON.stringify({ store_id: store.id })
         });
-      });
 
+        followBtn.innerText = isFollowing ? "Seguir" : "Siguiendo";
+      };
     }
-    
-
-    if(followBtn){
-  if(currentUser){
-    followBtn.style.display = "inline-block";
-
-    followBtn.onclick = async () => {
-  try {
-
-    if (followBtn.innerText === "Siguiendo") {
-      const res = await fetch(`/api/follow/${store.id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-
-      if (!res.ok) throw new Error();
-
-      followBtn.innerText = "Seguir";
-
-    } else {
-      const res = await fetch(`/api/follow`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ store_id: store.id })
-      });
-
-      if (!res.ok) throw new Error();
-
-      followBtn.innerText = "Siguiendo";
-    }
-
-  } catch (err) {
-    console.error("Error siguiendo/dejando de seguir tienda:", err);
-  }
-};
-  } else {
-    followBtn.style.display = "none";
   }
 }
 
-    
-  }
-}
-
-
+/* ================================
+   FOLLOW
+================================ */
 
 async function checkFollowing(storeId) {
-  try {
-    const res = await fetch(`/api/is-following/${storeId}`, {
-      credentials: "include"
-    });
+  const res = await fetch(`/api/is-following/${storeId}`, {
+    credentials: "include"
+  });
 
-    if (!res.ok) return;
+  if (!res.ok) return;
 
-    const data = await res.json();
+  const data = await res.json();
+  const btn = document.getElementById("followBtn");
 
-    const btn = document.getElementById("followBtn");
-    if (!btn) return;
-
-    if (data.following) {
-      btn.innerText = "Siguiendo";
-    } else {
-      btn.innerText = "Seguir";
-    }
-
-  } catch (err) {
-    console.error("Error verificando follow:", err);
+  if (btn) {
+    btn.innerText = data.following ? "Siguiendo" : "Seguir";
   }
 }
 
@@ -278,25 +263,18 @@ async function checkFollowing(storeId) {
 
 function setupMap(store){
 
-  const lat = store.lat || -34.6037; // fallback
+  const lat = store.lat || -34.6037;
   const lng = store.lng || -58.3816;
 
   const map = L.map('storeMap').setView([lat, lng], 16);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap & Carto',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);
-  L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(store.name)
-    .openPopup();
+    maxZoom: 19
+  }).addTo(map);
 
-  // 🔥 FIX típico leaflet
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 300);
+  L.marker([lat, lng]).addTo(map).bindPopup(store.name);
+
+  setTimeout(() => map.invalidateSize(), 300);
 }
 
 /* ================================
@@ -310,63 +288,36 @@ function renderStore(store){
     return;
   }
 
-  // COVER
   const cover = document.getElementById("storeCover");
-  if(store.cover_url){
-    cover.style.backgroundImage = `url('${store.cover_url}')`;
-  } else {
-    cover.style.background = "linear-gradient(135deg,#ff6a00,#ff8c42)";
-  }
+  cover.style.background = store.cover_url
+    ? `url('${store.cover_url}')`
+    : "linear-gradient(135deg,#ff6a00,#ff8c42)";
 
-  // LOGO
   if(store.logo_url){
     document.getElementById("storeLogo").style.backgroundImage =
       `url('${store.logo_url}')`;
   }
 
-  // INFO
   document.getElementById("storeName").innerText = store.name;
-  const open = isStoreOpen(store);
 
-const statusHTML = `
-  <div style="
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin-top:6px;
-    font-weight:bold;
-    color:${open ? '#16a34a' : '#dc2626'};
-  ">
-    <span style="
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background:${open ? '#16a34a' : '#dc2626'};
-      box-shadow:0 0 12px ${open ? 'rgba(22,163,74,.7)' : 'rgba(220,38,38,.7)'};
-      animation:${open ? 'pulseGreen 1.2s infinite' : 'pulseRed 1.2s infinite'};
-      display:inline-block;
-    "></span>
-    ${open ? 'Abierto' : 'Cerrado'}
-  </div>
-`;
+  // 🔥 STATUS separado
+  updateStoreStatus(store);
 
-document.getElementById("storeStatus").innerHTML = statusHTML;
   document.getElementById("storeCategory").innerText = store.category || "";
   document.getElementById("storeAddress").innerText =
-  `${store.street || ''} ${store.local || ''}`.trim() || "Sin dirección";
+    `${store.street || ''} ${store.local || ''}`.trim() || "Sin dirección";
+
   document.getElementById("storeDescription").innerText =
     store.description || "";
 
-  document.getElementById("storeStats").innerText =
-    `⭐ ${store.rating_avg || 0} (${store.rating_count || 0}) • 👁 ${store.views || 0} visitas`;
+  const stats = document.getElementById("storeStats");
 
-  // seguidores
+  stats.innerText =
+    `⭐ ${store.rating_avg || 0} (${store.rating_count || 0})`;
+
   fetch(`/api/store-followers/${store.id}`)
     .then(res => res.json())
     .then(data => {
-      const stats = document.getElementById("storeStats");
       stats.innerText += ` • ${data.count} seguidores`;
     });
-
 }
