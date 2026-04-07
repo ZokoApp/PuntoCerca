@@ -348,3 +348,15 @@
 #storePreview .no-rating {
   text-align: left;
 }
+#storePreview h3 {
+  text-align: center;
+}
+
+#storePreview .store-address {
+  text-align: center;
+}
+
+#storePreview .store-meta {
+  justify-content: center;
+  text-align: center;
+}
