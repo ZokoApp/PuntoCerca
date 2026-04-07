@@ -93,11 +93,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     credentials: "include"
   });
 
-  if(!res.ok){
-    alert("No tenés tienda");
-    window.location.href = "/dashboard";
-    return;
-  }
+  if (res.status === 404) {
+  console.log("Modo creación de tienda");
+  store = null; // 🔥 IMPORTANTE
+} else if (!res.ok) {
+  alert("Error cargando tienda");
+  return;
+} else {
+  store = await res.json();
+}
 
   store = await res.json();
 
@@ -484,11 +488,23 @@ formData.append(
 
     try {
 
-      const res = await fetch(`/api/stores/${store.id}`, {
-        method: "PUT",
-        credentials: "include",
-        body: formData
-      });
+      let res;
+
+if (store && store.id) {
+  // ✏️ EDITAR
+  res = await fetch(`/api/stores/${store.id}`, {
+    method: "PUT",
+    credentials: "include",
+    body: formData
+  });
+} else {
+  // 🆕 CREAR
+  res = await fetch(`/api/stores`, {
+    method: "POST",
+    credentials: "include",
+    body: formData
+  });
+}
 
       if(res.ok){
         alert("Tienda actualizada 🚀");
