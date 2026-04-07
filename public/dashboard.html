@@ -4,17 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - PuntoCerca</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
+
 <body class="dashboard-page">
 
   <aside class="dashboard-sidebar">
-    <a href="/" class="sidebar-link">
-   Inicio
-</a>
+    <a href="/" class="sidebar-link">Inicio</a>
     <div class="sidebar-brand">PuntoCerca</div>
 
     <nav class="sidebar-nav">
@@ -39,79 +37,161 @@
       </div>
     </header>
 
-    <section class="metrics-grid">
-      <article class="metric-card">
-        <span class="metric-label">Tienda</span>
-        <strong id="metricStoreName" class="metric-value">-</strong>
-      </article>
+    <!-- 🚨 ONBOARDING -->
+    <section id="onboarding" class="panel-card" style="display:none;">
+      <h2>🚀 Bienvenido</h2>
+      <p>Es tu primera vez. Creá tu tienda para empezar.</p>
 
-      <article class="metric-card">
-        <span class="metric-label">Productos</span>
-        <strong id="metricProducts" class="metric-value">0</strong>
-      </article>
+      <form id="createStoreForm" style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+        <input type="text" id="storeName" placeholder="Nombre de la tienda" required />
+        <input type="text" id="storeCity" placeholder="Ciudad" required />
+        <input type="text" id="storePhone" placeholder="Teléfono" />
 
-      <article class="metric-card">
-        <span class="metric-label">Seguidores</span>
-        <strong id="metricFollowers" class="metric-value">0</strong>
-      </article>
-
-      <article class="metric-card">
-        <span class="metric-label">Visitas</span>
-        <strong id="metricViews" class="metric-value">0</strong>
-      </article>
+        <button type="submit" class="btn-primary">Crear tienda</button>
+      </form>
     </section>
 
-    <section class="panel-card quick-actions">
-      <div class="panel-head">
-        <div>
-          <h2>Acciones rápidas</h2>
-          <p>Gestioná tu tienda desde un solo lugar</p>
+    <!-- ✅ DASHBOARD NORMAL -->
+    <div id="dashboardContent" style="display:none;">
+
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <span class="metric-label">Tienda</span>
+          <strong id="metricStoreName" class="metric-value">-</strong>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Productos</span>
+          <strong id="metricProducts" class="metric-value">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Seguidores</span>
+          <strong id="metricFollowers" class="metric-value">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Visitas</span>
+          <strong id="metricViews" class="metric-value">0</strong>
+        </article>
+      </section>
+
+      <section class="panel-card quick-actions">
+        <h2>Acciones rápidas</h2>
+
+        <div class="quick-actions-grid">
+          <a href="/new-product" class="quick-action action-primary">
+            + Agregar producto
+          </a>
+
+          <a href="#" id="quickEditStore" class="quick-action">
+            Editar tienda
+          </a>
+
+          <a href="#" id="quickViewStore" class="quick-action">
+            Ver mi tienda
+          </a>
         </div>
-      </div>
+      </section>
 
-      <div class="quick-actions-grid">
-        <a href="/new-product" class="quick-action action-primary">
-          <span class="quick-action-title">+ Agregar producto</span>
-          <span class="quick-action-text">Publicá un nuevo producto</span>
-        </a>
+      <section id="productsSection" class="panel-card">
+        <h2>Mis productos</h2>
+        <div id="dashboardProducts"></div>
+      </section>
 
-        <a href="#" id="quickEditStore" class="quick-action">
-          <span class="quick-action-title">Editar tienda</span>
-          <span class="quick-action-text">Actualizá logo, portada y descripción</span>
-        </a>
-
-        <a href="#" id="quickViewStore" class="quick-action">
-          <span class="quick-action-title">Ver mi tienda</span>
-          <span class="quick-action-text">Abrí tu perfil público</span>
-        </a>
-      </div>
-    </section>
-
-    <section id="productsSection" class="panel-card">
-      <div class="panel-head panel-head--space">
-        <div>
-          <h2>Mis productos</h2>
-
-          <div class="dashboard-section">
-  <h2>Tiendas que seguís</h2>
-  <div id="followingStores"></div>
-</div>
-          <p>Listado completo de lo publicado en tu tienda</p>
-        </div>
-
-        <a href="/new-product" class="btn-primary">+ Nuevo producto</a>
-      </div>
-
-      <div id="dashboardProducts" class="dashboard-products-grid"></div>
-    </section>
-
-    <div class="dashboard-section">
-  <h2>Tiendas que seguís</h2>
-  <div id="followingStores"></div>
-</div>
+    </div>
 
   </main>
 
-  <script src="/js/dashboard.js"></script>
+<script>
+let currentStore = null;
+
+/* ================================
+   INIT
+================================ */
+async function initDashboard(){
+
+  try {
+
+    // usuario
+    const meRes = await fetch("/api/me", { credentials:"include" });
+    const user = await meRes.json();
+
+    document.getElementById("dashboardUserName").innerText = user.name;
+
+    // tienda
+    const storeRes = await fetch("/api/my-store", { credentials:"include" });
+
+    if(storeRes.status === 404){
+      // 🚨 NO TIENE TIENDA
+      document.getElementById("onboarding").style.display = "block";
+      return;
+    }
+
+    // ✅ TIENE TIENDA
+    const store = await storeRes.json();
+    currentStore = store;
+
+    document.getElementById("dashboardContent").style.display = "block";
+
+    document.getElementById("metricStoreName").innerText = store.name;
+
+    // botones
+    document.getElementById("quickViewStore").onclick = () => {
+      window.location.href = "/" + store.slug;
+    };
+
+    document.getElementById("quickEditStore").onclick = () => {
+      window.location.href = "/edit-store?id=" + store.id;
+    };
+
+  } catch (err){
+    console.error(err);
+  }
+
+}
+
+/* ================================
+   CREAR TIENDA
+================================ */
+document.getElementById("createStoreForm")
+.addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("storeName").value,
+    city: document.getElementById("storeCity").value,
+    phone: document.getElementById("storePhone").value
+  };
+
+  try {
+
+    const res = await fetch("/api/stores", {
+      method:"POST",
+      credentials:"include",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if(!res.ok){
+      alert(result.error || "Error creando tienda");
+      return;
+    }
+
+    // 🚀 REDIRECT A SU TIENDA
+    window.location.href = "/" + result.slug;
+
+  } catch (err){
+    console.error(err);
+  }
+
+});
+
+initDashboard();
+</script>
+
 </body>
 </html>
