@@ -43,9 +43,15 @@ async function loadStore(){
       credentials: "include"
     });
 
-    if(!res.ok){
-      throw new Error("No store");
-    }
+    if(res.status === 404){
+  // 🚨 NO tiene tienda → lo mandamos a crearla
+  window.location.href = "/edit-store";
+  return;
+}
+
+if(!res.ok){
+  throw new Error("Error cargando tienda");
+}
 
     myStore = await res.json();
 
