@@ -250,28 +250,30 @@ card.setAttribute("data-id", store.id);
 card.innerHTML = `
   <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
 
-  <h3 style="text-align:center;">${store.name}</h3>
+  <div class="card-content">
 
-  <p class="status-badge ${open ? 'open' : 'closed'}">
-  <span class="dot"></span>
-  ${open ? 'Abierto' : 'Cerrado'}
-</p>
+    <h3>${store.name}</h3>
 
-  <p style="font-size:13px;color:#666;margin:4px 0;text-align:center;">
-    📍 ${store.street || "Sin dirección"}
-  </p>
+    <div class="status-badge ${store.is_open ? 'open' : 'closed'}">
+      <span class="dot"></span>
+      ${store.is_open ? 'Abierto' : 'Cerrado'}
+    </div>
 
-  <p style="font-size:13px;color:#f59e0b;margin-bottom:8px;text-align:center;">
-    ${
-      store.rating_count > 0
-        ? `⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})`
-        : "Sin valoraciones"
-    }
-  </p>
+    <p>${store.street || "Sin dirección"}</p>
+
+    <p>
+      ${
+        store.rating_count > 0
+          ? `⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})`
+          : "Sin valoraciones"
+      }
+    </p>
+
+  </div>
 
   <div class="card-buttons">
-      <button class="btn-view">Ver tienda</button>
-      <button class="btn-map">Ver en mapa</button>
+    <button class="btn-view">Ver tienda</button>
+    <button class="btn-map">Ver en mapa</button>
   </div>
 `;
 
