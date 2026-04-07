@@ -254,10 +254,10 @@ card.innerHTML = `
 
     <h3>${store.name}</h3>
 
-    <div class="status-badge ${store.is_open ? 'open' : 'closed'}">
-      <span class="dot"></span>
-      ${store.is_open ? 'Abierto' : 'Cerrado'}
-    </div>
+    <div class="status-badge ${open ? 'open' : 'closed'}">
+  <span class="dot"></span>
+  ${open ? 'Abierto' : 'Cerrado'}
+</div>
 
     <p>${store.street || "Sin dirección"}</p>
 
@@ -316,11 +316,7 @@ card.innerHTML = `
       <span>$${p.price}</span>
     </div>
   `).join('')
-          <img src="${p.image_url}" />
-          <span>$${p.price}</span>
-        </div>
-      `).join('') 
-    : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
+  : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
 
     preview.innerHTML = `
     <button class="close-preview">✕</button>
@@ -384,7 +380,7 @@ if (store.subcategory_ids) {
         ${productsHTML}
       </div>
 
-      <a href="/${store.slug}" class="btn-primary">
+      <a href="${store.slug ? `/${store.slug}` : `/store/${store.id}`}" class="btn-primary">
   Ver tienda
 </a>
 
