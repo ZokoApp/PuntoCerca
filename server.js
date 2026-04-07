@@ -247,7 +247,7 @@ if (role === "seller") {
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
         const data = await resend.emails.send({
-  from: "onboarding@resend.dev",
+  ffrom: "PuntoCerca <no-reply@puntocerca.com>",
   to: email,
   subject: "Verifica tu cuenta - PuntoCerca",
   html: `
@@ -387,7 +387,7 @@ app.post('/api/resend-verification', csrfProtection, async (req, res) => {
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
         await resend.emails.send({
-  from: "onboarding@resend.dev",
+  from: "PuntoCerca <no-reply@puntocerca.com>",
   to: email,
   subject: "Verifica tu cuenta - PuntoCerca",
   html: `
