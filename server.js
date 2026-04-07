@@ -10,10 +10,10 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { v4: uuidv4 } = require('uuid');
-jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
-cookieParser = require('cookie-parser');
-csrf = require('csurf');
+const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const multer = require("multer");
 const path = require("path");
 
@@ -210,82 +210,37 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
 /* ================================
    REGISTER
 ================================ */
-
 app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
 
-    const { 
-  name, 
-  email, 
-  password, 
-  role,
-  store_name,
-  category,
-  street,
-  city,
-  phone,
-  lat,
-  lng
-} = req.body;
+    const { name, email, password, role } = req.body;
 
     try {
 
         const passwordHash = await bcrypt.hash(password, 10);
-
         const emailToken = uuidv4();
 
-        const userResult = await pool.query(
-    `INSERT INTO users (name,email,password_hash,role,email_token,email_verified)
-     VALUES ($1,$2,$3,$4,$5,false)
-     RETURNING id`,
-    [name, email, passwordHash, role, emailToken]
-);
-
-const userId = userResult.rows[0].id;
-
-if (role === "seller") {
-
-    const storeName = store_name || name;
-
-    const slug = storeName
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '');
-
-    await pool.query(
-        `INSERT INTO stores 
-        (user_id, name, slug, category, street, city, phone, lat, lng)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-        [
-          userId,
-          storeName,
-          slug,
-          category || null,
-          street || null,
-          city || null,
-          phone || null,
-          lat || null,
-          lng || null
-        ]
-    );
-}
+        // ✅ SOLO CREA USUARIO (NO TIENDA)
+        await pool.query(
+            `INSERT INTO users (name,email,password_hash,role,email_token,email_verified)
+             VALUES ($1,$2,$3,$4,$5,false)`,
+            [name, email, passwordHash, role, emailToken]
+        );
 
         const verificationLink =
             `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
 
-        const data = await resend.emails.send({
-  from: "PuntoCerca <no-reply@puntocerca.com.ar>",
-  to: email,
-  subject: "Verifica tu cuenta - PuntoCerca",
-  html: `
-    <h2>Verifica tu cuenta</h2>
-    <p>Haz click en el siguiente enlace:</p>
-    <a href="${verificationLink}">
-      Verificar Email
-    </a>
-  `
-});
-
-console.log("RESEND RESPONSE:", data);
+        await resend.emails.send({
+            from: "PuntoCerca <no-reply@puntocerca.com.ar>",
+            to: email,
+            subject: "Verifica tu cuenta - PuntoCerca",
+            html: `
+                <h2>Verifica tu cuenta</h2>
+                <p>Haz click en el siguiente enlace:</p>
+                <a href="${verificationLink}">
+                  Verificar Email
+                </a>
+            `
+        });
 
         res.status(201).json({
             message: "Usuario creado. Revisa tu email para verificar tu cuenta."
