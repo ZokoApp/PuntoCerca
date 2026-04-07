@@ -414,3 +414,11 @@
   background: #ef4444;
   animation: pulseDotRed 1.2s infinite;
 }
+
+.no-rating {
+  display: block;
+  text-align: center;
+  color: #f97316;
+  font-size: 13px;
+  margin: 6px 0;
+}
