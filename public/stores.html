@@ -8,29 +8,42 @@
 
 <body class="bg-gray-50">
 
-<nav class="bg-white shadow p-4">
-  <a href="/" class="text-orange-600 font-bold text-xl">PuntoCerca</a>
+<!-- NAV -->
+<nav class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="/" class="text-orange-600 font-bold text-xl">PuntoCerca</a>
+  </div>
 </nav>
 
-<main class="max-w-6xl mx-auto p-6">
+<!-- CONTENIDO -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- HEADER -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Tiendas</h1>
+    <p class="text-sm text-gray-500">Explorá negocios cerca tuyo</p>
+  </div>
 
   <!-- FILTROS -->
-  <div class="flex gap-3 mb-6 flex-wrap">
+  <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-3 items-center">
 
-    <select id="filterCategory" class="border p-2 rounded-lg">
+    <select id="filterCategory" class="border p-2 rounded-lg text-sm">
       <option value="">Todos los rubros</option>
     </select>
 
-    <select id="filterSort" class="border p-2 rounded-lg">
+    <select id="filterSort" class="border p-2 rounded-lg text-sm">
       <option value="">Ordenar por</option>
       <option value="rating">⭐ Mejor calificadas</option>
+      <option value="open">🟢 Abiertos primero</option>
       <option value="distance">📍 Más cercanas</option>
     </select>
 
   </div>
 
   <!-- GRID -->
-  <div id="storesContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+  <div id="storesContainer"
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+  </div>
 
 </main>
 
