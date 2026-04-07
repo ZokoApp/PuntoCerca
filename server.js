@@ -9,7 +9,7 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-{ v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 cookieParser = require('cookie-parser');
