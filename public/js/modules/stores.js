@@ -360,10 +360,10 @@ if (store.subcategory_ids) {
   return `
     <div class="store-meta">
       ${
-        store.rating_count > 0
-          ? `⭐ ${store.rating_avg}`
-          : "Sin valoraciones"
-      }
+  store.rating_count > 0
+    ? `<span class="rating">⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})</span>`
+    : `<span class="no-rating">Sin valoraciones</span>`
+}
       · ${subcats || store.category}
     </div>
   `;
