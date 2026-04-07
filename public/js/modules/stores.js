@@ -310,8 +310,12 @@ card.innerHTML = `
 
 
   const productsHTML = products.length
-    ? products.slice(0,3).map(p => `
-        <div class="mini-product">
+  ? products.slice(0,3).map(p => `
+    <div class="mini-product" onclick="goToProduct(${p.id})">
+      <img src="${p.image_url}" />
+      <span>$${p.price}</span>
+    </div>
+  `).join('')
           <img src="${p.image_url}" />
           <span>$${p.price}</span>
         </div>
@@ -320,7 +324,14 @@ card.innerHTML = `
 
     preview.innerHTML = `
     <button class="close-preview">✕</button>
-    <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
+    <div class="preview-image-wrapper">
+  <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
+
+  <div class="preview-status ${isStoreOpen(store) ? 'open' : 'closed'}">
+    <span class="dot"></span>
+    ${isStoreOpen(store) ? 'Abierto' : 'Cerrado'}
+  </div>
+</div>
 
     
 
