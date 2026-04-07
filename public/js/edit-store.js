@@ -298,7 +298,9 @@ const searchAddressInput = document.getElementById("searchAddress");
 
 function createStoreIcon() {
   return L.icon({
-    iconUrl: (store && store.logo_url) ? store.logo_url : "/img/default.png",
+    iconUrl: (store && store.logo_url)
+      ? store.logo_url
+      : "/img/default.png",
     iconSize: [42, 42],
     iconAnchor: [21, 42],
     popupAnchor: [0, -36],
