@@ -69,10 +69,7 @@ async function loadStore(){
     setupMap(store);
     handleUIByRole(store);
 
-    if (!currentUser) {
-  if (followBtn) followBtn.style.display = "none";
-}
-
+    
     
     if(currentUser && !isOwner){
       checkFollowing(store.id);
@@ -305,7 +302,7 @@ function renderStore(store){
   document.getElementById("storeName").innerText = store.name;
   const open = isStoreOpen(store);
 
-cconst statusHTML = `
+const statusHTML = `
   <div style="
     display:flex;
     align-items:center;
