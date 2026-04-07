@@ -184,15 +184,29 @@ document.addEventListener("DOMContentLoaded", function(){
 
       try{
 
-          const formData = new FormData(form);
+          const data = {
+  name: form.querySelector("input[name='name']").value,
+  email: form.querySelector("input[name='email']").value,
+  password: form.querySelector("input[name='password']").value,
+  role: "seller",
 
-          formData.append("lat", selectedLat);
-          formData.append("lng", selectedLng);
+  // 🔥 DATOS DE TIENDA
+  store_name: form.querySelector("input[name='store_name']").value,
+  category: form.querySelector("select[name='category']").value,
+  street: form.querySelector("input[name='street']").value,
+  city: form.querySelector("input[name='city']").value,
+  phone: form.querySelector("input[name='phone']").value,
+  lat: selectedLat,
+  lng: selectedLng
+};
 
-          const response = await fetch('/api/stores/register', {
-              method:'POST',
-              body: formData
-          });
+const response = await fetch('/api/register', {
+  method: 'POST',
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(data)
+});
 
           const data = await response.json();
 
@@ -202,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function(){
           }
 
           alert("Perfil creado correctamente 🚀");
-          window.location.href = "/";
+          window.location.href = "/login";
 
       }catch(error){
           console.error(error);
