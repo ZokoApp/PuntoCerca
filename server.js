@@ -910,6 +910,36 @@ app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
+
+  let { is_open } = req.body;
+
+  console.log("STATUS RECIBIDO:", is_open);
+
+  // convertir correctamente
+  is_open = is_open === true || is_open === "true";
+
+  try {
+    const result = await pool.query(
+      `UPDATE stores 
+       SET is_open = $1 
+       WHERE id = $2 AND user_id = $3
+       RETURNING *`,
+      [is_open, req.params.id, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando estado" });
+  }
+});
+
 app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
   try {
 
