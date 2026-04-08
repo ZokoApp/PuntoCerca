@@ -1,26 +1,19 @@
-window.isOwner = window.isOwner || false;
-window.allProducts = window.allProducts || [];
+console.log("STORE PRODUCTS CARGADO");
 
-document.addEventListener("DOMContentLoaded", init);
+window.isOwner = false;
+window.allProducts = [];
 
-async function waitForStore() {
-  return new Promise(resolve => {
-    const interval = setInterval(() => {
-      if (window.storeData?.id) {
-        clearInterval(interval);
-        resolve(window.storeData);
-      }
-    }, 50);
-  });
-}
+window.initStoreProducts = async function(store) {
 
-async function init() {
+  console.log("INIT PRODUCTS EJECUTADO", store);
 
-  // 🔥 esperar a que store.js cargue la tienda
-  const store = await waitForStore();
-  const storeId = store.id;
+  const storeId = store?.id;
 
-  // 🔐 verificar si es dueño
+  if (!storeId) {
+    console.error("Store ID inválido");
+    return;
+  }
+
   try {
     const resUser = await fetch('/api/me', { credentials: 'include' });
 
@@ -28,30 +21,33 @@ async function init() {
       const user = await resUser.json();
 
       if (store.user_id === user.id) {
-        isOwner = true;
+        window.isOwner = true;
       }
     }
   } catch {}
 
-  // 📦 cargar productos
   try {
     const res = await fetch(`/api/stores/${storeId}/products`);
-    allProducts = await res.json();
+    const data = await res.json();
 
-    if (!Array.isArray(allProducts)) {
-      allProducts = [];
-    }
+    window.allProducts = Array.isArray(data) ? data : [];
 
-    renderProducts(allProducts);
+    renderProducts(window.allProducts);
 
   } catch (err) {
     console.error("Error cargando productos:", err);
   }
-}
+};
 
 function renderProducts(products) {
 
   const container = document.getElementById("storeProducts");
+
+  if (!container) {
+    console.error("No existe #storeProducts");
+    return;
+  }
+
   container.innerHTML = "";
 
   products.forEach(p => {
@@ -61,9 +57,8 @@ function renderProducts(products) {
 
     card.innerHTML = `
       <div style="position:relative">
-
         ${
-          isOwner
+          window.isOwner
             ? `
             <div style="position:absolute;top:5px;right:5px;display:flex;gap:5px;">
               <button class="edit-btn">✏️</button>
@@ -72,7 +67,6 @@ function renderProducts(products) {
           `
             : ""
         }
-
         <img src="${p.image_url}" />
       </div>
 
@@ -91,18 +85,15 @@ function renderProducts(products) {
       </p>
     `;
 
-    // 👉 ir al producto
     card.onclick = () => {
       window.location.href = `/product/${p.id}`;
     };
 
-    // ✏️ editar
     card.querySelector(".edit-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       window.location.href = `/edit-product/${p.id}`;
     });
 
-    // 🗑️ eliminar
     card.querySelector(".delete-btn")?.addEventListener("click", async (e) => {
       e.stopPropagation();
 
@@ -116,8 +107,8 @@ function renderProducts(products) {
 
         if (!res.ok) throw new Error();
 
-        allProducts = allProducts.filter(prod => prod.id !== p.id);
-        renderProducts(allProducts);
+        window.allProducts = window.allProducts.filter(prod => prod.id !== p.id);
+        renderProducts(window.allProducts);
 
       } catch {
         alert("Error eliminando");
@@ -127,15 +118,3 @@ function renderProducts(products) {
     container.appendChild(card);
   });
 }
-
-// 🔍 buscador
-document.getElementById("searchProducts")?.addEventListener("input", (e) => {
-
-  const value = e.target.value.toLowerCase();
-
-  const filtered = allProducts.filter(p =>
-    p.name.toLowerCase().includes(value)
-  );
-
-  renderProducts(filtered);
-});
