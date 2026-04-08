@@ -305,7 +305,12 @@ card.innerHTML = `
   async function showStorePreview(store){
 
     const preview = document.getElementById("storePreview");
-    const res = await fetch(`/api/stores/${store.id}/products`);
+    if (!store.id) {
+  console.error("Store sin ID:", store);
+  return;
+}
+
+const res = await fetch(`/api/stores/${store.id}/products`);
   const products = await res.json();
 
 
@@ -323,7 +328,7 @@ card.innerHTML = `
     <div class="preview-image-wrapper">
   <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
 
-  <div class="preview-status ${store.is_open ? 'open' : 'closed'}"">
+  <div class="preview-status ${store.is_open ? 'open' : 'closed'}">
     <span class="dot"></span>
     ${store.is_open ? 'Abierto' : 'Cerrado'}
   </div>
