@@ -723,17 +723,22 @@ product.is_favorite = isFavorite;
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
   try {
 
-    const { 
-      name, 
-      price, 
-      brand, 
-      size, 
-      stock, 
-      extra, 
-      category,
-      colors,
-      is_offer
-    } = req.body;
+   const { 
+  name, 
+  description, 
+  phone, 
+  city, 
+  category, 
+  subcategory_id,
+  subcategory_ids,
+  street,
+  local,
+  apartment,
+  reference_notes,
+  lat,
+  lng,
+  is_open  
+} = req.body;
 
     let images = [];
 
@@ -745,43 +750,45 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
 
     const result = await pool.query(
   `UPDATE stores
-   SET 
-     name = COALESCE($1, name),
-     description = COALESCE($2, description),
-     phone = COALESCE($3, phone),
-     city = COALESCE($4, city),
-     category = COALESCE($5, category),
-     subcategory_id = COALESCE($6, subcategory_id),
-     street = COALESCE($7, street),
-     local = COALESCE($8, local),
-     apartment = COALESCE($9, apartment),
-     reference_notes = COALESCE($10, reference_notes),
-     lat = COALESCE($11, lat),
-     lng = COALESCE($12, lng),
-     logo_url = COALESCE($13, logo_url),
-     cover_url = COALESCE($14, cover_url),
-     subcategory_ids = COALESCE($15, subcategory_ids)
-   WHERE id = $16 AND user_id = $17
-   RETURNING *`,
+SET 
+  name = COALESCE($1, name),
+  description = COALESCE($2, description),
+  phone = COALESCE($3, phone),
+  city = COALESCE($4, city),
+  category = COALESCE($5, category),
+  subcategory_id = COALESCE($6, subcategory_id),
+  street = COALESCE($7, street),
+  local = COALESCE($8, local),
+  apartment = COALESCE($9, apartment),
+  reference_notes = COALESCE($10, reference_notes),
+  lat = COALESCE($11, lat),
+  lng = COALESCE($12, lng),
+  logo_url = COALESCE($13, logo_url),
+  cover_url = COALESCE($14, cover_url),
+  subcategory_ids = COALESCE($15, subcategory_ids),
+  is_open = COALESCE($16, is_open)   -- 👈 NUEVO
+WHERE id = $17 AND user_id = $18
+RETURNING *`,
   [
-    name,
-    description,
-    phone,
-    city,
-    category,
-    subcategory_id,
-    street,
-    local,
-    apartment,
-    reference_notes,
-    lat || null,
-    lng || null,
-    logo_url,
-    cover_url,
-    subcategory_ids ? JSON.stringify(subcategoriesToSave) : null,
-    req.params.id,
-    req.user.id
-  ]
+  name,
+  description,
+  phone,
+  city,
+  category,
+  subcategory_id,
+  street,
+  local,
+  apartment,
+  reference_notes,
+  lat || null,
+  lng || null,
+  logo_url,
+  cover_url,
+  subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
+  is_open !== undefined ? is_open : null, 
+  req.params.id,
+  req.user.id
+]
 );
 
     res.json(result.rows[0]);
