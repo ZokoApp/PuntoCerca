@@ -720,87 +720,7 @@ product.is_favorite = isFavorite;
   }
 });
 
-app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
 
-  console.log("BODY COMPLETO:", req.body);
-console.log("IS_OPEN RAW:", req.body.is_open);
-  try {
-
-   const { 
-  name, 
-  description, 
-  phone, 
-  city, 
-  category, 
-  subcategory_id,
-  subcategory_ids,
-  street,
-  local,
-  apartment,
-  reference_notes,
-  lat,
-  lng,
-  is_open  
-} = req.body;
-
-    let images = [];
-
-    if (req.files && req.files.length > 0) {
-      images = req.files.map(file => file.path);
-    }
-
-    const mainImage = images[0] || null;
-
-    const result = await pool.query(
-  `UPDATE stores
-SET 
-  name = COALESCE($1, name),
-  description = COALESCE($2, description),
-  phone = COALESCE($3, phone),
-  city = COALESCE($4, city),
-  category = COALESCE($5, category),
-  subcategory_id = COALESCE($6, subcategory_id),
-  street = COALESCE($7, street),
-  local = COALESCE($8, local),
-  apartment = COALESCE($9, apartment),
-  reference_notes = COALESCE($10, reference_notes),
-  lat = COALESCE($11, lat),
-  lng = COALESCE($12, lng),
-  logo_url = COALESCE($13, logo_url),
-  cover_url = COALESCE($14, cover_url),
-  subcategory_ids = COALESCE($15, subcategory_ids),
-  is_open = COALESCE($16, is_open)   -- 👈 NUEVO
-WHERE id = $17 AND user_id = $18
-RETURNING *`,
-  [
-  name,
-  description,
-  phone,
-  city,
-  category,
-  subcategory_id,
-  street,
-  local,
-  apartment,
-  reference_notes,
-  lat || null,
-  lng || null,
-  logo_url,
-  cover_url,
-  subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
-  is_open !== undefined ? is_open : null, 
-  req.params.id,
-  req.user.id
-]
-);
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error actualizando producto" });
-  }
-});
 
 app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
 
@@ -825,27 +745,39 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
       images = req.files.map(file => file.path);
     }
 
+    const baseSlug = name
+  .toLowerCase()
+  .trim()
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "");
+
+// 🔥 único (evita duplicados)
+const slug = `${baseSlug}-${Date.now()}`;
+
     const mainImage = images[0] || null;
 
     const result = await pool.query(
   `INSERT INTO products
-(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 RETURNING *`,
-  [
-    name,
-    price,
-    mainImage,
-    JSON.stringify(images),
-    store_id,
-    brand,
-    size,
-    stock ? parseInt(stock) : 0,
-    extra,
-    colors || "[]",
-    category,
-    is_offer === "true" || is_offer === true
-  ]
+ [
+  name,
+  price,
+  mainImage,
+  JSON.stringify(images),
+  store_id,
+  brand,
+  size,
+  stock ? parseInt(stock) : 0,
+  extra,
+  colors || "[]",
+  category,
+  is_offer === "true" || is_offer === true,
+  slug
+]
 );
 
     res.json(result.rows[0]);
@@ -1453,16 +1385,21 @@ app.get('/:slug', (req, res) => {
   const slug = req.params.slug;
 
   // ⚠️ evitar conflictos con otras rutas
-  if (
-    slug === "api" ||
-    slug === "login" ||
-    slug === "register" ||
-    slug === "products" ||
-    slug === "map" ||
-    slug === "offers"
-  ) {
-    return;
-  }
+  const blocked = [
+  "api",
+  "login",
+  "register",
+  "products",
+  "map",
+  "offers",
+  "store",
+  "product",
+  "dashboard"
+];
+
+if (blocked.includes(slug)) {
+  return;
+}
 
   res.sendFile(path.join(__dirname, 'public/store.html'));
 });
