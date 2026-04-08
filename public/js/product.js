@@ -25,7 +25,13 @@ if (!param) {
   
   
 
-const res = await fetch(`/api/products/${param}`);   
+let res;
+
+if (!isNaN(param)) {
+  res = await fetch(`/api/products/${param}`);
+} else {
+  res = await fetch(`/api/products/slug/${param}`);
+}  
     if (!res.ok) throw new Error("Producto no encontrado");
   
     const product = await res.json();
