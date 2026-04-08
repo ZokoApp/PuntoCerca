@@ -29,6 +29,11 @@ const res = await fetch(`/api/products/${param}`);
     if (!res.ok) throw new Error("Producto no encontrado");
   
     const product = await res.json();
+
+    if (product.redirect_slug && !window.location.pathname.includes(product.redirect_slug)) {
+  window.location.href = `/product/${product.redirect_slug}`;
+  return;
+}
   
     const isFavorite = product.is_favorite;
   
