@@ -937,32 +937,34 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
 
     const result = await pool.query(
       `UPDATE products
-       SET 
-         name = COALESCE($1, name),
-         price = COALESCE($2, price),
-         brand = COALESCE($3, brand),
-         size = COALESCE($4, size),
-         stock = COALESCE($5, stock),
-         extra = COALESCE($6, extra),
-         category = COALESCE($7, category),
-         colors = COALESCE($8, colors),
-         is_offer = COALESCE($9, is_offer),
-         image_url = COALESCE($10, image_url)
-       WHERE id = $11
-       RETURNING *`,
+SET 
+  name = COALESCE($1, name),
+  price = COALESCE($2, price),
+  brand = COALESCE($3, brand),
+  size = COALESCE($4, size),
+  stock = COALESCE($5, stock),
+  extra = COALESCE($6, extra),
+  category = COALESCE($7, category),
+  colors = COALESCE($8, colors),
+  is_offer = COALESCE($9, is_offer),
+  image_url = COALESCE($10, image_url),
+  images = COALESCE($11, images)   -- 🔥 ESTE ES EL FIX
+WHERE id = $12
+RETURNING *;
       [
-        name,
-        price,
-        brand,
-        size,
-        stock ? parseInt(stock) : 0,
-        extra,
-        category,
-        colors || "[]",
-        is_offer === "true" || is_offer === true,
-        mainImage,
-        req.params.id
-      ]
+  name,
+  price,
+  brand,
+  size,
+  stock ? parseInt(stock) : 0,
+  extra,
+  category,
+  colors || "[]",
+  is_offer === "true" || is_offer === true,
+  mainImage,
+  JSON.stringify(images), // 🔥 ESTE ES CLAVE
+  req.params.id
+]
     );
 
     if (!result.rows.length) {
