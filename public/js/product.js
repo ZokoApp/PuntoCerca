@@ -305,43 +305,44 @@ const res = await fetch(`/api/products/${param}`);
   
   let isRating = false;
   
-  async function rateProduct(value) {
-  
-    if (isRating) return; // 🚫 evita spam
-    isRating = true;
-  
-    try {
-       const productId = param; 
-  
-      const res = await fetch(`/api/products/${productId}/rate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ rating: value })
-      });
-  
-      if (!res.ok) throw new Error();
-  
-      const productId = product.id;
-  
-      renderStars(
-        parseFloat(data.avg) || 0,
-        value
-      );
-  
-      updateRatingInfo(
-        parseFloat(data.avg) || 0,
-        data.count,
-        value
-      );
-  
-    } catch (err) {
-      console.error(err);
-      alert("Error al votar");
-    }
-  
-    isRating = false;
+ async function rateProduct(value) {
+
+  if (isRating) return;
+  isRating = true;
+
+  try {
+
+    const productId = param;
+
+    const res = await fetch(`/api/products/${productId}/rate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ rating: value })
+    });
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json(); // 🔥 FALTABA ESTO TAMBIÉN
+
+    renderStars(
+      parseFloat(data.avg) || 0,
+      value
+    );
+
+    updateRatingInfo(
+      parseFloat(data.avg) || 0,
+      data.count,
+      value
+    );
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al votar");
   }
+
+  isRating = false;
+}
     
   
     // =============================
