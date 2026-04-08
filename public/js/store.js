@@ -127,8 +127,17 @@ async function loadStore(){
     }
 
     renderStore(store);
-    setupMap(store);
-    handleUIByRole(store);
+setupMap(store);
+handleUIByRole(store);
+
+// 🔥 asegurar carga de productos
+setTimeout(() => {
+  if (window.initStoreProducts) {
+    window.initStoreProducts(store);
+  } else {
+    console.error("initStoreProducts no está disponible");
+  }
+}, 100);
 
     if(currentUser && !isOwner){
       checkFollowing(store.id);
