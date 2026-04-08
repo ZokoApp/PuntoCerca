@@ -316,7 +316,7 @@ const res = await fetch(`/api/stores/${store.id}/products`);
 
   const productsHTML = products.length
   ? products.slice(0,3).map(p => `
-    <div class="mini-product" onclick="goToProduct(${p.id})">
+    <div class="mini-product" onclick='goToProduct(${JSON.stringify(p)})'>
       <img src="${p.image_url}" />
       <span>$${p.price}</span>
     </div>
