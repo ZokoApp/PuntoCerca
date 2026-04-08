@@ -183,6 +183,10 @@ function handleUIByRole(store){
             if(res.ok){
               store.is_open = newValue;
               updateStoreStatus(store);
+               
+               window.location.reload();
+               
+
             } else {
               alert("Error actualizando estado");
             }
@@ -191,7 +195,7 @@ function handleUIByRole(store){
             alert("Error de conexión");
           }
         };
-         window.location.reload();
+         
       }
     }
 
