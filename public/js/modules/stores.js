@@ -243,9 +243,7 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-       const open = store.opening_time
-  ? isStoreOpen(store)
-  : store.is_open;
+       const open = store.is_open === true;
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
@@ -325,9 +323,9 @@ card.innerHTML = `
     <div class="preview-image-wrapper">
   <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
 
-  <div class="preview-status ${isStoreOpen(store) ? 'open' : 'closed'}">
+  <div class="preview-status ${store.is_open ? 'open' : 'closed'}"">
     <span class="dot"></span>
-    ${isStoreOpen(store) ? 'Abierto' : 'Cerrado'}
+    ${store.is_open ? 'Abierto' : 'Cerrado'}
   </div>
 </div>
 
