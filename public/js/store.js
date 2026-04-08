@@ -194,8 +194,7 @@ function handleUIByRole(store){
             if(res.ok){
               store.is_open = newValue;
               updateStoreStatus(store);
-               
-               window.location.reload();
+            
                
 
             } else {
