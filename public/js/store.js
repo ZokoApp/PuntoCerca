@@ -65,7 +65,12 @@ let storeSlug = null;
 if (pathParts[1] === "store") {
   storeId = pathParts[2];
 } else {
-  storeSlug = pathParts[1];
+  const possibleSlug = pathParts[1];
+
+  // 🔥 evitar que números se tomen como slug
+  if (possibleSlug && isNaN(possibleSlug)) {
+    storeSlug = possibleSlug;
+  }
 }
 
 /* ================================
@@ -101,14 +106,20 @@ async function loadStore(){
     let res;
 
     if (storeId) {
-      res = await fetch(`/api/stores/${storeId}`);
-    } else if (storeSlug) {
-      res = await fetch(`/api/stores/slug/${storeSlug}`);
-    } else {
-      return;
-    }
+  res = await fetch(`/api/stores/${storeId}`);
+} else if (storeSlug && isNaN(storeSlug)) {
+  res = await fetch(`/api/stores/slug/${storeSlug}`);
+} else {
+  console.error("ID/Slug inválido");
+  return;
+}
 
     const store = await res.json();
+
+     if (!store || store.error) {
+  console.error("Error cargando tienda:", store);
+  return;
+}
 
     storeData = store;
 
