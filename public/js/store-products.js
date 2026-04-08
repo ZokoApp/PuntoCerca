@@ -86,7 +86,7 @@ function renderProducts(products) {
     `;
 
     card.onclick = () => {
-      window.location.href = `/product/${p.id}`;
+      window.location.href = `/product/${p.slug || p.id}`;
     };
 
     card.querySelector(".edit-btn")?.addEventListener("click", (e) => {
