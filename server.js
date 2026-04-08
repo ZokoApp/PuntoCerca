@@ -721,6 +721,9 @@ product.is_favorite = isFavorite;
 });
 
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
+
+  console.log("BODY COMPLETO:", req.body);
+console.log("IS_OPEN RAW:", req.body.is_open);
   try {
 
    const { 
