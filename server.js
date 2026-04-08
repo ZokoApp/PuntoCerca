@@ -911,6 +911,72 @@ app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
+
+  try {
+
+    const { 
+      name, 
+      price, 
+      brand, 
+      size, 
+      stock, 
+      extra, 
+      category,
+      colors,
+      is_offer
+    } = req.body;
+
+    let images = [];
+
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => file.path);
+    }
+
+    const mainImage = images[0] || null;
+
+    const result = await pool.query(
+      `UPDATE products
+       SET 
+         name = COALESCE($1, name),
+         price = COALESCE($2, price),
+         brand = COALESCE($3, brand),
+         size = COALESCE($4, size),
+         stock = COALESCE($5, stock),
+         extra = COALESCE($6, extra),
+         category = COALESCE($7, category),
+         colors = COALESCE($8, colors),
+         is_offer = COALESCE($9, is_offer),
+         image_url = COALESCE($10, image_url)
+       WHERE id = $11
+       RETURNING *`,
+      [
+        name,
+        price,
+        brand,
+        size,
+        stock ? parseInt(stock) : 0,
+        extra,
+        category,
+        colors || "[]",
+        is_offer === "true" || is_offer === true,
+        mainImage,
+        req.params.id
+      ]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando producto" });
+  }
+});
+
 app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
   try {
 
