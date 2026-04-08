@@ -1,11 +1,11 @@
-console.log("STORE PRODUCTS CARGADO");
+
 
 window.isOwner = false;
 window.allProducts = [];
 
 window.initStoreProducts = async function(store) {
 
-  console.log("INIT PRODUCTS EJECUTADO", store);
+
 
   const storeId = store?.id;
 
