@@ -15,7 +15,7 @@ window.viewStore = function(id){
 }
 
 window.goToProduct = (id) => {
-  window.location.href = `/product/${id}`;
+ window.location.href = `/product/${product.slug || product.id}`;
 };
 
 window.focusStore = focusStore;
