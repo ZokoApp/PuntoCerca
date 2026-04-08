@@ -25,14 +25,7 @@ if (!param) {
   
     let res;
 
-if (!isNaN(param)) {
-  // 👉 ID
-  res = await fetch(`/api/products/${param}`);
-} else {
-  // 👉 SLUG
-  res = await fetch(`/api/products/slug/${param}`);
-}
-    
+const res = await fetch(`/api/products/${param}`);   
     if (!res.ok) throw new Error("Producto no encontrado");
   
     const product = await res.json();
@@ -318,7 +311,7 @@ if (!isNaN(param)) {
     isRating = true;
   
     try {
-     const productId = product.id;
+       const productId = param; 
   
       const res = await fetch(`/api/products/${productId}/rate`, {
         method: "POST",
@@ -329,7 +322,7 @@ if (!isNaN(param)) {
   
       if (!res.ok) throw new Error();
   
-      const data = await res.json();
+      const productId = product.id;
   
       renderStars(
         parseFloat(data.avg) || 0,
