@@ -23,7 +23,7 @@ if (!param) {
   
     await checkAuth();
   
-    let res;
+  
 
 const res = await fetch(`/api/products/${param}`);   
     if (!res.ok) throw new Error("Producto no encontrado");
