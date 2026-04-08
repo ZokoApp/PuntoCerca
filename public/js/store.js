@@ -184,7 +184,7 @@ function handleUIByRole(store){
           const newValue = select.value === "true";
 
           try {
-            const res = await fetch(`/api/stores/${store.id}`, {
+            const res = await fetch(`/api/stores/${store.id}/status`, {
               method: "PUT",
               credentials: "include",
               headers: { "Content-Type": "application/json" },
