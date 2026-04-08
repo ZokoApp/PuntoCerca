@@ -63,11 +63,10 @@ let storeId = null;
 let storeSlug = null;
 
 if (pathParts[1] === "store") {
-  storeId = pathParts[2];
+  storeId = pathParts[2]?.split("?")[0]; // 🔥 FIX
 } else {
   const possibleSlug = pathParts[1];
 
-  // 🔥 evitar que números se tomen como slug
   if (possibleSlug && isNaN(possibleSlug)) {
     storeSlug = possibleSlug;
   }
