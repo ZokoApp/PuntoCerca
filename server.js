@@ -297,7 +297,14 @@ app.get('/api/products/slug/:slug', async (req, res) => {
       }
     }
 
-    res.json(product);
+    if (product.slug) {
+  return res.json({
+    ...product,
+    redirect_slug: product.slug
+  });
+}
+
+res.json(product);
 
   } catch (err) {
     console.error(err);
@@ -793,7 +800,20 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
   .replace(/^-+|-+$/g, "");
 
 // 🔥 único (evita duplicados)
-const slug = `${baseSlug}-${Date.now()}`;
+let slug = baseSlug;
+let counter = 1;
+
+while (true) {
+  const check = await pool.query(
+    `SELECT id FROM products WHERE slug = $1`,
+    [slug]
+  );
+
+  if (check.rows.length === 0) break;
+
+  slug = `${baseSlug}-${counter}`;
+  counter++;
+}
 
     const mainImage = images[0] || null;
 
