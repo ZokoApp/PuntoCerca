@@ -266,6 +266,45 @@ app.get('/product/:id', (req, res) => {
     res.sendFile(__dirname + '/public/product.html');
 });
 
+app.get('/api/products/slug/:slug', async (req, res) => {
+
+  try {
+
+    const result = await pool.query(
+      `SELECT 
+        p.*, 
+        s.name as store_name,
+        s.phone as store_phone,
+        s.slug as store_slug
+       FROM products p
+       LEFT JOIN stores s ON p.store_id = s.id
+       WHERE p.slug = $1`,
+      [req.params.slug]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    const product = result.rows[0];
+
+    // parse images
+    if (product.images && typeof product.images === "string") {
+      try {
+        product.images = JSON.parse(product.images);
+      } catch {
+        product.images = [];
+      }
+    }
+
+    res.json(product);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+});
+
 
 app.post('/api/stores',
   authMiddleware,
