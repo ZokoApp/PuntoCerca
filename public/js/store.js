@@ -191,6 +191,7 @@ function handleUIByRole(store){
             alert("Error de conexión");
           }
         };
+         window.location.reload();
       }
     }
 
