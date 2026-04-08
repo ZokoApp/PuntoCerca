@@ -65,7 +65,7 @@ const SUBCATEGORY_MAP = {
   const usedPositions = {};
 function isStoreOpen(store) {
   if (!store.is_open) return false;
-  if (!store.opening_time || !store.closing_time) return false;
+  if (!store.opening_time || !store.closing_time) return store.is_open;
 
   const now = new Date();
   const current = now.getHours() * 60 + now.getMinutes();
