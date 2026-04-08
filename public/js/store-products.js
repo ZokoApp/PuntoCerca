@@ -3,14 +3,21 @@ window.allProducts = window.allProducts || [];
 
 document.addEventListener("DOMContentLoaded", init);
 
+async function waitForStore() {
+  return new Promise(resolve => {
+    const interval = setInterval(() => {
+      if (window.storeData?.id) {
+        clearInterval(interval);
+        resolve(window.storeData);
+      }
+    }, 50);
+  });
+}
+
 async function init() {
 
-  const slug = window.location.pathname.split("/").pop();
-
-  // 🔥 obtener tienda por slug
-  const storeRes = await fetch(`/api/stores/slug/${slug}`);
-  const store = await storeRes.json();
-
+  // 🔥 esperar a que store.js cargue la tienda
+  const store = await waitForStore();
   const storeId = store.id;
 
   // 🔐 verificar si es dueño
@@ -27,10 +34,19 @@ async function init() {
   } catch {}
 
   // 📦 cargar productos
-  const res = await fetch(`/api/stores/${storeId}/products`);
-  allProducts = await res.json();
+  try {
+    const res = await fetch(`/api/stores/${storeId}/products`);
+    allProducts = await res.json();
 
-  renderProducts(allProducts);
+    if (!Array.isArray(allProducts)) {
+      allProducts = [];
+    }
+
+    renderProducts(allProducts);
+
+  } catch (err) {
+    console.error("Error cargando productos:", err);
+  }
 }
 
 function renderProducts(products) {
@@ -63,7 +79,7 @@ function renderProducts(products) {
       <h3>${p.name}</h3>
 
       <p class="text-orange-600 font-bold">
-        $${parseFloat(p.price).toLocaleString()}
+        $${parseFloat(p.price || 0).toLocaleString()}
       </p>
 
       <p class="text-yellow-600 text-sm mt-1">
@@ -100,7 +116,6 @@ function renderProducts(products) {
 
         if (!res.ok) throw new Error();
 
-        // eliminar del array + re-render
         allProducts = allProducts.filter(prod => prod.id !== p.id);
         renderProducts(allProducts);
 
