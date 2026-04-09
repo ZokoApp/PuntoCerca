@@ -393,28 +393,46 @@ if (!isNaN(param)) {
       div.className = "flex gap-3 border-b pb-3 mb-3 items-start";
 
       div.innerHTML = `
-        <img 
-          src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}" 
-          style="
-            width:40px;
-            height:40px;
-            border-radius:50%;
-            object-fit:cover;
-          "
-        />
+  <img 
+    src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}" 
+    style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+  />
 
-        <div style="flex:1;">
-          <strong style="font-size:14px;">${c.name}</strong>
+  <div style="flex:1;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong style="font-size:14px;">${c.name}</strong>
 
-          <p style="
-            margin-top:4px;
-            font-size:14px;
-            color:#444;
-          ">
-            ${c.content}
-          </p>
-        </div>
-      `;
+      ${isLogged ? `
+        <button onclick="deleteComment(${c.id})"
+          style="font-size:12px;color:red;">
+          Eliminar
+        </button>
+      ` : ""}
+    </div>
+
+    <p style="margin-top:4px;font-size:14px;color:#444;">
+      ${c.content}
+    </p>
+  </div>
+`;
+      async function deleteComment(id) {
+
+  if (!confirm("¿Eliminar comentario?")) return;
+
+  try {
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    alert("Error al eliminar");
+  }
+}
 
       container.appendChild(div);
     });
