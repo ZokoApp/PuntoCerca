@@ -429,8 +429,8 @@ if (!isNaN(param)) {
     <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
     
     <div style="margin-top:5px;display:flex;gap:5px;">
-      <button onclick="saveComment(${id})">Guardar</button>
-      <button onclick="location.reload()">Cancelar</button>
+<button type="button" onclick="saveComment(${id})">Guardar</button>
+     <button type="button" onclick="location.reload()">Cancelar</button>
     </div>
   `;
 };
