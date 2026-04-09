@@ -31,34 +31,22 @@
   <div class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-semibold mb-4">Información</h2>
 
-<div class="grid md:grid-cols-2 gap-4 text-sm">
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <p class="text-gray-500">Nombre</p>
+        <p id="userName" class="font-medium"></p>
+      </div>
 
-  <div>
-    <p class="text-gray-500">Nombre</p>
-    <input id="nameInput" class="w-full border rounded-lg p-2 mt-1">
-  </div>
+      <div>
+        <p class="text-gray-500">Email</p>
+        <p id="userEmail" class="font-medium"></p>
+      </div>
 
-  <div>
-    <p class="text-gray-500">Email</p>
-    <p id="userEmail" class="font-medium mt-2"></p>
-  </div>
-
-  <div>
-    <p class="text-gray-500">Tipo</p>
-    <p id="userRole" class="font-medium mt-2"></p>
-  </div>
-
-  <div>
-    <p class="text-gray-500">Nueva contraseña</p>
-    <input id="passwordInput" type="password" placeholder="Opcional" class="w-full border rounded-lg p-2 mt-1">
-  </div>
-
-</div>
-
-<button id="saveProfileBtn"
-  class="mt-6 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">
-  Guardar cambios
-</button>
+      <div>
+        <p class="text-gray-500">Tipo</p>
+        <p id="userRole" class="font-medium"></p>
+      </div>
+    </div>
   </div>
 
   <!-- FAVORITOS -->
@@ -192,11 +180,11 @@ async function loadFollowing(){
 
 // acciones
 function goToStore(id){
-  window.location.href = `/store/${id}`;
+  window.location.href = /store/${id};
 }
 
 async function unfollow(id){
-  await fetch(`/api/follow/${id}`, {
+  await fetch(/api/follow/${id}, {
     method:"DELETE",
     credentials:"include"
   });
