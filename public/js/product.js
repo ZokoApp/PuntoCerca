@@ -415,7 +415,7 @@ if (!isNaN(param)) {
     </p>
   </div>
 `;
-      async function deleteComment(id) {
+      window.deleteComment = async function(id) { {
 
   if (!confirm("¿Eliminar comentario?")) return;
 
