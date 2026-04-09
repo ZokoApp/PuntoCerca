@@ -1051,6 +1051,37 @@ app.delete('/api/comments/:id', authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/api/comments/:id', authMiddleware, async (req, res) => {
+  try {
+
+    const { content } = req.body;
+    const commentId = req.params.id;
+    const userId = req.user.id;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+
+    const result = await pool.query(
+      `UPDATE comments
+       SET content = $1
+       WHERE id = $2 AND user_id = $3
+       RETURNING *`,
+      [content, commentId, userId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    res.json({ message: "Comentario actualizado" });
+
+  } catch (error) {
+    console.error("EDIT COMMENT ERROR:", error);
+    res.status(500).json({ error: "Error editando comentario" });
+  }
+});
+
 
 
 // ================================
