@@ -931,6 +931,41 @@ app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    let passwordHash = null;
+
+    if (password && password.trim() !== "") {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET
+         name = COALESCE($1, name),
+         password_hash = COALESCE($2, password_hash)
+       WHERE id = $3
+       RETURNING id, name, email, role`,
+      [name || null, passwordHash, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.json({
+      message: "Perfil actualizado correctamente",
+      user: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando perfil" });
+  }
+});
+
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
 
   try {
