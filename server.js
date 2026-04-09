@@ -1026,30 +1026,7 @@ app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/products/:id/comments', async (req, res) => {
 
-  try {
-
-    const result = await pool.query(`
-      SELECT 
-        c.id,
-        c.content,
-        c.created_at,
-        u.name,
-        u.avatar_url
-      FROM comments c
-      LEFT JOIN users u ON u.id = c.user_id
-      WHERE c.product_id = $1
-      ORDER BY c.created_at DESC
-    `, [req.params.id]);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error("ERROR GET COMMENTS:", error);
-    res.status(500).json({ error: "Error obteniendo comentarios" });
-  }
-});
 
 // ================================
 // GET COMMENTS (CON AVATAR)
