@@ -403,18 +403,76 @@ if (!isNaN(param)) {
       <strong style="font-size:14px;">${c.name}</strong>
 
       ${isLogged ? `
-        <button onclick="deleteComment(${c.id})"
-          style="font-size:12px;color:red;">
-          Eliminar
-        </button>
+        <div style="display:flex;gap:10px;">
+          <button onclick="editComment(${c.id}, '${c.content.replace(/'/g, "\\'")}')" style="font-size:12px;">
+            Editar
+          </button>
+
+          <button onclick="deleteComment(${c.id})" style="font-size:12px;color:red;">
+            Eliminar
+          </button>
+        </div>
       ` : ""}
     </div>
 
-    <p style="margin-top:4px;font-size:14px;color:#444;">
+    <p id="comment-${c.id}" style="margin-top:4px;font-size:14px;color:#444;">
       ${c.content}
     </p>
   </div>
 `;
+
+      window.editComment = function(id, content) {
+
+  const p = document.getElementById(`comment-${id}`);
+
+  p.innerHTML = `
+    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
+    
+    <div style="margin-top:5px;display:flex;gap:5px;">
+      <button onclick="saveComment(${id})">Guardar</button>
+      <button onclick="location.reload()">Cancelar</button>
+    </div>
+  `;
+};
+
+      window.editComment = function(id, content) {
+
+  const p = document.getElementById(`comment-${id}`);
+
+  p.innerHTML = `
+    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
+    
+    <div style="margin-top:5px;display:flex;gap:5px;">
+      <button onclick="saveComment(${id})">Guardar</button>
+      <button onclick="location.reload()">Cancelar</button>
+    </div>
+  `;
+};
+
+      window.saveComment = async function(id) {
+
+  const newContent = document.getElementById(`edit-input-${id}`).value;
+
+  if (!newContent.trim()) return alert("Comentario vacío");
+
+  try {
+
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content: newContent })
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al editar");
+  }
+};
       window.deleteComment = async function(id) { 
 
   if (!confirm("¿Eliminar comentario?")) return;
