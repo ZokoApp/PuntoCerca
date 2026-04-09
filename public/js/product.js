@@ -366,29 +366,63 @@ if (!isNaN(param)) {
   // FUNCIONES
   // =============================
   async function loadComments(productId) {
-  
-    try {
-      const res = await fetch(`/api/products/${productId}/comments`);
-  
-      if (!res.ok) return;
-  
-      const comments = await res.json();
-  
-      const container = document.getElementById("commentsContainer");
-      container.innerHTML = "";
-  
-      comments.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "border-b pb-2 text-sm";
-        div.innerHTML = `
-    <strong>${c.name}</strong><br>
-    ${c.content}
-  `;
-        container.appendChild(div);
-      });
-  
-    } catch {}
+
+  try {
+    const res = await fetch(`/api/products/${productId}/comments`);
+
+    if (!res.ok) return;
+
+    const comments = await res.json();
+
+    const container = document.getElementById("commentsContainer");
+    container.innerHTML = "";
+
+    if (!comments.length) {
+      container.innerHTML = `
+        <p style="color:#888;font-size:14px;">
+          No hay comentarios todavía
+        </p>
+      `;
+      return;
+    }
+
+    comments.forEach(c => {
+
+      const div = document.createElement("div");
+
+      div.className = "flex gap-3 border-b pb-3 mb-3 items-start";
+
+      div.innerHTML = `
+        <img 
+          src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}" 
+          style="
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            object-fit:cover;
+          "
+        />
+
+        <div style="flex:1;">
+          <strong style="font-size:14px;">${c.name}</strong>
+
+          <p style="
+            margin-top:4px;
+            font-size:14px;
+            color:#444;
+          ">
+            ${c.content}
+          </p>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
   }
+}
   
   async function loadRelated(product) {
   
