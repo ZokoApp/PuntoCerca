@@ -31,6 +31,23 @@
   <div class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-semibold mb-4">Información</h2>
 
+    <div class="mb-6 flex items-center gap-4">
+
+  <img id="avatarPreview"
+    src="/img/default-avatar.png"
+    class="w-16 h-16 rounded-full object-cover border">
+
+  <div>
+    <input type="file" id="avatarInput" accept="image/*"
+      class="text-sm">
+
+    <p class="text-xs text-gray-400 mt-1">
+      JPG, PNG o WEBP
+    </p>
+  </div>
+
+</div>
+
     <div class="grid md:grid-cols-2 gap-4 text-sm">
 
       <div>
@@ -103,9 +120,50 @@ async function loadProfile(){
     document.getElementById("nameInput").value = user.name;
     document.getElementById("userEmail").innerText = user.email;
     document.getElementById("userRole").innerText = user.role;
+    if (user.avatar_url) {
+  document.getElementById("avatarPreview").src = user.avatar_url;
+}
 
   }catch(err){
     console.error(err);
+  }
+}
+
+  document.getElementById("avatarInput").addEventListener("change", (e) => {
+
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById("avatarPreview");
+  preview.src = URL.createObjectURL(file);
+
+});
+
+  async function uploadAvatar() {
+
+  const input = document.getElementById("avatarInput");
+
+  if (!input.files.length) return;
+
+  const formData = new FormData();
+  formData.append("avatar", input.files[0]);
+
+  try {
+    const res = await fetch("/api/users/avatar", {
+      method: "PUT",
+      credentials: "include",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+
+    console.log("Avatar actualizado:", data);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error subiendo avatar");
   }
 }
 
@@ -242,6 +300,8 @@ document.getElementById("saveProfileBtn").addEventListener("click", async () => 
     console.error(err);
     alert("Error actualizando perfil");
   }
+
+  await uploadAvatar();
 
 });
 
