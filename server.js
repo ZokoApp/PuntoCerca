@@ -1000,18 +1000,43 @@ RETURNING *`,
 
 });
 
-
-app.post('/api/products/:id/comments', async (req, res) => {
+app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
 
   const { content } = req.body;
 
   await pool.query(
-    `INSERT INTO comments (product_id, content)
-     VALUES ($1,$2)`,
-    [req.params.id, content]
+    `INSERT INTO comments (product_id, user_id, content)
+     VALUES ($1,$2,$3)`,
+    [req.params.id, req.user.id, content]
   );
 
   res.json({ ok: true });
+});
+
+// ================================
+// GET COMMENTS (CON AVATAR)
+// ================================
+app.get('/api/products/:id/comments', async (req, res) => {
+  try {
+
+    const result = await pool.query(
+      `SELECT 
+         comments.*,
+         users.name,
+         users.avatar_url
+       FROM comments
+       JOIN users ON users.id = comments.user_id
+       WHERE comments.product_id = $1
+       ORDER BY comments.id DESC`,
+      [req.params.id]
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo comentarios" });
+  }
 });
 
 app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
