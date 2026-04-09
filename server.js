@@ -1003,14 +1003,52 @@ RETURNING *`,
 app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
 
   const { content } = req.body;
+  const productId = req.params.id;
+  const userId = req.user.id;
 
-  await pool.query(
-    `INSERT INTO comments (product_id, user_id, content)
-     VALUES ($1,$2,$3)`,
-    [req.params.id, req.user.id, content]
-  );
+  if (!content || content.trim() === "") {
+    return res.status(400).json({ error: "Comentario vacío" });
+  }
 
-  res.json({ ok: true });
+  try {
+
+    await pool.query(
+      `INSERT INTO comments (product_id, user_id, content)
+       VALUES ($1,$2,$3)`,
+      [productId, userId, content]
+    );
+
+    res.json({ message: "Comentario agregado" });
+
+  } catch (error) {
+    console.error("ERROR COMMENT:", error);
+    res.status(500).json({ error: "Error al comentar" });
+  }
+});
+
+app.get('/api/products/:id/comments', async (req, res) => {
+
+  try {
+
+    const result = await pool.query(`
+      SELECT 
+        c.id,
+        c.content,
+        c.created_at,
+        u.name,
+        u.avatar_url
+      FROM comments c
+      LEFT JOIN users u ON u.id = c.user_id
+      WHERE c.product_id = $1
+      ORDER BY c.created_at DESC
+    `, [req.params.id]);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error("ERROR GET COMMENTS:", error);
+    res.status(500).json({ error: "Error obteniendo comentarios" });
+  }
 });
 
 // ================================
