@@ -31,22 +31,35 @@
   <div class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-semibold mb-4">Información</h2>
 
-    <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+
       <div>
         <p class="text-gray-500">Nombre</p>
-        <p id="userName" class="font-medium"></p>
+        <input id="nameInput" class="border rounded-lg p-2 w-full mt-1">
       </div>
 
       <div>
         <p class="text-gray-500">Email</p>
-        <p id="userEmail" class="font-medium"></p>
+        <p id="userEmail" class="font-medium mt-2"></p>
       </div>
 
       <div>
         <p class="text-gray-500">Tipo</p>
-        <p id="userRole" class="font-medium"></p>
+        <p id="userRole" class="font-medium mt-2"></p>
       </div>
+
+      <div>
+        <p class="text-gray-500">Nueva contraseña</p>
+        <input id="passwordInput" type="password" placeholder="Opcional"
+          class="border rounded-lg p-2 w-full mt-1">
+      </div>
+
     </div>
+
+    <button id="saveProfileBtn"
+      class="mt-6 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">
+      Guardar cambios
+    </button>
   </div>
 
   <!-- FAVORITOS -->
@@ -59,6 +72,16 @@
   <div class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-semibold mb-4">Tiendas que sigues</h2>
     <div id="followingList" class="grid gap-4"></div>
+  </div>
+
+  <!-- ZONA PELIGROSA -->
+  <div class="bg-white rounded-xl shadow p-6 border border-red-200">
+    <h2 class="text-lg font-semibold mb-4 text-red-600">Zona peligrosa</h2>
+
+    <button id="deleteAccountBtn"
+      class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+      Eliminar mi cuenta
+    </button>
   </div>
 
 </div>
@@ -77,7 +100,7 @@ async function loadProfile(){
 
     const user = await res.json();
 
-    document.getElementById("userName").innerText = user.name;
+    document.getElementById("nameInput").value = user.name;
     document.getElementById("userEmail").innerText = user.email;
     document.getElementById("userRole").innerText = user.role;
 
@@ -126,7 +149,7 @@ async function loadFavorites(){
   }catch(err){
     console.error(err);
   }
- }
+}
 
 async function loadFollowing(){
   try{
@@ -180,17 +203,73 @@ async function loadFollowing(){
 
 // acciones
 function goToStore(id){
-  window.location.href = /store/${id};
+  window.location.href = `/store/${id}`;
 }
 
 async function unfollow(id){
-  await fetch(/api/follow/${id}, {
+  await fetch(`/api/follow/${id}`, {
     method:"DELETE",
     credentials:"include"
   });
 
   loadFollowing();
 }
+
+// GUARDAR PERFIL
+document.getElementById("saveProfileBtn").addEventListener("click", async () => {
+
+  const name = document.getElementById("nameInput").value;
+  const password = document.getElementById("passwordInput").value;
+
+  try {
+    const res = await fetch("/api/users/me", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        name,
+        password
+      })
+    });
+
+    if (!res.ok) throw new Error();
+
+    alert("Perfil actualizado");
+
+  } catch (err) {
+    console.error(err);
+    alert("Error actualizando perfil");
+  }
+
+});
+
+// ELIMINAR CUENTA
+document.getElementById("deleteAccountBtn").addEventListener("click", async () => {
+
+  const confirmDelete = confirm("¿Seguro que querés eliminar tu cuenta?");
+
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch("/api/users/me", {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error();
+
+    alert("Cuenta eliminada");
+
+    window.location.href = "/";
+
+  } catch (err) {
+    console.error(err);
+    alert("Error eliminando cuenta");
+  }
+
+});
 
 // INIT
 loadProfile();
