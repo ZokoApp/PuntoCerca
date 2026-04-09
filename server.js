@@ -635,7 +635,7 @@ app.get('/api/me', authMiddleware, async (req, res) => {
   try {
 
     const result = await pool.query(
-      `SELECT id, name, email, role FROM users WHERE id = $1`,
+      `SELECT id, name, email, role, avatar_url FROM users WHERE id = $1`,
       [req.user.id]
     );
 
@@ -671,7 +671,7 @@ app.put('/api/users/me', authMiddleware, async (req, res) => {
          name = COALESCE($1, name),
          password_hash = COALESCE($2, password_hash)
        WHERE id = $3
-       RETURNING id, name, email, role`,
+       RETURNING id, name, email, role, avatar_url`,
       [
         name || null,
         passwordHash,
@@ -684,6 +684,38 @@ app.put('/api/users/me', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error actualizando usuario" });
+  }
+});
+
+app.put('/api/users/avatar', authMiddleware, upload.single("avatar"), async (req, res) => {
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No se recibió ninguna imagen" });
+    }
+
+    const avatar_url = req.file.path;
+
+    const result = await pool.query(
+      `UPDATE users
+       SET avatar_url = $1
+       WHERE id = $2
+       RETURNING id, name, email, role, avatar_url`,
+      [avatar_url, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.json({
+      message: "Avatar actualizado correctamente",
+      user: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando avatar" });
   }
 });
 
