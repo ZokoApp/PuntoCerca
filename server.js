@@ -651,6 +651,126 @@ app.get('/api/me', authMiddleware, async (req, res) => {
   }
 });
 
+// ================================
+// UPDATE USER
+// ================================
+app.put('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+
+    const { name, password } = req.body;
+
+    let passwordHash = null;
+
+    if (password && password.trim() !== "") {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET 
+         name = COALESCE($1, name),
+         password_hash = COALESCE($2, password_hash)
+       WHERE id = $3
+       RETURNING id, name, email, role`,
+      [
+        name || null,
+        passwordHash,
+        req.user.id
+      ]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando usuario" });
+  }
+});
+
+
+// ================================
+// DELETE USER (PRO)
+// ================================
+app.delete('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+
+    const userId = req.user.id;
+
+    // 🔥 1. eliminar favoritos productos
+    await pool.query(
+      `DELETE FROM product_favorites WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 🔥 2. eliminar follows
+    await pool.query(
+      `DELETE FROM follows WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 🔥 3. eliminar favoritos tiendas
+    await pool.query(
+      `DELETE FROM favorites WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 🔥 4. eliminar ratings productos
+    await pool.query(
+      `DELETE FROM product_ratings WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 🔥 5. eliminar tiendas del usuario
+    const stores = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [userId]
+    );
+
+    for (const store of stores.rows) {
+
+      // productos de la tienda
+      await pool.query(
+        `DELETE FROM products WHERE store_id = $1`,
+        [store.id]
+      );
+
+      // follows a esa tienda
+      await pool.query(
+        `DELETE FROM follows WHERE store_id = $1`,
+        [store.id]
+      );
+
+      // favoritos a esa tienda
+      await pool.query(
+        `DELETE FROM favorites WHERE store_id = $1`,
+        [store.id]
+      );
+    }
+
+    // 🔥 6. eliminar tiendas
+    await pool.query(
+      `DELETE FROM stores WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 🔥 7. eliminar usuario
+    await pool.query(
+      `DELETE FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    // limpiar cookies
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+
+    res.json({ message: "Cuenta eliminada correctamente" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error eliminando cuenta" });
+  }
+});
+
  app.post('/api/favorites', authMiddleware, async (req, res) => {
 
   const { store_id } = req.body;
