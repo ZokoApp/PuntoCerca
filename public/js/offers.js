@@ -50,9 +50,7 @@ function renderProducts(products) {
     </span>
   ` : ""}
 
-  <div class="price">
-    $${parseFloat(p.price).toLocaleString()}
-  </div>
+  ${window.renderPriceHTML(p.price, p.old_price)}
 
 </div>
 
