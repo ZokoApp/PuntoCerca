@@ -925,17 +925,18 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
   try {
 
     const { 
-      name, 
-      price, 
-      store_id, 
-      brand, 
-      size, 
-      stock, 
-      extra, 
-      category,
-      colors,
-      is_offer
-    } = req.body;
+  name, 
+  price, 
+  old_price, 
+  store_id, 
+  brand, 
+  size, 
+  stock, 
+  extra, 
+  category,
+  colors,
+  is_offer
+} = req.body;
 
     let images = [];
 
@@ -971,12 +972,13 @@ while (true) {
 
     const result = await pool.query(
   `INSERT INTO products
-(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+(name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, $14)
 RETURNING *`,
  [
   name,
   price,
+  old_price,
   mainImage,
   JSON.stringify(images),
   store_id,
