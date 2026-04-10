@@ -1,6 +1,8 @@
 import { loadStores, focusStore } from './modules/stores.js';
 import { initSliders } from './modules/ui.js';
 import { loadProducts, loadOffers } from './modules/offers.js';
+import { renderPriceHTML } from './utils/prices.js';
+window.renderPriceHTML = renderPriceHTML;
 
 // GLOBAL (para HTML onclick)
 window.loadStores = loadStores;
