@@ -216,6 +216,15 @@ if (!isNaN(param)) {
     // =============================
   // WHATSAPP
   // =============================
+
+    const contactBtn = document.getElementById("contactBtn");
+
+
+if (!isLogged) {
+  contactBtn.innerText = "Registrate para consultar";
+} else {
+  contactBtn.innerText = "Consultar";
+}
   document.getElementById("contactBtn").addEventListener("click", () => {
   
     if (!product.store_phone) {
