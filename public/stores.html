@@ -27,6 +27,29 @@
   <!-- FILTROS -->
   <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-3 items-center">
 
+  <!-- 🔍 BUSCADOR -->
+  <input 
+    id="searchStore"
+    type="text"
+    placeholder="Buscar tiendas..."
+    class="border p-2 rounded-lg text-sm w-full sm:w-64"
+  >
+
+  <!-- 📂 CATEGORÍA -->
+  <select id="filterCategory" class="border p-2 rounded-lg text-sm">
+    <option value="">Todos los rubros</option>
+  </select>
+
+  <!-- 📊 ORDEN -->
+  <select id="filterSort" class="border p-2 rounded-lg text-sm">
+    <option value="">Ordenar por</option>
+    <option value="rating">⭐ Mejor calificadas</option>
+    <option value="open">🟢 Abiertos primero</option>
+    <option value="distance">📍 Más cercanas</option>
+  </select>
+
+</div>
+
     <select id="filterCategory" class="border p-2 rounded-lg text-sm">
       <option value="">Todos los rubros</option>
     </select>
