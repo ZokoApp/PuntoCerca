@@ -3,17 +3,38 @@ export function renderPriceHTML(product){
   const price = parseFloat(product.price || 0);
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
 
+  // 👉 SIN oferta
   if(!oldPrice){
     return `<strong>$${price.toLocaleString()}</strong>`;
   }
 
-  return `
-    <span style="text-decoration:line-through;color:#999;font-size:12px;">
-      $${oldPrice.toLocaleString()}
-    </span><br>
+  // 🔥 calcular descuento
+  const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
 
-    <strong style="color:#dc2626;">
-      $${price.toLocaleString()}
-    </strong>
+  return `
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      
+      <span style="text-decoration:line-through;color:#999;font-size:12px;">
+        $${oldPrice.toLocaleString()}
+      </span>
+
+      <div style="display:flex;align-items:center;gap:6px;">
+        <strong style="color:#dc2626;">
+          $${price.toLocaleString()}
+        </strong>
+
+        <span style="
+          background:#dc2626;
+          color:white;
+          font-size:11px;
+          padding:2px 6px;
+          border-radius:6px;
+          font-weight:bold;
+        ">
+          -${discount}%
+        </span>
+      </div>
+
+    </div>
   `;
 }
