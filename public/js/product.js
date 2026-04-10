@@ -225,26 +225,34 @@ if (!isLogged) {
 } else {
   contactBtn.innerText = "Consultar";
 }
-  document.getElementById("contactBtn").addEventListener("click", () => {
-  
-    if (!product.store_phone) {
-      alert("Esta tienda no tiene teléfono cargado");
-      return;
-    }
-  
-    const telefono = product.store_phone.replace(/\D/g, "");
-  
-    const mensaje = `Hola! Quiero consultar por este producto:
-  
-  ${product.name}
-  $${parseFloat(product.price).toLocaleString()}
-  
-  ¿Está disponible?
-  
-  ${window.location.href}`;
-  
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
-  });
+  document.contactBtn.addEventListener("click", (e) => {
+
+  e.preventDefault(); // 🔥 ESTO ES LA CLAVE
+
+  if (!isLogged) {
+    window.location.href = "/register";
+    return;
+  }
+
+  if (!product.store_phone) {
+    alert("Esta tienda no tiene teléfono cargado");
+    return;
+  }
+
+  const telefono = product.store_phone.replace(/\D/g, "");
+
+  const mensaje = `Hola! Quiero consultar por este producto:
+
+${product.name}
+$${parseFloat(product.price).toLocaleString()}
+
+¿Está disponible?
+
+${window.location.href}`;
+
+  window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
+
+});
   
     // =============================
     // COMENTARIOS
