@@ -1757,6 +1757,10 @@ app.get("/products", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "products.html"));
 });
 
+app.get('/offers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'offers.html'));
+});
+
 app.get('/edit-store', (req, res) => {
   res.sendFile(__dirname + '/public/edit-store.html');
 });
