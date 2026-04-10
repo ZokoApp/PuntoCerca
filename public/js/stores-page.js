@@ -7,6 +7,9 @@ let allStores = [];
 navigator.geolocation.getCurrentPosition(pos => {
   userLat = pos.coords.latitude;
   userLng = pos.coords.longitude;
+
+  // 🔥 recalcular filtros cuando llega ubicación
+  applyFilters();
 });
 
 // ==========================
@@ -15,43 +18,19 @@ navigator.geolocation.getCurrentPosition(pos => {
 async function loadStores(){
 
   const category = document.getElementById("filterCategory").value;
-  const sort = document.getElementById("filterSort").value;
 
   let url = '/api/stores';
 
   if(category){
-    url += `?category=${category}`;
+    url += `?category=${encodeURIComponent(category)}`;
   }
 
   const res = await fetch(url);
-  let stores = await res.json();
-
-  // ⭐ ORDEN POR RATING
-  if(sort === "rating"){
-    stores.sort((a,b) => (b.rating_avg || 0) - (a.rating_avg || 0));
-  }
-
-  // 📍 ORDEN POR DISTANCIA
-  if(sort === "distance" && userLat && userLng){
-
-    stores.forEach(store => {
-      if(store.lat && store.lng){
-        store.distance = Math.sqrt(
-          Math.pow(store.lat - userLat, 2) +
-          Math.pow(store.lng - userLng, 2)
-        );
-      } else {
-        store.distance = 999;
-      }
-    });
-
-    stores.sort((a,b) => a.distance - b.distance);
-  }
+  const stores = await res.json();
 
   allStores = stores;
-applyFilters();
+  applyFilters();
 }
-
 // ==========================
 // RENDER
 // ==========================
@@ -98,25 +77,47 @@ function renderStores(stores){
 
 function applyFilters(){
 
-  const search = document.getElementById("searchStore").value.toLowerCase();
+  const search = document.getElementById("searchStore").value.toLowerCase().trim();
   const sort = document.getElementById("filterSort").value;
 
   let filtered = [...allStores];
 
   // 🔍 BUSCADOR
   if(search){
-    filtered = filtered.filter(s =>
-      s.name.toLowerCase().includes(search)
+    filtered = filtered.filter(store =>
+      (store.name || "").toLowerCase().includes(search) ||
+      (store.category || "").toLowerCase().includes(search)
     );
   }
 
-  // ⭐ ORDEN
+  // ⭐ ORDEN POR RATING
   if(sort === "rating"){
-    filtered.sort((a,b) => (b.rating_avg || 0) - (a.rating_avg || 0));
+    filtered.sort((a, b) => (b.rating_avg || 0) - (a.rating_avg || 0));
   }
 
-  if(sort === "distance" && userLat && userLng){
-    filtered.sort((a,b) => (a.distance || 999) - (b.distance || 999));
+  // 🟢 ABIERTOS PRIMERO
+  if(sort === "open"){
+    filtered.sort((a, b) => {
+      const aOpen = a.is_open ? 1 : 0;
+      const bOpen = b.is_open ? 1 : 0;
+      return bOpen - aOpen;
+    });
+  }
+
+  // 📍 DISTANCIA
+  if(sort === "distance"){
+    filtered.forEach(store => {
+      if(userLat && userLng && store.lat && store.lng){
+        store.distance = Math.sqrt(
+          Math.pow(Number(store.lat) - userLat, 2) +
+          Math.pow(Number(store.lng) - userLng, 2)
+        );
+      } else {
+        store.distance = 999999;
+      }
+    });
+
+    filtered.sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
   }
 
   renderStores(filtered);
