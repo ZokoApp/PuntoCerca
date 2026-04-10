@@ -6,6 +6,28 @@ if (!param) {
 }
   
   let isLogged = false;
+
+ function timeAgo(dateString) {
+
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const seconds = Math.floor((now - date) / 1000);
+
+  if (seconds < 60) return "Hace unos segundos";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `Hace ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Hace ${hours} h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Hace ${days} días`;
+
+  const weeks = Math.floor(days / 7);
+  return `Hace ${weeks} semanas`;
+}
   
   // 🔐 CHECK LOGIN PRIMERO
   async function checkAuth() {
@@ -53,27 +75,7 @@ if (!isNaN(param)) {
     product.user_rating || 0
   );
 
-    function timeAgo(dateString) {
-
-  const date = new Date(dateString);
-  const now = new Date();
-
-  const seconds = Math.floor((now - date) / 1000);
-
-  if (seconds < 60) return "Hace unos segundos";
-
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `Hace ${minutes} min`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Hace ${hours} h`;
-
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `Hace ${days} días`;
-
-  const weeks = Math.floor(days / 7);
-  return `Hace ${weeks} semanas`;
-}
+   
   
    
   
