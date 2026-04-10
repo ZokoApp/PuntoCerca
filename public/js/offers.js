@@ -1,65 +1,130 @@
-console.log("OFERTAS JS CARGADO");
+let allProducts = [];
 
 async function loadOffers() {
-  console.log("Ejecutando loadOffers");
-
   try {
-    const grid = document.getElementById("offersGrid");
-
-    if (!grid) {
-      console.error("No existe #offersGrid");
-      return;
-    }
-
     const res = await fetch('/api/daily-offers');
-    console.log("Status /api/daily-offers:", res.status);
-
-    if (!res.ok) {
-      throw new Error(`Error HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error();
 
     const products = await res.json();
-    console.log("Ofertas recibidas:", products);
+    allProducts = products;
 
-    grid.innerHTML = "";
+    renderProducts(products);
+    loadStoreFilter(products);
 
-    if (!Array.isArray(products) || products.length === 0) {
-      grid.innerHTML = "<p>No hay ofertas disponibles</p>";
-      return;
-    }
-
-    products.forEach(p => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <div class="img-box">
-          <img src="${p.image_url || ''}" alt="${p.product_name || 'Producto'}" />
-        </div>
-
-        <div class="card-body">
-          <div>
-            ${p.product_name || 'Sin nombre'}
-            <span class="badge">OFERTA</span>
-          </div>
-
-          <div class="price">
-            $${p.price ? parseFloat(p.price).toLocaleString() : '0'}
-          </div>
-
-          <div class="store">${p.store_name || ''}</div>
-        </div>
-      `;
-
-      card.onclick = () => {
-        window.location.href = `/product/${p.product_id}`;
-      };
-
-      grid.appendChild(card);
-    });
   } catch (err) {
-    console.error("ERROR EN OFFERS:", err);
+    console.error(err);
   }
 }
 
-loadOffers();
+function renderProducts(products) {
+
+  const grid = document.getElementById("offersGrid");
+  grid.innerHTML = "";
+
+  if (!products.length) {
+    grid.innerHTML = "<p>No hay ofertas disponibles</p>";
+    return;
+  }
+
+  products.forEach(p => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="img-box">
+        <img src="${p.image_url}" />
+      </div>
+
+      <div class="card-body">
+        <div>
+          ${p.product_name}
+          <span class="badge">OFERTA</span>
+        </div>
+
+        <div class="price">$${parseFloat(p.price).toLocaleString()}</div>
+
+        <div class="store">${p.store_name}</div>
+      </div>
+    `;
+
+    card.onclick = () => {
+      window.location.href = `/product/${p.product_id}`;
+    };
+
+    grid.appendChild(card);
+  });
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+function applyFilters() {
+
+  let filtered = [...allProducts];
+
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const store = document.getElementById("storeFilter").value;
+  const sort = document.getElementById("sortPrice").value;
+
+  // 🔍 BUSCADOR
+  if (search) {
+    filtered = filtered.filter(p =>
+      p.product_name.toLowerCase().includes(search)
+    );
+  }
+
+  // 🏪 FILTRO TIENDA
+  if (store) {
+    filtered = filtered.filter(p => p.store_name === store);
+  }
+
+  // 💰 ORDEN PRECIO
+  if (sort === "asc") {
+    filtered.sort((a,b) => a.price - b.price);
+  }
+
+  if (sort === "desc") {
+    filtered.sort((a,b) => b.price - a.price);
+  }
+
+  renderProducts(filtered);
+}
+
+/* =========================
+   CARGAR TIENDAS
+========================= */
+
+function loadStoreFilter(products) {
+
+  const select = document.getElementById("storeFilter");
+
+  const stores = [...new Set(products.map(p => p.store_name))];
+
+  stores.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.innerText = s;
+    select.appendChild(opt);
+  });
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  loadOffers();
+
+  document.getElementById("searchInput")
+    .addEventListener("input", applyFilters);
+
+  document.getElementById("storeFilter")
+    .addEventListener("change", applyFilters);
+
+  document.getElementById("sortPrice")
+    .addEventListener("change", applyFilters);
+
+});
