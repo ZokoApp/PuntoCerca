@@ -225,7 +225,7 @@ if (!isLogged) {
 } else {
   contactBtn.innerText = "Consultar";
 }
-  document.contactBtn.addEventListener("click", (e) => {
+  contactBtn.addEventListener("click", (e) => {
 
   e.preventDefault(); // 🔥 ESTO ES LA CLAVE
 
