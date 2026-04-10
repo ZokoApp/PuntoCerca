@@ -1959,6 +1959,7 @@ app.get('/api/daily-offers', async (req, res) => {
   p.id AS product_id,
   p.name AS product_name,
   p.price,
+  p.old_price, -- 🔥 AGREGÁ ESTO
   p.image_url,
   p.store_id,
   s.name AS store_name,
