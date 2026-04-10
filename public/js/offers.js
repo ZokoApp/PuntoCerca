@@ -42,9 +42,19 @@ function renderProducts(products) {
       <span class="badge">OFERTA</span>
     </div>
 
-    <div class="price">
-      $${parseFloat(p.price).toLocaleString()}
-    </div>
+  <div class="price-row">
+
+  ${p.old_price ? `
+    <span class="old-price">
+      $${parseFloat(p.old_price).toLocaleString()}
+    </span>
+  ` : ""}
+
+  <div class="price">
+    $${parseFloat(p.price).toLocaleString()}
+  </div>
+
+</div>
 
     <div class="store">
       ${p.store_name}
