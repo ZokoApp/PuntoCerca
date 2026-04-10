@@ -3,12 +3,10 @@ window.renderPriceHTML = function(product){
   const price = parseFloat(product.price || 0);
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
 
-  // 👉 SIN oferta
   if(!oldPrice){
     return `<strong>$${price.toLocaleString()}</strong>`;
   }
 
-  // 🔥 calcular descuento
   const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
 
   return `
@@ -37,4 +35,4 @@ window.renderPriceHTML = function(product){
 
     </div>
   `;
-}
+};
