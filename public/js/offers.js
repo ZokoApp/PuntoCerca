@@ -50,7 +50,7 @@ function renderProducts(products) {
     </span>
   ` : ""}
 
-  ${window.renderPriceHTML(p.price, p.old_price)}
+ ${window.renderPriceHTML(p)}
 
 </div>
 
