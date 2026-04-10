@@ -17,7 +17,7 @@ export function loadProducts(){
                 <h3>${product.name}</h3>
                 <p>${product.store_name}</p>
 
-                <p><strong>$${parseFloat(product.price).toLocaleString()}</strong></p>
+               <p>${window.renderPriceHTML(product)}</p>
 
                 <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
                   ${
@@ -59,7 +59,11 @@ export function loadOffers(){
                 <img src="${offer.image_url}" />
                 <h3>${offer.product_name}</h3>
 
-                <p class="price">$${parseFloat(offer.price).toLocaleString()}</p>
+               <p class="price">${window.renderPriceHTML({
+  price: offer.price,
+  old_price: offer.old_price,
+  is_offer: true
+})}</p>
 
                 <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
                   ${
