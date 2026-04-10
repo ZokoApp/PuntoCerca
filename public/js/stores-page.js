@@ -1,7 +1,9 @@
 let userLat = null;
 let userLng = null;
 
-// 📍 obtener ubicación
+let allStores = [];
+
+
 navigator.geolocation.getCurrentPosition(pos => {
   userLat = pos.coords.latitude;
   userLng = pos.coords.longitude;
@@ -46,7 +48,8 @@ async function loadStores(){
     stores.sort((a,b) => a.distance - b.distance);
   }
 
-  renderStores(stores);
+  allStores = stores;
+applyFilters();
 }
 
 // ==========================
@@ -93,6 +96,32 @@ function renderStores(stores){
   });
 }
 
+function applyFilters(){
+
+  const search = document.getElementById("searchStore").value.toLowerCase();
+  const sort = document.getElementById("filterSort").value;
+
+  let filtered = [...allStores];
+
+  // 🔍 BUSCADOR
+  if(search){
+    filtered = filtered.filter(s =>
+      s.name.toLowerCase().includes(search)
+    );
+  }
+
+  // ⭐ ORDEN
+  if(sort === "rating"){
+    filtered.sort((a,b) => (b.rating_avg || 0) - (a.rating_avg || 0));
+  }
+
+  if(sort === "distance" && userLat && userLng){
+    filtered.sort((a,b) => (a.distance || 999) - (b.distance || 999));
+  }
+
+  renderStores(filtered);
+}
+
 // ==========================
 // CARGAR CATEGORÍAS
 // ==========================
@@ -123,7 +152,10 @@ document.getElementById("filterCategory")
   .addEventListener("change", loadStores);
 
 document.getElementById("filterSort")
-  .addEventListener("change", loadStores);
+  .addEventListener("change", applyFilters);
+
+document.getElementById("searchStore")
+  .addEventListener("input", applyFilters);
 
 // ==========================
 // INIT
