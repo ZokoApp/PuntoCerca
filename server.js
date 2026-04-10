@@ -1798,22 +1798,25 @@ app.get('/:slug', (req, res) => {
 
   const slug = req.params.slug;
 
-  // ⚠️ evitar conflictos con otras rutas
-  const blocked = [
-  "api",
-  "login",
-  "register",
-  "products",
-  "map",
-  "offers",
-  "store",
-  "product",
-  "dashboard"
-];
+  // 🚫 ignorar archivos (JS, CSS, imágenes, etc)
+  if (slug.includes(".")) {
+    return;
+  }
 
-if (blocked.includes(slug)) {
-  return;
-}
+  // 🚫 rutas del sistema
+  const blocked = [
+    "api",
+    "login",
+    "register",
+    "products",
+    "offers",
+    "dashboard",
+    "profile"
+  ];
+
+  if (blocked.includes(slug)) {
+    return;
+  }
 
   res.sendFile(path.join(__dirname, 'public/store.html'));
 });
