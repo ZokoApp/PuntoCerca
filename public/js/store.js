@@ -242,22 +242,29 @@ function handleUIByRole(store){
       };
     }
 
-    if(followBtn && currentUser){
-      followBtn.style.display = "inline-block";
+    if (followBtn) {
 
-      followBtn.onclick = async () => {
-        const isFollowing = followBtn.innerText === "Siguiendo";
+  if (!currentUser) {
+    followBtn.style.display = "none";
+    return;
+  }
 
-        await fetch(`/api/follow${isFollowing ? "/" + store.id : ""}`, {
-          method: isFollowing ? "DELETE" : "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: isFollowing ? null : JSON.stringify({ store_id: store.id })
-        });
+  // usuario logueado
+  followBtn.style.display = "inline-block";
 
-        followBtn.innerText = isFollowing ? "Seguir" : "Siguiendo";
-      };
-    }
+  followBtn.onclick = async () => {
+    const isFollowing = followBtn.innerText === "Siguiendo";
+
+    await fetch(`/api/follow${isFollowing ? "/" + store.id : ""}`, {
+      method: isFollowing ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: isFollowing ? null : JSON.stringify({ store_id: store.id })
+    });
+
+    followBtn.innerText = isFollowing ? "Seguir" : "Siguiendo";
+  };
+}
   }
 }
 
