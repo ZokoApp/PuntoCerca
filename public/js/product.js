@@ -52,6 +52,28 @@ if (!isNaN(param)) {
     product.rating_count || 0,
     product.user_rating || 0
   );
+
+    function timeAgo(dateString) {
+
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const seconds = Math.floor((now - date) / 1000);
+
+  if (seconds < 60) return "Hace unos segundos";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `Hace ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Hace ${hours} h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Hace ${days} días`;
+
+  const weeks = Math.floor(days / 7);
+  return `Hace ${weeks} semanas`;
+}
   
    
   
@@ -399,8 +421,12 @@ if (!isNaN(param)) {
   />
 
   <div style="flex:1;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <strong style="font-size:14px;">${c.name}</strong>
+    <div style="display:flex;align-items:center;gap:8px;">
+  <strong style="font-size:14px;">${c.name}</strong>
+  <span style="font-size:12px;color:#888;">
+    ${timeAgo(c.created_at)}
+  </span>
+</div>
 
       ${isLogged ? `
         <div style="display:flex;gap:10px;">
