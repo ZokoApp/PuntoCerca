@@ -31,22 +31,26 @@ function renderProducts(products) {
     const card = document.createElement("div");
     card.className = "card";
 
-    card.innerHTML = `
-      <div class="img-box">
-        <img src="${p.image_url}" />
-      </div>
+   card.innerHTML = `
+  <div class="img-box">
+    <img src="${p.image_url}" />
+  </div>
 
-      <div class="card-body">
-        <div>
-          ${p.product_name}
-          <span class="badge">OFERTA</span>
-        </div>
+  <div class="card-body">
+    <div class="product-name">
+      ${p.product_name}
+      <span class="badge">OFERTA</span>
+    </div>
 
-        <div class="price">$${parseFloat(p.price).toLocaleString()}</div>
+    <div class="price">
+      $${parseFloat(p.price).toLocaleString()}
+    </div>
 
-        <div class="store">${p.store_name}</div>
-      </div>
-    `;
+    <div class="store">
+      ${p.store_name}
+    </div>
+  </div>
+`;
 
     card.onclick = () => {
       window.location.href = `/product/${p.product_id}`;
