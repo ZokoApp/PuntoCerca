@@ -1,4 +1,4 @@
-export function renderPriceHTML(product){
+window.renderPriceHTML = function(product){
 
   const price = parseFloat(product.price || 0);
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
