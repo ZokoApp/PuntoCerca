@@ -102,9 +102,30 @@
 <div class="container">
   <h1>🔥 Ofertas del día</h1>
 
+  <!-- FILTROS -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+    
+    <input 
+      type="text" 
+      id="searchInput"
+      placeholder="Buscar producto..."
+      style="padding:10px;border-radius:8px;border:1px solid #ddd;flex:1;"
+    />
+
+    <select id="storeFilter" style="padding:10px;border-radius:8px;border:1px solid #ddd;">
+      <option value="">Todas las tiendas</option>
+    </select>
+
+    <select id="sortPrice" style="padding:10px;border-radius:8px;border:1px solid #ddd;">
+      <option value="">Ordenar</option>
+      <option value="asc">Precio menor a mayor</option>
+      <option value="desc">Precio mayor a menor</option>
+    </select>
+
+  </div>
+
   <div id="offersGrid" class="grid"></div>
 </div>
-
 <script src="/js/offers.js"></script>
 
 </body>
