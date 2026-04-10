@@ -96,8 +96,8 @@ if (!isNaN(param)) {
     // =============================
     document.getElementById("productImage").src = product.image_url;
     document.getElementById("productName").innerText = product.name;
-    document.getElementById("productPrice").innerText =
-      "$" + parseFloat(product.price).toLocaleString();
+    document.getElementById("productPrice").innerHTML =
+  window.renderPriceHTML(product);
   
     let description = "Sin descripción";
   
