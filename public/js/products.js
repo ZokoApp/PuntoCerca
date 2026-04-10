@@ -40,7 +40,9 @@ function renderProducts(products){
     <div class="product-info">
       <h3 class="product-title">${p.name}</h3>
 
-      <p class="product-price">$${Number(p.price).toLocaleString()}</p>
+     <p class="product-price" style="margin-top:6px;">
+  ${window.renderPriceHTML(p)}
+</p>
 
       <p class="product-store">${p.store_name || ""}</p>
     </div>
