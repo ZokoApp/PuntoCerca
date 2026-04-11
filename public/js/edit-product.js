@@ -7,12 +7,12 @@ async function loadProduct() {
 
   document.getElementById("name").value = product.name;
   document.getElementById("price").value = product.price;
+  document.getElementById("old_price").value = product.old_price || "";
   document.getElementById("brand").value = product.brand || "";
   document.getElementById("size").value = product.size || "";
   document.getElementById("stock").value = product.stock || "";
   document.getElementById("extra").value = product.extra || "";
   document.getElementById("category").value = product.category || "";
-
   document.getElementById("isOffer").checked = product.is_offer;
 }
 
@@ -26,6 +26,7 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
 
   formData.append("name", document.getElementById("name").value);
   formData.append("price", document.getElementById("price").value);
+  formData.append("old_price", document.getElementById("old_price").value);
   formData.append("brand", document.getElementById("brand").value);
   formData.append("size", document.getElementById("size").value);
   formData.append("stock", document.getElementById("stock").value);
