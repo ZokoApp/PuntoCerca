@@ -1223,6 +1223,7 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
   name, 
   price, 
   old_price, 
+  brand,
   size, 
   stock, 
   extra, 
@@ -1231,47 +1232,48 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
   is_offer
 } = req.body;
 
-    let images = [];
+let images = [];
 
-    if (req.files && req.files.length > 0) {
-      images = req.files.map(file => file.path);
-    }
+if (req.files && req.files.length > 0) {
+  images = req.files.map(file => file.path);
+}
 
-    const mainImage = images[0] || null;
+const mainImage = images[0] || null;
+const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
 
-    const result = await pool.query(
-      `UPDATE products
-      SET 
-  name = COALESCE($1, name),
-  price = COALESCE($2, price),
-  old_price = COALESCE($3, old_price), -- 🔥 CLAVE
-  brand = COALESCE($4, brand),
-  size = COALESCE($5, size),
-  stock = COALESCE($6, stock),
-  extra = COALESCE($7, extra),
-  category = COALESCE($8, category),
-  colors = COALESCE($9, colors),
-  is_offer = COALESCE($10, is_offer),
-  image_url = COALESCE($11, image_url),
-  images = COALESCE($12, images)
-WHERE id = $13
-       RETURNING *`,
-      [
-  name,
-  price,
-  old_price, 
-  brand,
-  size,
-  stock ? parseInt(stock) : 0,
-  extra,
-  category,
-  colors || "[]",
-  is_offer === "true" || is_offer === true,
-  mainImage,
-  JSON.stringify(images),
-  req.params.id
-]
-    );
+const result = await pool.query(
+  `UPDATE products
+   SET 
+     name = COALESCE($1, name),
+     price = COALESCE($2, price),
+     old_price = COALESCE($3, old_price),
+     brand = COALESCE($4, brand),
+     size = COALESCE($5, size),
+     stock = COALESCE($6, stock),
+     extra = COALESCE($7, extra),
+     category = COALESCE($8, category),
+     colors = COALESCE($9, colors),
+     is_offer = COALESCE($10, is_offer),
+     image_url = COALESCE($11, image_url),
+     images = COALESCE($12, images)
+   WHERE id = $13
+   RETURNING *`,
+  [
+    name,
+    price,
+    old_price,
+    brand,
+    size,
+    stock && !isNaN(stock) ? parseInt(stock) : null,
+    extra,
+    category,
+    colors || "[]",
+    is_offer === "true" || is_offer === true,
+    mainImage,
+    imagesValue,
+    req.params.id
+  ]
+);
 
     if (!result.rows.length) {
       return res.status(404).json({ error: "Producto no encontrado" });
