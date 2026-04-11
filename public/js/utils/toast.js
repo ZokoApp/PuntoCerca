@@ -1,39 +1,40 @@
 export function showToast(message, type = "success") {
 
   const colors = {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    warning: "bg-yellow-500",
-    info: "bg-blue-500"
+    success: "#22c55e",
+    error: "#ef4444",
+    warning: "#eab308",
+    info: "#3b82f6"
   };
-
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
 
   const toast = document.createElement("div");
 
-  toast.className = `
-    ${colors[type]} 
-    text-white px-5 py-3 rounded-lg shadow-lg 
-    flex items-center gap-3
-    transition transform duration-300 ease-out
-  `;
-
-  toast.style.transform = "translateX(100%)";
+  toast.style.background = colors[type] || "#333";
+  toast.style.color = "#fff";
+  toast.style.padding = "12px 16px";
+  toast.style.borderRadius = "10px";
+  toast.style.boxShadow = "0 10px 20px rgba(0,0,0,0.2)";
+  toast.style.display = "flex";
+  toast.style.alignItems = "center";
+  toast.style.gap = "10px";
+  toast.style.minWidth = "200px";
+  toast.style.fontSize = "14px";
 
   toast.innerHTML = `
     <span>${message}</span>
-    <button class="ml-auto font-bold">✕</button>
+    <button style="margin-left:auto;font-weight:bold;">✕</button>
   `;
+
+  const container = document.getElementById("toastContainer");
+
+  if (!container) {
+    console.error("No existe toastContainer");
+    return;
+  }
 
   container.appendChild(toast);
 
-  // animación entrada
-  setTimeout(() => {
-    toast.style.transform = "translateX(0)";
-  }, 50);
-
-  // cerrar
+  // cerrar manual
   toast.querySelector("button").onclick = () => {
     toast.remove();
   };
