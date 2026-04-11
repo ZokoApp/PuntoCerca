@@ -6,9 +6,6 @@ const cors = require('cors');
 const pool = require('./db');
 const bcrypt = require('bcrypt');
 const { Resend } = require('resend');
-const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { v4: uuidv4 } = require('uuid');
@@ -923,26 +920,24 @@ product.is_favorite = isFavorite;
 
 
 app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
-
   try {
+    const {
+      name,
+      price,
+      old_price,
+      store_id,
+      brand,
+      size,
+      stock,
+      extra,
+      category,
+      colors,
+      is_offer
+    } = req.body;
 
-    const { 
-  name, 
-  price, 
-  old_price, 
-  brand,
-  size, 
-  stock, 
-  extra, 
-  category,
-  colors,
-  is_offer
-} = req.body;
-
-
-const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
 
     let images = [];
 
@@ -951,53 +946,52 @@ const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
     }
 
     const baseSlug = name
-  .toLowerCase()
-  .trim()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-+|-+$/g, "");
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
-// 🔥 único (evita duplicados)
-let slug = baseSlug;
-let counter = 1;
+    let slug = baseSlug;
+    let counter = 1;
 
-while (true) {
-  const check = await pool.query(
-    `SELECT id FROM products WHERE slug = $1`,
-    [slug]
-  );
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM products WHERE slug = $1`,
+        [slug]
+      );
 
-  if (check.rows.length === 0) break;
+      if (check.rows.length === 0) break;
 
-  slug = `${baseSlug}-${counter}`;
-  counter++;
-}
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     const mainImage = images[0] || null;
 
     const result = await pool.query(
-  `INSERT INTO products
-(name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, $14)
-RETURNING *`,
- [
-  name,
-  parsedPrice,
-  parsedOldPrice,
-  mainImage,
-  JSON.stringify(images),
-  store_id,
-  brand,
-  size,
-  stock && !isNaN(stock) ? parseInt(stock) : null,
-  extra,
-  colors || "[]",
-  category,
-  is_offer === "true" || is_offer === true,
-  slug
-]
-);
+      `INSERT INTO products
+      (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+      RETURNING *`,
+      [
+        name,
+        parsedPrice,
+        parsedOldPrice,
+        mainImage,
+        JSON.stringify(images),
+        store_id,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        colors || "[]",
+        category || null,
+        is_offer === "true" || is_offer === true,
+        slug
+      ]
+    );
 
     res.json(result.rows[0]);
 
@@ -1005,7 +999,6 @@ RETURNING *`,
     console.error("ERROR CREANDO PRODUCTO:", error);
     res.status(500).json({ error: "Error creando producto" });
   }
-
 });
 
 app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
