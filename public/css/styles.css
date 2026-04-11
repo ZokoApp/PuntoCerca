@@ -567,3 +567,45 @@ scroll-behavior: smooth;
   }
 
 }
+
+@media (max-width: 768px){
+
+  nav .max-w-7xl{
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  #navRight{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+}
+@media (max-width: 768px){
+
+  .flex-col.md\\:flex-row{
+    flex-direction: column !important;
+  }
+
+}
+@media (max-width: 768px){
+
+  #searchInput{
+    width: 100% !important;
+  }
+
+  #searchBtn{
+    width: 100%;
+  }
+
+}
+html, body{
+  overflow-x: hidden;
+}
+
+*{
+  max-width: 100%;
+}
