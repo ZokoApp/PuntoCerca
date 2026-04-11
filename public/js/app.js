@@ -38,10 +38,9 @@ function goToSearch(){
   const query = searchInput?.value.trim();
 
   if(!query){
-    alert("Escribe algo para buscar");
-    return;
-  }
-
+  showToast("Escribe algo para buscar", "warning");
+  return;
+}
   window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
 }
 
