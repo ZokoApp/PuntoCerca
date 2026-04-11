@@ -1,5 +1,6 @@
 let currentUser = null;
 let myStore = null;
+import { showToast } from "/js/utils/toast.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
