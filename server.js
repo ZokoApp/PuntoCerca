@@ -2004,6 +2004,66 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const baseUrl = process.env.BASE_URL || 'https://puntocerca.com.ar';
+
+    const storesResult = await pool.query(`
+      SELECT slug
+      FROM stores
+      WHERE slug IS NOT NULL
+    `);
+
+    const productsResult = await pool.query(`
+      SELECT slug, id
+      FROM products
+    `);
+
+    let urls = `
+      <url>
+        <loc>${baseUrl}/</loc>
+      </url>
+      <url>
+        <loc>${baseUrl}/products</loc>
+      </url>
+      <url>
+        <loc>${baseUrl}/offers</loc>
+      </url>
+      <url>
+        <loc>${baseUrl}/stores</loc>
+      </url>
+    `;
+
+    storesResult.rows.forEach(store => {
+      urls += `
+        <url>
+          <loc>${baseUrl}/${store.slug}</loc>
+        </url>
+      `;
+    });
+
+    productsResult.rows.forEach(product => {
+      urls += `
+        <url>
+          <loc>${baseUrl}/product/${product.slug || product.id}</loc>
+        </url>
+      `;
+    });
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        ${urls}
+      </urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+
+  } catch (error) {
+    console.error('SITEMAP ERROR:', error);
+    res.status(500).send('Error generando sitemap');
+  }
+});
+
 /* ================================
    START
 ================================ */
