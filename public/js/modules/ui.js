@@ -70,3 +70,42 @@ export function initSliders(){
         });
     }
 }
+
+window.renderPriceHTML = function(product){
+
+  const price = parseFloat(product.price);
+  const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
+
+  // si no hay precio
+  if(!price){
+    return "";
+  }
+
+  // 💰 formato ARS
+  const format = (n) => {
+    return "$" + n.toLocaleString("es-AR");
+  };
+
+  // 🟢 SIN DESCUENTO
+  if(!oldPrice || oldPrice <= price){
+    return `
+      <span style="font-weight:600;">${format(price)}</span>
+    `;
+  }
+
+  // 🔥 CON DESCUENTO
+  const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+
+  return `
+    <span style="text-decoration:line-through;color:#999;font-size:13px;">
+      ${format(oldPrice)}
+    </span>
+    <br/>
+    <span style="color:#ef4444;font-weight:700;">
+      ${format(price)}
+    </span>
+    <span style="background:#ef4444;color:#fff;font-size:12px;padding:2px 6px;border-radius:6px;margin-left:6px;">
+      -${discount}%
+    </span>
+  `;
+};
