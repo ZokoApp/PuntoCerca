@@ -1,9 +1,10 @@
-.index-page nav,
+/* SOLO anulamos lo viejo sin romper Tailwind */
 .index-page .hero,
 .index-page .section,
 .index-page .cards,
 .index-page .card {
   all: unset;
+  display: revert;
 }
 
 *{
