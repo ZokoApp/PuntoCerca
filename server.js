@@ -1753,16 +1753,25 @@ app.get('/api/store-by-slug/:slug', async (req, res) => {
   }
 
 });
-
+app.get('/sitemap.xml', (req, res) => {
+  res.header('Content-Type', 'application/xml');
+  res.send(`
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://puntocerca.com.ar/</loc>
+      </url>
+    </urlset>
+  `);
+});
 
 app.get('/:slug', (req, res) => {
 
   const slug = req.params.slug;
 
   // 🚫 ignorar archivos (JS, CSS, imágenes, etc)
-  if (slug.includes(".")) {
-    return;
-  }
+ if (slug.includes(".")) {
+  return res.status(404).end();
+}
 
   // 🚫 rutas del sistema
   const blocked = [
@@ -2004,16 +2013,7 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-app.get('/sitemap.xml', (req, res) => {
-  res.header('Content-Type', 'application/xml');
-  res.send(`
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      <url>
-        <loc>https://puntocerca.com.ar/</loc>
-      </url>
-    </urlset>
-  `);
-});
+
 
 /* ================================
    START
