@@ -1,3 +1,11 @@
+.index-page nav,
+.index-page .hero,
+.index-page .section,
+.index-page .cards,
+.index-page .card {
+  all: unset;
+}
+
 *{
 margin:0;
 padding:0;
