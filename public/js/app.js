@@ -37,7 +37,7 @@ const searchBtn = document.getElementById("searchBtn");
 function goToSearch(){
   const query = searchInput?.value.trim();
 
-  if(!query){
+if(!query){
   showToast("Escribe algo para buscar", "warning");
   return;
 }
