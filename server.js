@@ -1229,29 +1229,112 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
       is_offer
     } = req.body;
 
-      // 🔥 traer precio actual desde DB
-const current = await pool.query(
-  "SELECT price FROM products WHERE id = $1",
-  [req.params.id]
-);
+    // 🔥 traer precio actual desde DB
+    const current = await pool.query(
+      "SELECT price FROM products WHERE id = $1",
+      [req.params.id]
+    );
 
-const currentPrice = current.rows[0]?.price;
+    const currentPrice = current.rows[0]?.price;
 
-// 🔥 parsear valores
-const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-let parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
-
-// 🔥 AUTO-DESCUENTO
-if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
-  parsedOldPrice = currentPrice;
-}
-
-    // 🔥 PARSEO CORRECTO
+    // 🔥 parsear UNA SOLA VEZ
     const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    let parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
     const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
     const parsedIsOffer = is_offer === "true" || is_offer === true;
+
+    // 🔥 AUTO-DESCUENTO
+    if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
+      parsedOldPrice = currentPrice;
+    }
+
+    let images = [];
+
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => file.path);
+    }
+
+    const mainImage = images[0] || null;
+    const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
+
+    const result = await pool.query(
+      `UPDATE products
+       SET 
+         name = COALESCE($1, name),
+         price = COALESCE($2, price),
+         old_price = COALESCE($3, old_price),
+         brand = COALESCE($4, brand),
+         size = COALESCE($5, size),
+         stock = COALESCE($6, stock),
+         extra = COALESCE($7, extra),
+         category = COALESCE($8, category),
+         colors = COALESCE($9, colors),
+         is_offer = COALESCE($10, is_offer),
+         image_url = COALESCE($11, image_url),
+         images = COALESCE($12, images)
+       WHERE id = $13
+       RETURNING *`,
+      [
+        name || null,
+        parsedPrice,
+        parsedOldPrice,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        category || null,
+        colors || null,
+        parsedIsOffer,
+        mainImage,
+        imagesValue,
+        req.params.id
+      ]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error("UPDATE PRODUCT ERROR:", error);
+    res.status(500).json({ error: "Error actualizando producto" });
+  }
+app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
+  try {
+
+    const { 
+      name, 
+      price, 
+      old_price, 
+      brand,
+      size, 
+      stock, 
+      extra, 
+      category,
+      colors,
+      is_offer
+    } = req.body;
+
+    // 🔥 traer precio actual desde DB
+    const current = await pool.query(
+      "SELECT price FROM products WHERE id = $1",
+      [req.params.id]
+    );
+
+    const currentPrice = current.rows[0]?.price;
+
+    // 🔥 parsear UNA SOLA VEZ
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+    let parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+    const parsedIsOffer = is_offer === "true" || is_offer === true;
+
+    // 🔥 AUTO-DESCUENTO
+    if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
+      parsedOldPrice = currentPrice;
+    }
 
     let images = [];
 
@@ -1307,67 +1390,6 @@ if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice
     res.status(500).json({ error: "Error actualizando producto" });
   }
 });
-
-app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
-  try {
-
-    const { rating } = req.body;
-    const storeId = req.params.id;
-    const userId = req.user.id;
-
-    await pool.query(
-      `INSERT INTO ratings (user_id, store_id, rating)
-       VALUES ($1,$2,$3)`,
-      [userId, storeId, rating]
-    );
-
-    const result = await pool.query(
-      `SELECT AVG(rating) as avg, COUNT(*) as count
-       FROM ratings
-       WHERE store_id = $1`,
-      [storeId]
-    );
-
-    const avg = result.rows[0].avg;
-    const count = result.rows[0].count;
-
-    await pool.query(
-      `UPDATE stores
-       SET rating_avg = $1, rating_count = $2
-       WHERE id = $3`,
-      [avg, count, storeId]
-    );
-
-    res.json({ avg, count });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error rating tienda" });
-  }
-});
-
- app.get('/api/product-favorites', authMiddleware, async (req, res) => {
-
-  try {
-
-    const result = await pool.query(`
-      SELECT products.*
-      FROM product_favorites
-      JOIN products ON products.id = product_favorites.product_id
-      WHERE product_favorites.user_id = $1
-    `, [req.user.id]);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error" });
-  }
-
-});
-
-
-
 
 app.delete('/api/product-favorite/:id', authMiddleware, async (req, res) => {
 
