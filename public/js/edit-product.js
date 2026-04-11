@@ -1,4 +1,5 @@
 const productId = window.location.pathname.split("/").pop();
+import { showToast } from "/js/utils/toast.js";
 
 // cargar producto
 async function loadProduct() {
@@ -46,10 +47,14 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
     body: formData
   });
 
-  if (res.ok) {
-    alert("Producto actualizado ✅");
+if (res.ok) {
+  showToast("Producto actualizado", "success");
+
+  setTimeout(() => {
     window.location.href = "/dashboard";
-  } else {
-    alert("Error actualizando producto");
-  }
+  }, 1500);
+
+} else {
+  showToast("Error actualizando producto", "error");
+}
 });
