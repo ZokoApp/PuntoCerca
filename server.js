@@ -1216,66 +1216,69 @@ app.put('/api/users/me', authMiddleware, async (req, res) => {
 });
 
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
-
   try {
 
     const { 
-  name, 
-  price, 
-  old_price, 
-  brand,
-  size, 
-  stock, 
-  extra, 
-  category,
-  colors,
-  is_offer
-} = req.body;
+      name, 
+      price, 
+      old_price, 
+      brand,
+      size, 
+      stock, 
+      extra, 
+      category,
+      colors,
+      is_offer
+    } = req.body;
 
-let images = [];
+    // 🔥 PARSEO CORRECTO
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+    const parsedIsOffer = is_offer === "true" || is_offer === true;
 
-if (req.files && req.files.length > 0) {
-  images = req.files.map(file => file.path);
-}
+    let images = [];
 
-const mainImage = images[0] || null;
-const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => file.path);
+    }
 
-const parsedIsOffer = is_offer === "true" || is_offer === true;
+    const mainImage = images[0] || null;
+    const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
 
-const result = await pool.query(
-  `UPDATE products
-   SET 
-     name = COALESCE($1, name),
-     price = $2,
-     old_price = $3,
-     brand = COALESCE($4, brand),
-     size = COALESCE($5, size),
-     stock = COALESCE($6, stock),
-     extra = COALESCE($7, extra),
-     category = COALESCE($8, category),
-     colors = COALESCE($9, colors),
-     is_offer = $10,
-     image_url = COALESCE($11, image_url),
-     images = COALESCE($12, images)
-   WHERE id = $13
-   RETURNING *`,
-  [
-    name || null,
-    parsedPrice,
-    parsedOldPrice,
-    brand || null,
-    size || null,
-    parsedStock,
-    extra || null,
-    category || null,
-    colors || null,
-    parsedIsOffer,
-    mainImage,
-    imagesValue,
-    req.params.id
-  ]
-);
+    const result = await pool.query(
+      `UPDATE products
+       SET 
+         name = COALESCE($1, name),
+         price = COALESCE($2, price),
+         old_price = COALESCE($3, old_price),
+         brand = COALESCE($4, brand),
+         size = COALESCE($5, size),
+         stock = COALESCE($6, stock),
+         extra = COALESCE($7, extra),
+         category = COALESCE($8, category),
+         colors = COALESCE($9, colors),
+         is_offer = COALESCE($10, is_offer),
+         image_url = COALESCE($11, image_url),
+         images = COALESCE($12, images)
+       WHERE id = $13
+       RETURNING *`,
+      [
+        name || null,
+        parsedPrice,
+        parsedOldPrice,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        category || null,
+        colors || null,
+        parsedIsOffer,
+        mainImage,
+        imagesValue,
+        req.params.id
+      ]
+    );
 
     if (!result.rows.length) {
       return res.status(404).json({ error: "Producto no encontrado" });
@@ -1284,7 +1287,7 @@ const result = await pool.query(
     res.json(result.rows[0]);
 
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE PRODUCT ERROR:", error);
     res.status(500).json({ error: "Error actualizando producto" });
   }
 });
