@@ -146,13 +146,13 @@ card.querySelector(".btn-delete").addEventListener("click", async (e) => {
 
     if (!res.ok) throw new Error();
 
-    alert("Producto eliminado ✅");
+    showToast("Producto eliminado", "success");
 
     loadProducts();
 
   } catch (err) {
     console.error(err);
-    alert("Error eliminando producto");
+    showToast("Error eliminando producto", "error");
   }
 });
 
