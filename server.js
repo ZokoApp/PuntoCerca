@@ -1241,6 +1241,8 @@ if (req.files && req.files.length > 0) {
 const mainImage = images[0] || null;
 const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
 
+const parsedIsOffer = is_offer === "true" || is_offer === true;
+
 const result = await pool.query(
   `UPDATE products
    SET 
@@ -1253,7 +1255,7 @@ const result = await pool.query(
      extra = COALESCE($7, extra),
      category = COALESCE($8, category),
      colors = COALESCE($9, colors),
-     is_offer = COALESCE($10, is_offer),
+     is_offer = $10,
      image_url = COALESCE($11, image_url),
      images = COALESCE($12, images)
    WHERE id = $13
@@ -1268,7 +1270,7 @@ const result = await pool.query(
     extra || null,
     category || null,
     colors || null,
-    is_offer === "true" || is_offer === true,
+    parsedIsOffer,
     mainImage,
     imagesValue,
     req.params.id
