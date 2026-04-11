@@ -983,7 +983,7 @@ RETURNING *`,
   store_id,
   brand,
   size,
-  stock ? parseInt(stock) : 0,
+  stock && !isNaN(stock) ? parseInt(stock) : null
   extra,
   colors || "[]",
   category,
