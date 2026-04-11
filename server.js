@@ -1532,6 +1532,55 @@ app.get('/api/my-store', authMiddleware, async (req, res) => {
 });
 
 
+app.delete('/api/my-store', authMiddleware, async (req, res) => {
+  try {
+
+    const userId = req.user.id;
+
+    // 🔥 1. obtener la tienda del usuario
+    const storeResult = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (!storeResult.rows.length) {
+      return res.status(404).json({ error: "No tienes tienda" });
+    }
+
+    const storeId = storeResult.rows[0].id;
+
+    // 🔥 2. eliminar productos
+    await pool.query(
+      `DELETE FROM products WHERE store_id = $1`,
+      [storeId]
+    );
+
+    // 🔥 3. eliminar seguidores
+    await pool.query(
+      `DELETE FROM follows WHERE store_id = $1`,
+      [storeId]
+    );
+
+    // 🔥 4. eliminar favoritos
+    await pool.query(
+      `DELETE FROM favorites WHERE store_id = $1`,
+      [storeId]
+    );
+
+    // 🔥 5. eliminar tienda
+    await pool.query(
+      `DELETE FROM stores WHERE id = $1`,
+      [storeId]
+    );
+
+    res.json({ message: "Tienda eliminada correctamente" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error eliminando tienda" });
+  }
+});
+
 /* ================================
    GET STORE BY ID
 ================================ */
