@@ -1231,6 +1231,24 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
       is_offer
     } = req.body;
 
+      // 🔥 traer precio actual desde DB
+const current = await pool.query(
+  "SELECT price FROM products WHERE id = $1",
+  [req.params.id]
+);
+
+const currentPrice = current.rows[0]?.price;
+
+// 🔥 parsear valores
+const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+let parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+
+// 🔥 AUTO-DESCUENTO
+if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
+  parsedOldPrice = currentPrice;
+}
+
     // 🔥 PARSEO CORRECTO
     const parsedPrice = price && price !== "" ? parseFloat(price) : null;
     const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
