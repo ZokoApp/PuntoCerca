@@ -1221,16 +1221,16 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
   try {
 
     const { 
-      name, 
-      price, 
-      brand, 
-      size, 
-      stock, 
-      extra, 
-      category,
-      colors,
-      is_offer
-    } = req.body;
+  name, 
+  price, 
+  old_price, 
+  size, 
+  stock, 
+  extra, 
+  category,
+  colors,
+  is_offer
+} = req.body;
 
     let images = [];
 
@@ -1242,34 +1242,36 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
 
     const result = await pool.query(
       `UPDATE products
-       SET 
-         name = COALESCE($1, name),
-         price = COALESCE($2, price),
-         brand = COALESCE($3, brand),
-         size = COALESCE($4, size),
-         stock = COALESCE($5, stock),
-         extra = COALESCE($6, extra),
-         category = COALESCE($7, category),
-         colors = COALESCE($8, colors),
-         is_offer = COALESCE($9, is_offer),
-         image_url = COALESCE($10, image_url),
-         images = COALESCE($11, images)
-       WHERE id = $12
+      SET 
+  name = COALESCE($1, name),
+  price = COALESCE($2, price),
+  old_price = COALESCE($3, old_price), -- 🔥 CLAVE
+  brand = COALESCE($4, brand),
+  size = COALESCE($5, size),
+  stock = COALESCE($6, stock),
+  extra = COALESCE($7, extra),
+  category = COALESCE($8, category),
+  colors = COALESCE($9, colors),
+  is_offer = COALESCE($10, is_offer),
+  image_url = COALESCE($11, image_url),
+  images = COALESCE($12, images)
+WHERE id = $13
        RETURNING *`,
       [
-        name,
-        price,
-        brand,
-        size,
-        stock ? parseInt(stock) : 0,
-        extra,
-        category,
-        colors || "[]",
-        is_offer === "true" || is_offer === true,
-        mainImage,
-        JSON.stringify(images),
-        req.params.id
-      ]
+  name,
+  price,
+  old_price, 
+  brand,
+  size,
+  stock ? parseInt(stock) : 0,
+  extra,
+  category,
+  colors || "[]",
+  is_offer === "true" || is_offer === true,
+  mainImage,
+  JSON.stringify(images),
+  req.params.id
+]
     );
 
     if (!result.rows.length) {
