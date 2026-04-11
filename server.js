@@ -6,7 +6,9 @@ const cors = require('cors');
 const pool = require('./db');
 const bcrypt = require('bcrypt');
 const { Resend } = require('resend');
-
+const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { v4: uuidv4 } = require('uuid');
@@ -937,7 +939,7 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
   is_offer
 } = req.body;
 
-/
+
 const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
 const parsedPrice = price && price !== "" ? parseFloat(price) : null;
 const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
@@ -981,8 +983,8 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, $14)
 RETURNING *`,
  [
   name,
-  price,
-  old_price,
+  parsedPrice,
+  parsedOldPrice,
   mainImage,
   JSON.stringify(images),
   store_id,
