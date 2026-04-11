@@ -8,7 +8,6 @@ export function showToast(message, type = "success") {
   };
 
   const container = document.getElementById("toastContainer");
-
   if (!container) return;
 
   const toast = document.createElement("div");
@@ -16,9 +15,11 @@ export function showToast(message, type = "success") {
   toast.className = `
     ${colors[type]} 
     text-white px-5 py-3 rounded-lg shadow-lg 
-    flex items-center gap-3 
-    animate-slideIn
+    flex items-center gap-3
+    transition transform duration-300 ease-out
   `;
+
+  toast.style.transform = "translateX(100%)";
 
   toast.innerHTML = `
     <span>${message}</span>
@@ -27,10 +28,17 @@ export function showToast(message, type = "success") {
 
   container.appendChild(toast);
 
+  // animación entrada
+  setTimeout(() => {
+    toast.style.transform = "translateX(0)";
+  }, 50);
+
+  // cerrar
   toast.querySelector("button").onclick = () => {
     toast.remove();
   };
 
+  // auto remove
   setTimeout(() => {
     toast.remove();
   }, 4000);
