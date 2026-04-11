@@ -935,9 +935,7 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
       is_offer
     } = req.body;
 
-    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-    const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+    
 
     let images = [];
 
