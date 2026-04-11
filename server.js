@@ -1730,6 +1730,10 @@ app.get('/profile', (req, res) => {
   res.sendFile(__dirname + '/public/profile.html');
 });
 
+app.get('/delete-store', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'delete-store.html'));
+});
+
 app.get('/api/store-by-slug/:slug', async (req, res) => {
 
   const { slug } = req.params;
