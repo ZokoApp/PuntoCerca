@@ -36,11 +36,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      showToast("Tienda eliminada correctamente", "success");
+      sshowToast("Tienda eliminada correctamente", "success");
 
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
+
+await fetch("/api/logout", {
+  method: "POST",
+  credentials: "include"
+});
+
+setTimeout(() => {
+  window.location.href = "/";
+}, 1500);
 
     } catch (err) {
       console.error(err);
