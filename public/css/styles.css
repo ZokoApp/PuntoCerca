@@ -535,9 +535,17 @@ scroll-behavior: smooth;
 
   /* CATEGORÍAS (SCROLL HORIZONTAL 🔥) */
   .categories-scroll{
-  overflow-x: auto;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: row; 
   gap: 20px;
+  overflow-x: auto;
+  padding: 10px 0;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+  .categories-scroll > div{
+  flex: 0 0 auto;
 }
 
   .categories-scroll{
