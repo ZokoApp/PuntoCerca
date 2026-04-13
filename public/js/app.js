@@ -182,25 +182,7 @@ const categories = {
     { name: "Fotografía", id: 45 }
   ]
 };
-document.querySelectorAll(".category-item").forEach(item => {
-  item.addEventListener("mouseenter", () => {
 
-    const cat = item.dataset.cat;
-    const subs = categoriesData[cat] || [];
-
-    subcategoriesDiv.innerHTML = `
-      <h3 class="col-span-2 font-bold text-lg mb-4">${cat}</h3>
-      ${subs.map(sub => `
-        <div 
-          class="cursor-pointer hover:text-orange-600"
-          onclick="loadStores('${cat}', ${sub.id})"
-        >
-          ${sub.name}
-        </div>
-      `).join("")}
-    `;
-  });
-});
 const subContainer = document.getElementById("subcategories");
 
 document.querySelectorAll(".category-item").forEach(item => {
@@ -214,18 +196,51 @@ document.querySelectorAll(".category-item").forEach(item => {
       return;
     }
 
-    // dividir en columnas (tipo MercadoLibre)
     let html = "";
+
     subs.forEach(sub => {
       html += `
         <a href="#" 
+           onmouseenter="showFeaturedStores(${sub.id})"
            onclick="loadStores('${cat}', ${sub.id}); return false;"
-           class="hover:text-orange-600 block">
+           class="w-[45%] hover:text-orange-600">
            ${sub.name}
         </a>
       `;
     });
 
     subContainer.innerHTML = html;
+
+    // limpiar featured cuando cambia categoría
+    document.getElementById("featuredStores").innerHTML = `
+      <p class="text-gray-400 text-sm">Pasá el mouse sobre una subcategoría</p>
+    `;
   });
 });
+
+window.showFeaturedStores = function(subId) {
+  const container = document.getElementById("featuredStores");
+
+  // 🔥 DEMO (después lo conectamos a backend)
+  const stores = [
+    { name: "Tienda Premium 1", img: "https://via.placeholder.com/150" },
+    { name: "Tienda Premium 2", img: "https://via.placeholder.com/150" },
+    { name: "Tienda Premium 3", img: "https://via.placeholder.com/150" }
+  ];
+
+  let html = `<h4 class="text-sm font-semibold mb-3">Tiendas recomendadas</h4>`;
+  html += `<div class="flex gap-4">`;
+
+  stores.forEach(store => {
+    html += `
+      <div class="w-32 bg-white shadow rounded-lg p-2 text-center hover:scale-105 transition">
+        <img src="${store.img}" class="w-full h-20 object-cover rounded mb-2">
+        <p class="text-xs">${store.name}</p>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  container.innerHTML = html;
+};
