@@ -685,5 +685,18 @@ nav {
 }
 #megaMenu {
   position: absolute;
-  z-index: 99999 !important;
+  z-index: 999999;
+}
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 999999;
+}
+#map {
+  z-index: 1;
+  position: relative;
 }
