@@ -540,6 +540,25 @@ scroll-behavior: smooth;
   gap: 20px;
 }
 
+  .categories-scroll{
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 10px 0;
+
+  /* 🔥 CLAVES */
+  max-width: 100%;
+  scrollbar-width: none; /* Firefox */
+}
+
+.categories-scroll::-webkit-scrollbar{
+  display: none; /* Chrome */
+}
+
+.categories-scroll > *{
+  flex: 0 0 auto; /* 🔥 evita que se deformen */
+}
+
   section .flex.items-center > div{
     flex-shrink: 0;
   }
