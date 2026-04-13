@@ -213,7 +213,7 @@ document.querySelectorAll(".category-item").forEach(item => {
 
     // limpiar featured cuando cambia categoría
     document.getElementById("featuredStores").innerHTML = `
-      <p class="text-gray-400 text-sm">Pasá el mouse sobre una subcategoría</p>
+   
     `;
   });
 });
