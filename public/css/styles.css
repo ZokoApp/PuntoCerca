@@ -576,6 +576,23 @@ scroll-behavior: smooth;
   }
 
 }
+@media (max-width: 768px){
+  .max-w-7xl{
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 768px){
+  .mx-auto{
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+@media (max-width: 768px){
+  .px-6{
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
 
 @media (max-width: 768px){
   nav .max-w-7xl{
@@ -635,3 +652,4 @@ nav {
 .animate-slideIn {
   animation: slideIn 0.3s ease;
 }
+
