@@ -683,3 +683,7 @@ nav {
   display: flex !important;
   flex-direction: row !important;
 }
+#megaMenu {
+  position: absolute;
+  z-index: 99999 !important;
+}
