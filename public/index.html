@@ -19,15 +19,14 @@
 <!-- ================= NAVBAR ================= -->
 <nav class="sticky top-0 z-50 bg-white">
 
- 
-  
   <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center"> 
-   <div class="flex items-center categories-scroll">
 
+    <!-- IZQUIERDA -->
     <a href="/" class="flex items-center gap-2">
       <img src="/img/logo.png" alt="PuntoCerca" style="height: 180px;">
     </a>
 
+    <!-- DERECHA -->
     <div id="navRight" class="flex items-center gap-6">
 
       <a href="/" class="hover:text-orange-600 transition">Inicio</a>
@@ -43,36 +42,11 @@
       </a>
 
       <div id="userMenu" class="hidden relative">
-
-        <button id="userMenuBtn"
-          class="flex items-center gap-2 font-semibold text-gray-700 hover:text-orange-600 transition">
-          <span id="userName"></span>
-          <span>▾</span>
-        </button>
-
-        <div id="userDropdown"
-          class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg hidden">
-
-          <a id="myStoreLink" href="#"
-            class="block px-4 py-2 hover:bg-gray-50">
-            Mi tienda
-          </a>
-
-          <a href="#"
-  id="dashboardLink"
-  class="block px-4 py-2 hover:bg-gray-50">
-  Dashboard
-</a>
-
-          <button id="logoutBtn"
-            class="w-full text-left px-4 py-2 hover:bg-gray-50">
-            Logout
-          </button>
-
-        </div>
+        <!-- menú -->
       </div>
 
     </div>
+
   </div>
 
 </nav>
