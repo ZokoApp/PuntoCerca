@@ -258,7 +258,53 @@ body.dashboard-page{
 @media (max-width: 640px){
   .dashboard-main{
     padding:18px;
+    
   }
+  .dashboard-title{
+  font-size:24px;
+}
+
+.dashboard-user{
+  width:100%;
+  text-align:center;
+}
+  @media (max-width: 640px){
+
+  .metric-card{
+    padding:18px;
+  }
+
+  .metric-value{
+    font-size:24px;
+  }
+
+}
+  @media (max-width: 640px){
+
+  .metric-card{
+    padding:18px;
+  }
+
+  .metric-value{
+    font-size:24px;
+  }
+
+}
+  @media (max-width: 640px){
+
+  .btn-primary{
+    width:100%;
+    text-align:center;
+  }
+
+}
+  @media (max-width: 640px){
+
+  .dashboard-product-card img{
+    height:140px;
+  }
+
+}
 
   .dashboard-header{
     flex-direction:column;
@@ -659,4 +705,12 @@ body.dashboard-page{
 
 .follow-card a:hover {
   opacity: 0.85;
+}
+
+@media (max-width: 768px){
+
+  .dashboard-sidebar{
+    display:none;
+  }
+
 }
