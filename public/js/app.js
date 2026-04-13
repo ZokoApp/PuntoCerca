@@ -111,19 +111,19 @@ document.addEventListener("click", (e) => {
 });
 
 // DATA REAL
-const categoriesData = {
+const categories = {
+  "Comercio": [
+    { name: "Ropa", id: 6 },
+    { name: "Electrónica", id: 7 },
+    { name: "Ferretería", id: 8 },
+    { name: "Librería", id: 9 }
+  ],
   "Gastronomía": [
     { name: "Restaurante", id: 1 },
     { name: "Pizzería", id: 2 },
     { name: "Bar", id: 3 },
     { name: "Cafetería", id: 4 },
     { name: "Heladería", id: 5 }
-  ],
-  "Comercio": [
-    { name: "Ropa", id: 6 },
-    { name: "Electrónica", id: 7 },
-    { name: "Ferretería", id: 8 },
-    { name: "Librería", id: 9 }
   ],
   "Belleza": [
     { name: "Peluquería", id: 10 },
@@ -143,9 +143,45 @@ const categoriesData = {
     { name: "Gasista", id: 20 },
     { name: "Técnico PC", id: 21 },
     { name: "Reparaciones", id: 22 }
+  ],
+  "Automotor": [
+    { name: "Taller mecánico", id: 23 },
+    { name: "Lavadero", id: 24 },
+    { name: "Gomería", id: 25 },
+    { name: "Repuestos", id: 26 }
+  ],
+  "Educación": [
+    { name: "Instituto", id: 27 },
+    { name: "Clases particulares", id: 28 },
+    { name: "Academia", id: 29 }
+  ],
+  "Deportes": [
+    { name: "Gimnasio", id: 30 },
+    { name: "Escuela deportiva", id: 31 },
+    { name: "Club", id: 32 }
+  ],
+  "Mascotas": [
+    { name: "Veterinaria", id: 33 },
+    { name: "Pet Shop", id: 34 },
+    { name: "Peluquería canina", id: 35 }
+  ],
+  "Hogar": [
+    { name: "Mueblería", id: 36 },
+    { name: "Decoración", id: 37 },
+    { name: "Construcción", id: 38 }
+  ],
+  "Profesionales": [
+    { name: "Abogado", id: 39 },
+    { name: "Contador", id: 40 },
+    { name: "Arquitecto", id: 41 },
+    { name: "Marketing", id: 42 }
+  ],
+  "Eventos": [
+    { name: "Salón de eventos", id: 43 },
+    { name: "Catering", id: 44 },
+    { name: "Fotografía", id: 45 }
   ]
 };
-
 document.querySelectorAll(".category-item").forEach(item => {
   item.addEventListener("mouseenter", () => {
 
@@ -163,5 +199,33 @@ document.querySelectorAll(".category-item").forEach(item => {
         </div>
       `).join("")}
     `;
+  });
+});
+const subContainer = document.getElementById("subcategories");
+
+document.querySelectorAll(".category-item").forEach(item => {
+  item.addEventListener("mouseenter", () => {
+
+    const cat = item.dataset.cat;
+    const subs = categories[cat];
+
+    if (!subs) {
+      subContainer.innerHTML = `<p class="text-gray-400">Sin subcategorías</p>`;
+      return;
+    }
+
+    // dividir en columnas (tipo MercadoLibre)
+    let html = "";
+    subs.forEach(sub => {
+      html += `
+        <a href="#" 
+           onclick="loadStores('${cat}', ${sub.id}); return false;"
+           class="hover:text-orange-600 block">
+           ${sub.name}
+        </a>
+      `;
+    });
+
+    subContainer.innerHTML = html;
   });
 });
