@@ -679,4 +679,7 @@ nav {
 .animate-slideIn {
   animation: slideIn 0.3s ease;
 }
-
+.categories-scroll{
+  display: flex !important;
+  flex-direction: row !important;
+}
