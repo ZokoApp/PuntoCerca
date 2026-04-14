@@ -32,21 +32,20 @@ function updateStoreStatus(store) {
     <div style="
       display:flex;
       align-items:center;
-      justify-content:center;
-      gap:8px;
+      gap:6px;
       margin-top:6px;
-      font-weight:bold;
+      font-weight:500;
+      font-size:14px;
       color:${open ? '#16a34a' : '#dc2626'};
     ">
       <span style="
-        width:10px;
-        height:10px;
+        width:8px;
+        height:8px;
         border-radius:50%;
         background:${open ? '#16a34a' : '#dc2626'};
-        box-shadow:0 0 12px ${open ? 'rgba(22,163,74,.7)' : 'rgba(220,38,38,.7)'};
         display:inline-block;
       "></span>
-      ${open ? 'Abierto' : 'Cerrado'}
+      ${open ? 'Abierto ahora' : 'Cerrado'}
     </div>
   `;
 
@@ -334,20 +333,42 @@ function renderStore(store){
   updateStoreStatus(store);
 
   document.getElementById("storeCategory").innerText = store.category || "";
-  document.getElementById("storeAddress").innerText =
-    `${store.street || ''} ${store.local || ''}`.trim() || "Sin dirección";
+  dodocument.getElementById("storeAddress").innerText =
+  store.street ? store.street : "Sin dirección";
 
   document.getElementById("storeDescription").innerText =
     store.description || "";
 
   const stats = document.getElementById("storeStats");
 
-  stats.innerText =
-    `⭐ ${store.rating_avg || 0} (${store.rating_count || 0})`;
+// estrellas visuales
+function renderStars(avg) {
+  const rating = Math.round(avg || 0);
+  let stars = "";
 
-  fetch(`/api/store-followers/${store.id}`)
-    .then(res => res.json())
-    .then(data => {
-      stats.innerText += ` • ${data.count} seguidores`;
-    });
+  for (let i = 1; i <= 5; i++) {
+    stars += i <= rating ? "★" : "☆";
+  }
+
+  return stars;
+}
+
+stats.innerHTML = `
+  <div style="display:flex; gap:12px; align-items:center; margin-top:6px; font-size:14px;">
+    <span style="color:#f59e0b;">
+      ${renderStars(store.rating_avg)}
+    </span>
+    <span style="color:#666;">
+      (${store.rating_count || 0})
+    </span>
+    <span id="followersCount" style="color:#666;"></span>
+  </div>
+`;
+
+fetch(`/api/store-followers/${store.id}`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("followersCount").innerText =
+      `${data.count} seguidores`;
+  });
 }
