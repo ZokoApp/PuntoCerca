@@ -318,9 +318,15 @@ function renderStore(store){
   }
 
   const cover = document.getElementById("storeCover");
-  cover.style.background = store.cover_url
-    ? `url('${store.cover_url}')`
-    : "linear-gradient(135deg,#ff6a00,#ff8c42)";
+ if (store.cover_url) {
+  cover.style.backgroundImage = `url('${store.cover_url}')`;
+  cover.style.backgroundSize = "cover";
+  cover.style.backgroundPosition = "center";
+  cover.style.backgroundRepeat = "no-repeat";
+} else {
+  cover.style.background = "linear-gradient(135deg,#ff6a00,#ff8c42)";
+}
+   
 
   if(store.logo_url){
     document.getElementById("storeLogo").style.backgroundImage =
