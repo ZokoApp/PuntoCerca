@@ -1,4 +1,5 @@
 require('dotenv').config();
+import crypto from "crypto";
 
 
 const express = require('express');
@@ -1362,6 +1363,52 @@ app.post('/api/follow', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error siguiendo tienda" });
+  }
+
+});
+
+app.post("/api/forgot-password", async (req, res) => {
+
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email requerido" });
+  }
+
+  try {
+
+    // 🔍 buscar usuario
+    const user = await User.findOne({ where: { email } });
+
+    // ⚠️ SIEMPRE responder OK (seguridad)
+    if (!user) {
+      return res.json({
+        message: "Si el email existe, te enviamos un link"
+      });
+    }
+
+    // 🔑 generar token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // ⏳ expiración (1 hora)
+    const expires = new Date(Date.now() + 1000 * 60 * 60);
+
+    // 💾 guardar en usuario
+    user.reset_token = token;
+    user.reset_token_expires = expires;
+    await user.save();
+
+    // 📧 ACÁ después va el email real
+    console.log("LINK RECUPERO:");
+    console.log(`http://localhost:3000/reset-password.html?token=${token}`);
+
+    return res.json({
+      message: "Si el email existe, te enviamos un link"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error del servidor" });
   }
 
 });
