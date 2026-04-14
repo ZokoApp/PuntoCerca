@@ -218,29 +218,46 @@ document.querySelectorAll(".category-item").forEach(item => {
   });
 });
 
-window.showFeaturedStores = function(subId) {
+window.showFeaturedStores = async function(subId) {
+
   const container = document.getElementById("featuredStores");
 
-  // 🔥 DEMO (después lo conectamos a backend)
-  const stores = [
-    { name: "Tienda Premium 1", img: "https://via.placeholder.com/150" },
-    { name: "Tienda Premium 2", img: "https://via.placeholder.com/150" },
-    { name: "Tienda Premium 3", img: "https://via.placeholder.com/150" }
-  ];
+  try {
 
-  let html = `<h4 class="text-sm font-semibold mb-3">Tiendas recomendadas</h4>`;
-  html += `<div class="flex gap-4">`;
+    const res = await fetch(`/api/stores?subcategory_id=${subId}`);
+    const stores = await res.json();
 
-  stores.forEach(store => {
-    html += `
-      <div class="w-32 bg-white shadow rounded-lg p-2 text-center hover:scale-105 transition">
-        <img src="${store.img}" class="w-full h-20 object-cover rounded mb-2">
-        <p class="text-xs">${store.name}</p>
-      </div>
+    if (!stores.length) {
+      container.innerHTML = `
+        <p class="text-gray-400 text-sm">No hay tiendas en esta subcategoría</p>
+      `;
+      return;
+    }
+
+    let html = `<h4 class="text-sm font-semibold mb-3">Tiendas recomendadas</h4>`;
+    html += `<div class="flex gap-4 overflow-x-auto pb-2">`;
+
+    stores.slice(0, 6).forEach(store => {
+      html += `
+        <div class="min-w-[120px] bg-white shadow rounded-lg p-2 text-center hover:scale-105 transition cursor-pointer"
+             onclick="viewStore(${store.id})">
+
+          <img src="${store.logo_url || 'https://source.unsplash.com/100x100/?store'}"
+               class="w-full h-20 object-cover rounded mb-2">
+
+          <p class="text-xs font-medium truncate">${store.name}</p>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `
+      <p class="text-red-400 text-sm">Error cargando tiendas</p>
     `;
-  });
-
-  html += `</div>`;
-
-  container.innerHTML = html;
+  }
 };
