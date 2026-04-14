@@ -95,3 +95,10 @@ export const CATEGORIES = {
   ]
 
 };
+
+export const SUBCATEGORY_MAP = Object.values(CATEGORIES)
+  .flat()
+  .reduce((acc, sub) => {
+    acc[sub.id] = sub.name;
+    return acc;
+  }, {});
