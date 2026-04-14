@@ -1419,6 +1419,58 @@ app.post("/api/forgot-password", async (req, res) => {
   }
 
 });
+
+app.post("/api/reset-password", async (req, res) => {
+
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: "Datos inválidos" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  try {
+
+    // 🔍 buscar usuario con token válido
+    const result = await pool.query(
+      `SELECT * FROM users 
+       WHERE reset_token = $1 
+       AND reset_token_expires > NOW()`,
+      [token]
+    );
+
+    if (!result.rows.length) {
+      return res.status(400).json({ error: "Token inválido o expirado" });
+    }
+
+    const user = result.rows[0];
+
+    // 🔐 hashear nueva contraseña
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // 💾 actualizar usuario
+    await pool.query(
+      `UPDATE users 
+       SET password_hash = $1,
+           reset_token = NULL,
+           reset_token_expires = NULL
+       WHERE id = $2`,
+      [passwordHash, user.id]
+    );
+
+    res.json({
+      message: "Contraseña actualizada correctamente"
+    });
+
+  } catch (err) {
+    console.error("RESET PASSWORD ERROR:", err);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+
+});
 app.post('/api/product-favorite', authMiddleware, async (req, res) => {
   try {
 
