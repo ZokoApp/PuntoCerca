@@ -1376,8 +1376,13 @@ app.post("/api/forgot-password", async (req, res) => {
 
   try {
 
-    // 🔍 buscar usuario
-    const user = await User.findOne({ where: { email } });
+    // 🔍 buscar usuario en PostgreSQL
+    const result = await pool.query(
+      `SELECT * FROM users WHERE email = $1`,
+      [email]
+    );
+
+    const user = result.rows[0];
 
     // ⚠️ SIEMPRE responder OK (seguridad)
     if (!user) {
@@ -1392,26 +1397,28 @@ app.post("/api/forgot-password", async (req, res) => {
     // ⏳ expiración (1 hora)
     const expires = new Date(Date.now() + 1000 * 60 * 60);
 
-    // 💾 guardar en usuario
-    user.reset_token = token;
-    user.reset_token_expires = expires;
-    await user.save();
+    // 💾 guardar en DB
+    await pool.query(
+      `UPDATE users 
+       SET reset_token = $1, reset_token_expires = $2 
+       WHERE id = $3`,
+      [token, expires, user.id]
+    );
 
-    // 📧 ACÁ después va el email real
+    // 📧 (por ahora log)
     console.log("LINK RECUPERO:");
-    console.log(`http://localhost:3000/reset-password.html?token=${token}`);
+    console.log(`${process.env.BASE_URL}/reset-password.html?token=${token}`);
 
     return res.json({
       message: "Si el email existe, te enviamos un link"
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("FORGOT ERROR:", err);
     res.status(500).json({ error: "Error del servidor" });
   }
 
 });
-
 app.post('/api/product-favorite', authMiddleware, async (req, res) => {
   try {
 
