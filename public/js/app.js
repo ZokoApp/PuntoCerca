@@ -113,9 +113,10 @@ document.querySelectorAll(".category-item").forEach(item => {
     const subs = CATEGORIES[cat];
 
     if (!subs) {
-      subContainer.innerHTML = `<p class="text-gray-400">Sin subcategorías</p>`;
-      return;
-    }
+  subContainer.innerHTML = `<p class="text-gray-400">Sin subcategorías</p>`;
+  featuredContainer.innerHTML = ""; 
+  return;
+}
 
     let html = "";
 
@@ -181,4 +182,5 @@ window.showFeaturedStores = async function(subId) {
       <p class="text-red-400 text-sm">Error cargando tiendas</p>
     `;
   }
+  if (!subId) return;
 };
