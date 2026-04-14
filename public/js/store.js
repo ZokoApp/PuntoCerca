@@ -333,8 +333,10 @@ function renderStore(store){
   updateStoreStatus(store);
 
   document.getElementById("storeCategory").innerText = store.category || "";
-  dodocument.getElementById("storeAddress").innerText =
-  store.street ? store.street : "Sin dirección";
+ const address = store.street?.trim();
+
+document.getElementById("storeAddress").innerText =
+  address || "Sin dirección";
 
   document.getElementById("storeDescription").innerText =
     store.description || "";
@@ -356,7 +358,7 @@ function renderStars(avg) {
 stats.innerHTML = `
   <div style="display:flex; gap:12px; align-items:center; margin-top:6px; font-size:14px;">
     <span style="color:#f59e0b;">
-      ${renderStars(store.rating_avg)}
+     ${renderStars(Number(store.rating_avg))}
     </span>
     <span style="color:#666;">
       (${store.rating_count || 0})
