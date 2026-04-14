@@ -3,18 +3,12 @@ import { initSliders } from './modules/ui.js';
 import { loadProducts, loadOffers } from './modules/offers.js';
 import { CATEGORIES } from './data/categories.js';
 
-
-// GLOBAL (para HTML onclick)
+// GLOBAL
 window.loadStores = loadStores;
 
-window.viewStore = (id) => {
+window.viewStore = function(id){
   window.location.href = `/store/${id}`;
 };
-
-
-window.viewStore = function(id){
-    window.location.href = `/store/${id}`;
-}
 
 window.goToProduct = (product) => {
   window.location.href = `/product/${product.slug || product.id}`;
@@ -38,26 +32,25 @@ const searchBtn = document.getElementById("searchBtn");
 function goToSearch(){
   const query = searchInput?.value.trim();
 
-if(!query){
-  showToast("Escribe algo para buscar", "warning");
-  return;
-}
+  if(!query){
+    showToast("Escribe algo para buscar", "warning");
+    return;
+  }
+
   window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
 }
 
-// click botón
-if(searchBtn){
-  searchBtn.addEventListener("click", goToSearch);
-}
+searchBtn?.addEventListener("click", goToSearch);
 
-// enter en input
-if(searchInput){
-  searchInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter"){
-      goToSearch();
-    }
-  });
-}
+searchInput?.addEventListener("keydown", (e) => {
+  if(e.key === "Enter"){
+    goToSearch();
+  }
+});
+
+// =============================
+// TOAST
+// =============================
 
 export function showToast(message, type = "success") {
 
@@ -84,20 +77,21 @@ export function showToast(message, type = "success") {
 
   document.getElementById("toastContainer").appendChild(toast);
 
-  // cerrar manual
-  toast.querySelector("button").onclick = () => {
-    toast.remove();
-  };
+  toast.querySelector("button").onclick = () => toast.remove();
 
-  // auto remove
   setTimeout(() => {
     toast.remove();
   }, 4000);
 }
 
+// =============================
+// MEGA MENU
+// =============================
+
 const categoriesBtn = document.getElementById("categoriesBtn");
 const megaMenu = document.getElementById("megaMenu");
-const subcategoriesDiv = document.getElementById("subcategories");
+const subContainer = document.getElementById("subcategories");
+const featuredContainer = document.getElementById("featuredStores");
 
 // toggle menú
 categoriesBtn.addEventListener("click", () => {
@@ -111,81 +105,7 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// DATA REAL
-const categories = {
-  "Comercio": [
-    { name: "Ropa", id: 6 },
-    { name: "Electrónica", id: 7 },
-    { name: "Ferretería", id: 8 },
-    { name: "Librería", id: 9 }
-  ],
-  "Gastronomía": [
-    { name: "Restaurante", id: 1 },
-    { name: "Pizzería", id: 2 },
-    { name: "Bar", id: 3 },
-    { name: "Cafetería", id: 4 },
-    { name: "Heladería", id: 5 }
-  ],
-  "Belleza": [
-    { name: "Peluquería", id: 10 },
-    { name: "Barbería", id: 11 },
-    { name: "Estética", id: 12 },
-    { name: "Spa", id: 13 }
-  ],
-  "Salud": [
-    { name: "Clínica", id: 14 },
-    { name: "Odontología", id: 15 },
-    { name: "Farmacia", id: 16 },
-    { name: "Psicología", id: 17 }
-  ],
-  "Servicios": [
-    { name: "Electricista", id: 18 },
-    { name: "Plomería", id: 19 },
-    { name: "Gasista", id: 20 },
-    { name: "Técnico PC", id: 21 },
-    { name: "Reparaciones", id: 22 }
-  ],
-  "Automotor": [
-    { name: "Taller mecánico", id: 23 },
-    { name: "Lavadero", id: 24 },
-    { name: "Gomería", id: 25 },
-    { name: "Repuestos", id: 26 }
-  ],
-  "Educación": [
-    { name: "Instituto", id: 27 },
-    { name: "Clases particulares", id: 28 },
-    { name: "Academia", id: 29 }
-  ],
-  "Deportes": [
-    { name: "Gimnasio", id: 30 },
-    { name: "Escuela deportiva", id: 31 },
-    { name: "Club", id: 32 }
-  ],
-  "Mascotas": [
-    { name: "Veterinaria", id: 33 },
-    { name: "Pet Shop", id: 34 },
-    { name: "Peluquería canina", id: 35 }
-  ],
-  "Hogar": [
-    { name: "Mueblería", id: 36 },
-    { name: "Decoración", id: 37 },
-    { name: "Construcción", id: 38 }
-  ],
-  "Profesionales": [
-    { name: "Abogado", id: 39 },
-    { name: "Contador", id: 40 },
-    { name: "Arquitecto", id: 41 },
-    { name: "Marketing", id: 42 }
-  ],
-  "Eventos": [
-    { name: "Salón de eventos", id: 43 },
-    { name: "Catering", id: 44 },
-    { name: "Fotografía", id: 45 }
-  ]
-};
-
-const subContainer = document.getElementById("subcategories");
-
+// render subcategorías
 document.querySelectorAll(".category-item").forEach(item => {
   item.addEventListener("mouseenter", () => {
 
@@ -212,16 +132,16 @@ document.querySelectorAll(".category-item").forEach(item => {
 
     subContainer.innerHTML = html;
 
-    // limpiar featured cuando cambia categoría
-    document.getElementById("featuredStores").innerHTML = `
-   
-    `;
+    // limpiar recomendaciones
+    featuredContainer.innerHTML = "";
   });
 });
 
-window.showFeaturedStores = async function(subId) {
+// =============================
+// TIENDAS DESTACADAS (HOVER)
+// =============================
 
-  const container = document.getElementById("featuredStores");
+window.showFeaturedStores = async function(subId) {
 
   try {
 
@@ -229,7 +149,7 @@ window.showFeaturedStores = async function(subId) {
     const stores = await res.json();
 
     if (!stores.length) {
-      container.innerHTML = `
+      featuredContainer.innerHTML = `
         <p class="text-gray-400 text-sm">No hay tiendas en esta subcategoría</p>
       `;
       return;
@@ -253,11 +173,11 @@ window.showFeaturedStores = async function(subId) {
 
     html += `</div>`;
 
-    container.innerHTML = html;
+    featuredContainer.innerHTML = html;
 
   } catch (err) {
     console.error(err);
-    container.innerHTML = `
+    featuredContainer.innerHTML = `
       <p class="text-red-400 text-sm">Error cargando tiendas</p>
     `;
   }
