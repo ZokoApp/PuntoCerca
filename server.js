@@ -1406,8 +1406,19 @@ app.post("/api/forgot-password", async (req, res) => {
     );
 
     // 📧 (por ahora log)
-    console.log("LINK RECUPERO:");
-    console.log(`${process.env.BASE_URL}/reset-password.html?token=${token}`);
+    const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}`;
+
+await resend.emails.send({
+  from: "PuntoCerca <no-reply@puntocerca.com.ar>", 
+  to: email,
+  subject: "Recuperar contraseña - PuntoCerca",
+  html: `
+    <h2>Recuperar contraseña</h2>
+    <p>Hacé click en el siguiente enlace:</p>
+    <a href="${resetLink}">Restablecer contraseña</a>
+    <p>Este link expira en 1 hora.</p>
+  `
+});
 
     return res.json({
       message: "Si el email existe, te enviamos un link"
