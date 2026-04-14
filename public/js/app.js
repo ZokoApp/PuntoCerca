@@ -189,7 +189,7 @@ document.querySelectorAll(".category-item").forEach(item => {
   item.addEventListener("mouseenter", () => {
 
     const cat = item.dataset.cat;
-    const subs = categories[cat];
+    const subs = CATEGORIES[cat];
 
     if (!subs) {
       subContainer.innerHTML = `<p class="text-gray-400">Sin subcategorías</p>`;
