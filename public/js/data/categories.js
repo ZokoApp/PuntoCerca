@@ -43,12 +43,19 @@ export const CATEGORIES = {
   ],
 
   "Servicios": [
-    { id: 18, name: "Electricista" },
-    { id: 19, name: "Plomería" },
-    { id: 20, name: "Gasista" },
-    { id: 21, name: "Técnico PC" },
-    { id: 22, name: "Reparaciones" }
-  ],
+  { id: 18, name: "Electricista" },
+  { id: 19, name: "Plomería" },
+  { id: 20, name: "Gasista" },
+  { id: 21, name: "Técnico PC" },
+  { id: 22, name: "Reparaciones" },
+
+  // 🔥 NUEVAS
+  { id: 56, name: "Refrigeración" },
+  { id: 57, name: "Aire acondicionado" },
+  { id: 58, name: "Instalaciones" },
+  { id: 59, name: "Mantenimiento" },
+  { id: 60, name: "Service técnico" }
+]
 
   "Automotor": [
     { id: 23, name: "Taller mecánico" },
