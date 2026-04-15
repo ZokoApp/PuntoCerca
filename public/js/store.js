@@ -4,7 +4,27 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 
-const CATEGORY_MAP = { ... };
+const CATEGORY_MAP = {
+  "Servicios": [
+    { id: 18, name: "Electricista" },
+    { id: 19, name: "Plomería" },
+    { id: 20, name: "Gasista" },
+    { id: 21, name: "Técnico PC" },
+    { id: 22, name: "Reparaciones" }
+  ],
+  "Comercio": [
+    { id: 6, name: "Ropa" },
+    { id: 7, name: "Electrónica" },
+    { id: 8, name: "Ferretería" },
+    { id: 9, name: "Librería" }
+  ],
+  "Automotor": [
+    { id: 23, name: "Taller mecánico" },
+    { id: 24, name: "Lavadero" },
+    { id: 25, name: "Gomería" },
+    { id: 26, name: "Repuestos" }
+  ]
+};
 
 /* ================================
    STATUS
