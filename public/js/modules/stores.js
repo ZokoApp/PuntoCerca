@@ -207,6 +207,20 @@ card.innerHTML = `
 
     <p>${store.street || "Sin dirección"}</p>
 
+    <p class="store-subcats">
+  ${
+    store.subcategory_ids
+      ? (Array.isArray(store.subcategory_ids)
+          ? store.subcategory_ids
+          : JSON.parse(store.subcategory_ids)
+        )
+          .map(id => SUBCATEGORY_MAP[id])
+          .filter(Boolean)
+          .join(" • ")
+      : ""
+  }
+</p>
+
     <p>
       ${
         store.rating_count > 0
