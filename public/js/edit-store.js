@@ -1,4 +1,4 @@
-import { CATEGORIES } from '../data/categories.js';
+import { CATEGORIES } from './data/categories.js';
 
 const CATEGORY_MAP = CATEGORIES;
 let store = null;
