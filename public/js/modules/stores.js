@@ -164,7 +164,7 @@ if (store.subcategory_ids) {
       : JSON.parse(store.subcategory_ids);
 
     subcategories = ids
-  .map(id => SUBCATEGORY_MAP[id])
+  .map(id => SUBCATEGORY_MAP[Number(id)])
   .filter(Boolean)
   .join(" • ");
   } catch (e) {
@@ -214,7 +214,7 @@ card.innerHTML = `
           ? store.subcategory_ids
           : JSON.parse(store.subcategory_ids)
         )
-          .map(id => SUBCATEGORY_MAP[id])
+          .map(id => SUBCATEGORY_MAP[Number(id)])
           .filter(Boolean)
           .join(" • ")
       : ""
@@ -318,7 +318,7 @@ if (store.subcategory_ids) {
       : JSON.parse(store.subcategory_ids);
 
     subcats = ids
-      .map(id => SUBCATEGORY_MAP[id])
+      .map(id => SUBCATEGORY_MAP[Number(id)])
       .filter(Boolean)
       .join(" · ");
   } catch (e) {
