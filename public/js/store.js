@@ -5,18 +5,35 @@ let isOwner = false;
 let storeData = null;
 
 const CATEGORY_MAP = {
+  "Gastronomía": [
+    { id: 1, name: "Restaurante" },
+    { id: 2, name: "Pizzería" },
+    { id: 3, name: "Bar" },
+    { id: 4, name: "Cafetería" },
+    { id: 5, name: "Heladería" }
+  ],
+  "Comercio": [
+    { id: 6, name: "Ropa" },
+    { id: 7, name: "Electrónica" },
+    { id: 8, name: "Ferretería" },
+    { id: 9, name: "Librería" },
+    { id: 46, name: "Verdulería" },
+    { id: 47, name: "Almacén" },
+    { id: 48, name: "Kiosco" },
+    { id: 49, name: "Supermercado" },
+    { id: 50, name: "Carnicería" },
+    { id: 51, name: "Panadería" },
+    { id: 52, name: "Fiambrería" },
+    { id: 53, name: "Dietética" },
+    { id: 54, name: "Bebidas" },
+    { id: 55, name: "Mayorista" }
+  ],
   "Servicios": [
     { id: 18, name: "Electricista" },
     { id: 19, name: "Plomería" },
     { id: 20, name: "Gasista" },
     { id: 21, name: "Técnico PC" },
     { id: 22, name: "Reparaciones" }
-  ],
-  "Comercio": [
-    { id: 6, name: "Ropa" },
-    { id: 7, name: "Electrónica" },
-    { id: 8, name: "Ferretería" },
-    { id: 9, name: "Librería" }
   ],
   "Automotor": [
     { id: 23, name: "Taller mecánico" },
