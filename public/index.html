@@ -44,7 +44,18 @@
         Registrate
       </a>
 
-      <div id="userMenu" class="hidden flex items-center gap-4">
+     <div id="userMenu" class="hidden relative">
+
+  <button id="userMenuBtn" class="flex items-center gap-2 font-medium">
+    <span id="userName"></span>
+    <span>▼</span>
+  </button>
+
+  <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg border p-2 z-50">
+    <!-- se llena dinámicamente -->
+  </div>
+
+</div>
 
   <span id="userName" class="font-medium text-gray-700"></span>
 
