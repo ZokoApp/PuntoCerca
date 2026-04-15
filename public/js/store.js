@@ -338,7 +338,24 @@ function renderStore(store){
   // 🔥 STATUS separado
   updateStoreStatus(store);
 
-  document.getElementById("storeCategory").innerText = store.category || "";
+  let subcategoryText = "";
+
+if (store.subcategory_ids) {
+  try {
+    const subs = typeof store.subcategory_ids === "string"
+      ? JSON.parse(store.subcategory_ids)
+      : store.subcategory_ids;
+
+    if (Array.isArray(subs) && subs.length > 0) {
+      subcategoryText = subs[0];
+    }
+  } catch (error) {
+    console.error("Error leyendo subcategorías:", error);
+  }
+}
+
+document.getElementById("storeCategory").innerText =
+  subcategoryText || store.category || "";
  const address = store.street?.trim();
 
 document.getElementById("storeAddress").innerText =
