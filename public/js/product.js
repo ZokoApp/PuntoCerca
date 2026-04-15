@@ -57,11 +57,7 @@ if (!param) {
 
 let res;
 
-if (!isNaN(param)) {
-  res = await fetch(`/api/products/${param}`);
-} else {
-  res = await fetch(`/api/products/slug/${param}`);
-}  
+   const res = await fetch(`/api/products/slug/${param}`);
     if (!res.ok) throw new Error("Producto no encontrado");
   
     const product = await res.json();
@@ -138,8 +134,8 @@ if (specsHTML.trim() === "") {
   specsContainer.innerHTML = specsHTML;
 }
 
-    if (product.redirect_slug && !window.location.pathname.includes(product.redirect_slug)) {
-  window.location.href = `/product/${product.redirect_slug}`;
+    if (product.redirect_slug && param !== product.redirect_slug) {
+  window.location.replace(`/product/${product.redirect_slug}`);
   return;
 }
   
