@@ -58,6 +58,68 @@ if (!isNaN(param)) {
   
     const product = await res.json();
 
+    const specsContainer = document.getElementById("productSpecs");
+
+let specsHTML = "";
+
+// parsear extra
+let extraData = {};
+
+if (product.extra) {
+  try {
+    extraData = typeof product.extra === "string"
+      ? JSON.parse(product.extra)
+      : product.extra;
+  } catch (e) {
+    console.error("Error parseando extra", e);
+  }
+}
+
+// helper
+function addSpec(label, value) {
+  if (!value || value === "" || value.length === 0) return;
+
+  specsHTML += `
+    <div>
+      <strong>${label}:</strong> ${value}
+    </div>
+  `;
+}
+
+// agregar datos
+addSpec("Modelo", extraData.model);
+addSpec("SKU", extraData.sku);
+addSpec("Material", extraData.material);
+addSpec("Talles", product.size);
+addSpec("Categoría", product.category);
+
+// colores
+if (product.colors && product.colors.length > 0) {
+  const colorsHTML = product.colors.map(c => `
+    <span style="
+      display:inline-block;
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:${c.toLowerCase()};
+      margin-right:5px;
+    "></span>
+  `).join("");
+
+  specsHTML += `
+    <div>
+      <strong>Color:</strong> ${colorsHTML}
+    </div>
+  `;
+}
+
+// render final
+if (specsHTML.trim() === "") {
+  specsContainer.style.display = "none";
+} else {
+  specsContainer.innerHTML = specsHTML;
+}
+
     if (product.redirect_slug && !window.location.pathname.includes(product.redirect_slug)) {
   window.location.href = `/product/${product.redirect_slug}`;
   return;
