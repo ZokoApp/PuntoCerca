@@ -180,12 +180,14 @@ if (specsHTML.trim() === "") {
   window.renderPriceHTML(product);
   
     let description = "Sin descripción";
-  
-    if (typeof product.extra === "string") {
-      description = product.extra;
-    } else if (typeof product.extra === "object" && product.extra !== null) {
-      description = Object.values(product.extra).join(" - ");
-    }
+
+const extraParsed = safeJSON(product.extra, {});
+
+if (extraParsed.description) {
+  description = extraParsed.description;
+}
+
+document.getElementById("productDescription").innerText = description;
   
     document.getElementById("productDescription").innerText = description;
   
@@ -235,20 +237,7 @@ if (specsHTML.trim() === "") {
     document.getElementById("productViews").innerText =
       ` ${product.views || 0} vistas`;
   
-    document.getElementById("productSizes").innerText =
-      product.size || "No especificado";
-  
-    const colorText = colors.length > 0
-  ? colors.join(", ")
-  : null;
-
-if (colorText) {
-  document.getElementById("productColor").innerText = colorText;
-} else {
-  document.getElementById("productColor").parentElement.style.display = "none";
-}
-    document.getElementById("productCategory").innerText =
-      product.category || "General";
+   
   
     // =============================
     // FAVORITOS
