@@ -6,7 +6,7 @@
 <title>Nuevo producto</title>
 
 <link rel="stylesheet" href="/css/output.css">
-   <link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="icon" type="image/png" href="/img/favicon.png">
 </head>
 
 <body class="bg-gray-50">
@@ -25,106 +25,123 @@
 
     <h1 class="text-2xl font-bold mb-6">Crear nuevo producto</h1>
 
-    <form id="productForm" class="space-y-5">
+    <form id="productForm" class="space-y-4">
 
-  <!-- BASE -->
-  <input type="text" id="name" placeholder="Nombre del producto"
-    class="w-full border rounded-lg p-3">
+      <!-- NOMBRE -->
+      <input type="text" id="name" placeholder="Nombre del producto"
+        class="w-full border rounded-lg p-3">
 
-  <input type="number" id="price" placeholder="Precio"
-    class="w-full border rounded-lg p-3">
+      <!-- PRECIO -->
+      <input type="number" id="price" placeholder="Precio"
+        class="w-full border rounded-lg p-3">
 
-  <input type="text" id="brand" placeholder="Marca"
-    class="w-full border rounded-lg p-3">
+      <!-- MARCA -->
+      <input type="text" id="brand" placeholder="Marca"
+        class="w-full border rounded-lg p-3">
 
-  <input type="text" id="model" placeholder="Modelo"
-    class="w-full border rounded-lg p-3">
+      <!-- MODELO -->
+      <input type="text" id="model" placeholder="Modelo"
+        class="w-full border rounded-lg p-3">
 
+      <!-- CAMPOS DINÁMICOS -->
+      <div class="space-y-3">
 
-  <!-- OPCIONES DINÁMICAS -->
-  <div class="border rounded-lg p-4 bg-gray-50">
-    <p class="text-sm font-semibold mb-2">Opciones del producto</p>
+        <!-- TALLES -->
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="checkSizes"> Talles
+        </label>
 
-    <div class="flex flex-wrap gap-4 text-sm">
+        <div id="sizesField" class="hidden">
+          <input type="text" id="sizes"
+            placeholder="Ej: 40,41,42"
+            class="w-full border rounded-lg p-3">
+        </div>
 
-      <label class="flex items-center gap-2">
-        <input type="checkbox" id="checkSizes"> Talles
+        <!-- COLORES -->
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="checkColors"> Colores
+        </label>
+
+        <div id="colorsField" class="hidden">
+          <select id="colors" multiple
+            class="w-full border rounded-lg p-3 h-32">
+
+            <option>Negro</option>
+            <option>Blanco</option>
+            <option>Gris</option>
+            <option>Azul</option>
+            <option>Rojo</option>
+            <option>Verde</option>
+            <option>Amarillo</option>
+            <option>Rosa</option>
+            <option>Marrón</option>
+            <option>Beige</option>
+
+          </select>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Mantén Ctrl (o Cmd en Mac) para seleccionar varios
+          </p>
+        </div>
+
+        <!-- SKU -->
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="checkSKU"> SKU
+        </label>
+
+        <div id="skuField" class="hidden">
+          <input type="text" id="sku"
+            placeholder="Código SKU"
+            class="w-full border rounded-lg p-3">
+        </div>
+
+        <!-- MATERIAL -->
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="checkMaterial"> Material
+        </label>
+
+        <div id="materialField" class="hidden">
+          <input type="text" id="material"
+            placeholder="Material"
+            class="w-full border rounded-lg p-3">
+        </div>
+
+      </div>
+
+      <!-- IMÁGENES -->
+      <input type="file" id="productImages" multiple accept="image/*">
+
+      <!-- CATEGORÍA -->
+      <select id="category" class="w-full border rounded-lg p-3">
+        <option value="">Seleccionar categoría</option>
+        <option>Ropa</option>
+        <option>Electrónica</option>
+        <option>Hogar</option>
+        <option>Servicios</option>
+        <option>Gastronomía</option>
+      </select>
+
+      <!-- URL OPCIONAL -->
+      <input type="text" id="image_url" placeholder="URL imagen (opcional)"
+        class="w-full border rounded-lg p-3">
+
+      <!-- DESCRIPCIÓN -->
+      <textarea id="description" placeholder="Descripción"
+        class="w-full border rounded-lg p-3"></textarea>
+
+      <!-- OFERTA -->
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" id="isOffer">
+        Producto de oferta
       </label>
 
-      <label class="flex items-center gap-2">
-        <input type="checkbox" id="checkColors"> Color
-      </label>
+      <!-- BOTÓN -->
+      <button
+        class="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold">
+        Crear producto
+      </button>
 
-      <label class="flex items-center gap-2">
-        <input type="checkbox" id="checkSKU"> SKU
-      </label>
-
-      <label class="flex items-center gap-2">
-        <input type="checkbox" id="checkMaterial"> Material
-      </label>
-
-    </div>
-  </div>
-
-
-  <!-- CAMPOS DINÁMICOS -->
-
-  <div id="sizesField" class="hidden">
-    <input id="sizes" placeholder="Talles (ej: S, M, L o 40,41,42)"
-      class="w-full border rounded-lg p-3">
-  </div>
-
-  <div id="colorsField" class="hidden">
-    <label class="text-sm text-gray-600">Colores</label>
-    <select id="colors" multiple class="w-full border rounded-lg p-3 h-32">
-      <option>Negro</option>
-      <option>Blanco</option>
-      <option>Gris</option>
-      <option>Azul</option>
-      <option>Rojo</option>
-      <option>Verde</option>
-      <option>Amarillo</option>
-      <option>Rosa</option>
-    </select>
-  </div>
-
-  <div id="skuField" class="hidden">
-    <input id="sku" placeholder="SKU"
-      class="w-full border rounded-lg p-3">
-  </div>
-
-  <div id="materialField" class="hidden">
-    <input id="material" placeholder="Material (ej: cuero, algodón)"
-      class="w-full border rounded-lg p-3">
-  </div>
-
-
-  <!-- IMÁGENES -->
-  <input type="file" id="productImages" multiple accept="image/*">
-
-  <!-- CATEGORÍA -->
-  <select id="category" class="w-full border rounded-lg p-3">
-    <option value="">Seleccionar categoría</option>
-    <!-- dejá lo tuyo como está -->
-  </select>
-
-  <!-- OPCIONALES -->
-  <input type="text" id="image_url" placeholder="URL imagen (opcional)"
-    class="w-full border rounded-lg p-3">
-
-  <textarea id="description" placeholder="Descripción"
-    class="w-full border rounded-lg p-3"></textarea>
-
-  <label class="flex items-center gap-2 text-sm text-gray-700">
-    <input type="checkbox" id="isOffer">
-    Producto de oferta
-  </label>
-
-  <button class="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold">
-    Crear producto
-  </button>
-
-</form>
+    </form>
 
   </div>
 
