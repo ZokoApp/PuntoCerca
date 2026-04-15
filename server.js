@@ -1460,6 +1460,73 @@ await resend.emails.send({
 
 });
 
+
+app.post('/api/admin/create-seller', async (req, res) => {
+  try {
+
+    const { name, email, password, store_name } = req.body;
+
+    // 🔐 hash password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // 🧑 crear usuario
+    const userResult = await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, email_verified)
+       VALUES ($1,$2,$3,'user',true)
+       RETURNING *`,
+      [name, email, passwordHash]
+    );
+
+    const user = userResult.rows[0];
+
+    // 🔥 generar slug tienda
+    const baseSlug = store_name
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM stores WHERE slug = $1`,
+        [slug]
+      );
+
+      if (check.rows.length === 0) break;
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    // 🏪 crear tienda
+    const storeResult = await pool.query(
+      `INSERT INTO stores (name, user_id, slug)
+       VALUES ($1,$2,$3)
+       RETURNING *`,
+      [store_name, user.id, slug]
+    );
+
+    res.json({
+      user,
+      store: storeResult.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === '23505') {
+      return res.status(400).json({ error: "Email ya existe" });
+    }
+
+    res.status(500).json({ error: "Error creando seller" });
+  }
+});
+
 app.post("/api/reset-password", async (req, res) => {
 
   const { token, password } = req.body;
