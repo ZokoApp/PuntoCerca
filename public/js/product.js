@@ -55,7 +55,7 @@ if (!param) {
   
   
 
-let res;
+
 
    const res = await fetch(`/api/products/slug/${param}`);
     if (!res.ok) throw new Error("Producto no encontrado");
@@ -63,6 +63,8 @@ let res;
     const product = await res.json();
 
     const specsContainer = document.getElementById("productSpecs");
+
+if (!specsContainer) return;
 
 let specsHTML = "";
 
@@ -185,7 +187,7 @@ if (extraParsed.description) {
 
 document.getElementById("productDescription").innerText = description;
   
-    document.getElementById("productDescription").innerText = description;
+
   
     const storeLink = document.getElementById("storeLink");
     storeLink.innerText = product.store_name;
@@ -644,7 +646,7 @@ ${window.location.href}`;
       `;
   
       card.onclick = () => {
-    window.location.href = `/product/${p.slug || p.id}`;
+    window.location.href = `/product/${p.slug}`;
   };
   
       container.appendChild(card);
