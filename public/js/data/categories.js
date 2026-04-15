@@ -55,7 +55,7 @@ export const CATEGORIES = {
   { id: 58, name: "Instalaciones" },
   { id: 59, name: "Mantenimiento" },
   { id: 60, name: "Service técnico" }
-]
+],
 
   "Automotor": [
     { id: 23, name: "Taller mecánico" },
