@@ -1,5 +1,13 @@
   const param = window.location.pathname.split("/").pop();
 
+function safeJSON(value, fallback) {
+  try {
+    return typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    return fallback;
+  }
+}
+
 if (!param) {
   alert("Producto inválido");
   throw new Error("Parámetro no encontrado");
@@ -94,8 +102,19 @@ addSpec("Talles", product.size);
 addSpec("Categoría", product.category);
 
 // colores
-if (product.colors && product.colors.length > 0) {
-  const colorsHTML = product.colors.map(c => `
+// colores (FIX PRO)
+let colors = [];
+
+try {
+  colors = typeof product.colors === "string"
+    ? JSON.parse(product.colors)
+    : product.colors || [];
+} catch {
+  colors = [];
+}
+
+if (colors.length > 0) {
+  const colorsHTML = colors.map(c => `
     <span style="
       display:inline-block;
       width:14px;
@@ -112,7 +131,6 @@ if (product.colors && product.colors.length > 0) {
     </div>
   `;
 }
-
 // render final
 if (specsHTML.trim() === "") {
   specsContainer.style.display = "none";
@@ -220,9 +238,15 @@ if (specsHTML.trim() === "") {
     document.getElementById("productSizes").innerText =
       product.size || "No especificado";
   
-    document.getElementById("productColor").innerText =
-      product.color || "No especificado";
-  
+    const colorText = colors.length > 0
+  ? colors.join(", ")
+  : null;
+
+if (colorText) {
+  document.getElementById("productColor").innerText = colorText;
+} else {
+  document.getElementById("productColor").parentElement.style.display = "none";
+}
     document.getElementById("productCategory").innerText =
       product.category || "General";
   
