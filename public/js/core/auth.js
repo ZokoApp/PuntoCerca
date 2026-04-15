@@ -34,23 +34,41 @@ async function getCsrfToken() {
 // ===============================
 
 async function checkAuth() {
+  const userMenu = document.getElementById("userMenu");
+  const nameEl = document.getElementById("userName");
+  const loginLink = document.getElementById("loginLink");
+  const registerLink = document.getElementById("registerLink");
+
   try {
     const response = await fetch("/api/me", {
       credentials: "include"
     });
 
-    if (!response.ok) return;
+    // 🔥 NO LOGUEADO
+    if (!response.ok) {
+      if (userMenu) userMenu.classList.add("hidden");
+      if (loginLink) loginLink.style.display = "inline-block";
+      if (registerLink) registerLink.style.display = "inline-block";
+      return;
+    }
 
     const user = await response.json();
 
-    document.getElementById("userName").textContent = user.name;
-    document.getElementById("userMenu").classList.remove("hidden");
+    // 🔥 LOGUEADO
+    if (nameEl) nameEl.textContent = user.name;
 
-    document.getElementById("loginLink").classList.add("hidden");
-    document.getElementById("registerLink").classList.add("hidden");
+    if (loginLink) loginLink.style.display = "none";
+    if (registerLink) registerLink.style.display = "none";
 
-  } catch {
-    console.log("No autenticado");
+    if (userMenu) userMenu.classList.remove("hidden");
+
+  } catch (err) {
+    console.log("Error auth:", err);
+
+    // fallback → mostrar como deslogueado
+    if (userMenu) userMenu.classList.add("hidden");
+    if (loginLink) loginLink.style.display = "inline-block";
+    if (registerLink) registerLink.style.display = "inline-block";
   }
 }
 
