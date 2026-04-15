@@ -423,8 +423,8 @@ const subNames = getSubcategoryNames(store.subcategory_ids);
 
 document.getElementById("storeCategory").innerText =
   subNames.length > 0
-    ? subNames[0] // mostramos la principal
-    : store.category || "";
+    ? subNames.join(" • ")
+    : "";
  const address = store.street?.trim();
 
 document.getElementById("storeAddress").innerText =
