@@ -1,85 +1,159 @@
 let myStoreId = null;
 
-// cargar tienda del usuario
+// =============================
+// CARGAR TIENDA DEL USUARIO
+// =============================
 async function loadMyStore() {
   try {
     const res = await fetch("/api/my-store", {
       credentials: "include"
     });
 
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error("No se pudo cargar la tienda");
 
     const store = await res.json();
     myStoreId = store.id;
 
     console.log("Mi tienda:", myStoreId);
-
   } catch (err) {
+    console.error(err);
     alert("No tenés tienda creada");
   }
 }
 
-// llamar al cargar
-loadMyStore();
+// =============================
+// CAMPOS DINÁMICOS
+// =============================
+function toggleField(checkId, fieldId) {
+  const check = document.getElementById(checkId);
+  const field = document.getElementById(fieldId);
 
-document.getElementById("productForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  if (!check || !field) return;
 
-  if (!myStoreId) {
-    alert("Error: tienda no cargada");
-    return;
-  }
+  const sync = () => {
+    field.classList.toggle("hidden", !check.checked);
+  };
 
-  const formData = new FormData();
+  check.addEventListener("change", sync);
+  sync();
+}
 
-  formData.append("name", document.getElementById("name").value);
-formData.append("price", document.getElementById("price").value);
-formData.append("brand", document.getElementById("brand").value);
-formData.append("size", document.getElementById("size").value);
-formData.append("stock", document.getElementById("stock").value);
-formData.append("extra", document.getElementById("extra").value);
-formData.append("category", document.getElementById("category").value);
-formData.append("is_offer", document.getElementById("isOffer").checked);
+// =============================
+// INIT
+// =============================
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadMyStore();
 
-  //  obtener colores seleccionados
-  const selectedColors = Array.from(
-    document.getElementById("colors").selectedOptions
-  ).map(option => option.value);
+  toggleField("checkSizes", "sizesField");
+  toggleField("checkColors", "colorsField");
+  toggleField("checkSKU", "skuField");
+  toggleField("checkMaterial", "materialField");
 
-  // 🔥 enviar colores como JSON
-  formData.append("colors", JSON.stringify(selectedColors));
+  const form = document.getElementById("productForm");
 
-  // tienda
-  formData.append("store_id", myStoreId);
+  if (!form) return;
 
-  // imágenes
-  const files = document.getElementById("productImages").files;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  if (files.length > 5) {
-    alert("Máximo 5 imágenes");
-    return;
-  }
+    if (!myStoreId) {
+      alert("Error: tienda no cargada");
+      return;
+    }
 
-  for (let i = 0; i < files.length; i++) {
-    formData.append("images", files[i]);
-  }
+    const formData = new FormData();
 
-  try {
+    const name = document.getElementById("name")?.value.trim() || "";
+    const price = document.getElementById("price")?.value.trim() || "";
+    const brand = document.getElementById("brand")?.value.trim() || "";
+    const model = document.getElementById("model")?.value.trim() || "";
+    const category = document.getElementById("category")?.value || "";
+    const imageUrl = document.getElementById("image_url")?.value.trim() || "";
+    const description = document.getElementById("description")?.value.trim() || "";
+    const isOffer = document.getElementById("isOffer")?.checked || false;
 
-    const res = await fetch("/api/products", {
-      method: "POST",
-      credentials: "include",
-      body: formData
-    });
+    const checkSizes = document.getElementById("checkSizes")?.checked || false;
+    const checkColors = document.getElementById("checkColors")?.checked || false;
+    const checkSKU = document.getElementById("checkSKU")?.checked || false;
+    const checkMaterial = document.getElementById("checkMaterial")?.checked || false;
 
-    if (!res.ok) throw new Error();
+    const sizes = checkSizes
+      ? (document.getElementById("sizes")?.value.trim() || "")
+      : "";
 
-    alert("Producto creado 🚀");
+    const selectedColors = checkColors
+      ? Array.from(document.getElementById("colors")?.selectedOptions || []).map(
+          (option) => option.value
+        )
+      : [];
 
-    window.location.href = "/dashboard";
+    const sku = checkSKU
+      ? (document.getElementById("sku")?.value.trim() || "")
+      : "";
 
-  } catch (err) {
-    console.error(err);
-    alert("Error creando producto");
-  }
+    const material = checkMaterial
+      ? (document.getElementById("material")?.value.trim() || "")
+      : "";
+
+    if (!name) {
+      alert("Ingresá el nombre del producto");
+      return;
+    }
+
+    if (!price) {
+      alert("Ingresá el precio");
+      return;
+    }
+
+    formData.append("name", name);
+    formData.append("price", price);
+    formData.append("brand", brand);
+    formData.append("size", sizes);
+    formData.append("category", category);
+    formData.append("store_id", myStoreId);
+    formData.append("is_offer", isOffer);
+    formData.append("old_price", "");
+    formData.append("image_url", imageUrl);
+
+    // modelo + sku + material van dentro de extra
+    const extraData = {
+      model,
+      sku,
+      material,
+      description
+    };
+
+    formData.append("extra", JSON.stringify(extraData));
+    formData.append("colors", JSON.stringify(selectedColors));
+
+    const files = document.getElementById("productImages")?.files || [];
+
+    if (files.length > 5) {
+      alert("Máximo 5 imágenes");
+      return;
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      formData.append("images", files[i]);
+    }
+
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Error creando producto");
+      }
+
+      alert("Producto creado 🚀");
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Error creando producto");
+    }
+  });
 });
