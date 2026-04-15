@@ -4,6 +4,8 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 
+const CATEGORY_MAP = { ... };
+
 /* ================================
    STATUS
 ================================ */
@@ -306,6 +308,32 @@ function setupMap(store){
   setTimeout(() => map.invalidateSize(), 300);
 }
 
+function getSubcategoryNames(ids) {
+  if (!ids) return [];
+
+  let parsed = ids;
+
+  if (typeof ids === "string") {
+    try {
+      parsed = JSON.parse(ids);
+    } catch {
+      return [];
+    }
+  }
+
+  const names = [];
+
+  Object.values(CATEGORY_MAP).forEach(subs => {
+    subs.forEach(sub => {
+      if (parsed.includes(sub.id)) {
+        names.push(sub.name);
+      }
+    });
+  });
+
+  return names;
+}
+
 /* ================================
    RENDER
 ================================ */
@@ -354,8 +382,12 @@ if (store.subcategory_ids) {
   }
 }
 
+const subNames = getSubcategoryNames(store.subcategory_ids);
+
 document.getElementById("storeCategory").innerText =
-  subcategoryText || store.category || "";
+  subNames.length > 0
+    ? subNames[0] // mostramos la principal
+    : store.category || "";
  const address = store.street?.trim();
 
 document.getElementById("storeAddress").innerText =
