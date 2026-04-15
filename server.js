@@ -2123,6 +2123,7 @@ app.get('/api/daily-offers', async (req, res) => {
     const result = await pool.query(`
       SELECT 
   p.id AS product_id,
+  p.slug,
   p.name AS product_name,
   p.price,
   p.old_price, -- 🔥 AGREGÁ ESTO
