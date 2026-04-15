@@ -456,19 +456,21 @@ app.post('/api/login', loginLimiter, csrfProtection, async (req, res) => {
             [refreshToken, user.id]
         );
 
-        res.cookie("access_token", accessToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 15 * 60 * 1000
-        });
+        const isProd = process.env.NODE_ENV === "production";
 
-        res.cookie("refresh_token", refreshToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+res.cookie("access_token", accessToken, {
+    httpOnly: true,
+    sameSite: "lax",   // 🔥 antes: "strict"
+    secure: isProd,    // 🔥 antes: false
+    maxAge: 15 * 60 * 1000
+});
+
+res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
 
         res.json({ message: "Login correcto" });
 
@@ -584,19 +586,21 @@ app.post('/api/refresh', async (req, res) => {
             [newRefreshToken, user.id]
         );
 
-        res.cookie("access_token", newAccessToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 15 * 60 * 1000
-        });
+        const isProd = process.env.NODE_ENV === "production";
 
-        res.cookie("refresh_token", newRefreshToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+res.cookie("access_token", newAccessToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 15 * 60 * 1000
+});
+
+res.cookie("refresh_token", newRefreshToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
 
         res.json({ message: "Token renovado" });
 
@@ -620,8 +624,17 @@ app.post('/api/logout', async (req, res) => {
         );
     }
 
-    res.clearCookie("access_token");
-    res.clearCookie("refresh_token");
+    const isProd = process.env.NODE_ENV === "production";
+
+res.clearCookie("access_token", {
+  sameSite: "lax",
+  secure: isProd
+});
+
+res.clearCookie("refresh_token", {
+  sameSite: "lax",
+  secure: isProd
+});
 
     res.json({ message: "Logout correcto" });
 });
