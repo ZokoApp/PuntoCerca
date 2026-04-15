@@ -281,6 +281,8 @@ app.get('/api/products/slug/:slug', async (req, res) => {
       [req.params.slug]
     );
 
+    
+
     if (!result.rows.length) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
@@ -957,6 +959,11 @@ app.post('/api/products', authMiddleware, upload.array("images", 5), async (req,
       is_offer
     } = req.body;
 
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+const parsedStock = stock && stock !== "" && !isNaN(stock)
+  ? parseInt(stock)
+  : null;
     
 
     let images = [];
