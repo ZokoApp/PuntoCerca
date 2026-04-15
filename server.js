@@ -336,6 +336,15 @@ app.post('/api/stores',
       lat,
       lng
     } = req.body;
+    let subcategoriesToSave = null;
+
+if (subcategory_ids) {
+  try {
+    subcategoriesToSave = JSON.parse(subcategory_ids);
+  } catch {
+    subcategoriesToSave = null;
+  }
+}
 
     // 🔒 evitar duplicados
     const existing = await pool.query(
@@ -397,7 +406,7 @@ app.post('/api/stores',
         phone,
         city,
         category,
-        subcategory_ids,
+        subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
         street,
         local,
         apartment,
