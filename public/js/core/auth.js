@@ -128,8 +128,7 @@ if(logoutBtn){
 // INIT
 // ===============================
 
-checkAuth();
-setupUserMenu();
+
 
 async function setupDashboardLink() {
 
@@ -157,4 +156,8 @@ async function setupDashboardLink() {
   }
 }
 
-setupDashboardLink();
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuth();
+  setupUserMenu();
+  setupDashboardLink();
+});
