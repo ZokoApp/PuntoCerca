@@ -78,69 +78,96 @@ async function checkAuth() {
 
 async function setupUserMenu() {
   try {
-    const myStoreLink = document.getElementById("myStoreLink");
-
-    const meRes = await fetch("/api/me", {
+    const res = await fetch("/api/me", {
       credentials: "include"
     });
 
-    if (!meRes.ok) return;
+    if (!res.ok) return;
 
-    const me = await meRes.json();
+    const user = await res.json();
 
-    if (me.role !== "seller") {
-      myStoreLink.textContent = "Mi perfil";
-      myStoreLink.href = "/profile";
-      return;
+    const dropdown = document.getElementById("userDropdown");
+    if (!dropdown) return;
+
+    let html = "";
+
+    // 🔥 SI ES SELLER → BUSCAR SU TIENDA REAL
+    if (user.role === "seller") {
+
+      let storeLink = "#";
+
+      try {
+        const storeRes = await fetch("/api/my-store", {
+          credentials: "include"
+        });
+
+        if (storeRes.ok) {
+          const store = await storeRes.json();
+          storeLink = `/store/${store.id}`;
+        }
+      } catch {}
+
+      html = `
+        <a href="${storeLink}" class="block px-3 py-2 hover:bg-gray-100 rounded">
+          Ver mi tienda
+        </a>
+
+        <a href="/dashboard" class="block px-3 py-2 hover:bg-gray-100 rounded">
+          Dashboard
+        </a>
+
+        <button id="logoutBtn" class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-red-500">
+          Logout
+        </button>
+      `;
+
+    } else {
+
+      html = `
+        <a href="/profile" class="block px-3 py-2 hover:bg-gray-100 rounded">
+          Ver mi perfil
+        </a>
+
+        <a href="/dashboard-user" class="block px-3 py-2 hover:bg-gray-100 rounded">
+          Dashboard
+        </a>
+
+        <button id="logoutBtn" class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-red-500">
+          Logout
+        </button>
+      `;
     }
 
-    const res = await fetch("/api/my-store", {
-      credentials: "include"
-    });
+    dropdown.innerHTML = html;
 
-    if (res.status === 404) {
-      myStoreLink.textContent = "Mi tienda";
-      myStoreLink.href = "/dashboard";
-      return;
+    // 🔥 LOGOUT dinámico
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        const csrfToken = await getCsrfToken();
+
+        await fetch("/api/logout", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "x-csrf-token": csrfToken
+          }
+        });
+
+        window.location.href = "/";
+      });
     }
 
-    if (!res.ok) throw new Error("Error");
-
-    const store = await res.json();
-
-    myStoreLink.textContent = "Mi tienda";
-    myStoreLink.href = `/store/${store.id}?edit=true`;
-
-  } catch (error) {
-    console.log("Error cargando menú");
+  } catch (err) {
+    console.error(err);
   }
 }
-
 // ===============================
 // LOGOUT
 // ===============================
 
-const logoutBtn = document.getElementById("logoutBtn");
 
-if(logoutBtn){
-  logoutBtn.addEventListener("click", async () => {
-    try {
-      const csrfToken = await getCsrfToken();
-
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "x-csrf-token": csrfToken
-        }
-      });
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Error en logout:", error);
-    }
-  });
-}
 
 // ===============================
 // INIT
