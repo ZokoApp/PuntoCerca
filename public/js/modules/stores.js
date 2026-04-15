@@ -163,7 +163,10 @@ if (store.subcategory_ids) {
       ? store.subcategory_ids
       : JSON.parse(store.subcategory_ids);
 
-    subcategories = ids.map(id => SUBCATEGORY_MAP[id]).join(", ");
+    subcategories = ids
+  .map(id => SUBCATEGORY_MAP[id])
+  .filter(Boolean)
+  .join(" • ");
   } catch (e) {
     console.error("Error parseando subcategorías", e);
   }
@@ -319,7 +322,7 @@ if (store.subcategory_ids) {
     ? `<span class="rating">⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})</span>`
     : `<span class="no-rating">Sin valoraciones</span>`
 }
-      · ${subcats || store.category}
+      · ${subcats}
     </div>
   `;
 })()}
