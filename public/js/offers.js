@@ -61,7 +61,7 @@ function renderProducts(products) {
 `;
 
     card.onclick = () => {
-      window.location.href = `/product/${p.product_id}`;
+      window.location.href = `/product/${p.slug}`;
     };
 
     grid.appendChild(card);
