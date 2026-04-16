@@ -48,24 +48,51 @@ const CATEGORY_MAP = {
 ================================ */
 
 function isStoreOpen(store) {
-  if (!store.is_open) return false;
 
-  if (!store.opening_time || !store.closing_time) return store.is_open;
+  if (!store.opening_hours) return false;
 
   const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
 
-  const [openH, openM] = store.opening_time.split(":").map(Number);
-  const [closeH, closeM] = store.closing_time.split(":").map(Number);
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
 
-  const openTime = openH * 60 + openM;
-  const closeTime = closeH * 60 + closeM;
+  const today = store.opening_hours[todayKey];
 
-  return currentTime >= openTime && currentTime <= closeTime;
+  if (!today) return false;
+  if (today.closed) return false;
+
+  const currentTime = now.toTimeString().slice(0,5);
+
+  return currentTime >= today.open && currentTime <= today.close;
 }
 
-function updateStoreStatus(store) {
-  const open = isStoreOpen(store);
+  function updateStoreStatus(store) {
+
+  const now = new Date();
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
+
+  const today = store.opening_hours?.[todayKey];
+
+  let text = "Sin horarios";
+  let color = "#6b7280";
+
+  if (today && !today.closed) {
+
+    const currentTime = now.toTimeString().slice(0,5);
+
+    if (currentTime >= today.open && currentTime <= today.close) {
+      text = `Abierto ahora · Cierra ${today.close}`;
+      color = "#16a34a";
+    } else {
+      text = `Cerrado · Abre ${today.open}`;
+      color = "#dc2626";
+    }
+
+  } else {
+    text = "Cerrado";
+    color = "#dc2626";
+  }
 
   const statusHTML = `
     <div style="
@@ -75,22 +102,21 @@ function updateStoreStatus(store) {
       margin-top:6px;
       font-weight:500;
       font-size:14px;
-      color:${open ? '#16a34a' : '#dc2626'};
+      color:${color};
     ">
       <span style="
         width:8px;
         height:8px;
         border-radius:50%;
-        background:${open ? '#16a34a' : '#dc2626'};
+        background:${color};
         display:inline-block;
       "></span>
-      ${open ? 'Abierto ahora' : 'Cerrado'}
+      ${text}
     </div>
   `;
 
   document.getElementById("storeStatus").innerHTML = statusHTML;
 }
-
 /* ================================
    DETECTAR ID / SLUG
 ================================ */
