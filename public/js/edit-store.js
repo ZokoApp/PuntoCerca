@@ -4,7 +4,50 @@ const CATEGORY_MAP = CATEGORIES;
 let store = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+// =============================
+// HORARIOS UI
+// =============================
 
+const days = [
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+  "Domingo"
+];
+
+function createHoursUI(savedHours = {}) {
+  const container = document.getElementById("openingHours");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  days.forEach(day => {
+
+    const dayData = savedHours[day] || [];
+
+    const div = document.createElement("div");
+    div.className = "day-row";
+
+    div.innerHTML = `
+      <strong>${day}</strong>
+
+      <div class="hours-group" data-day="${day}">
+        ${[0,1].map(i => `
+          <div class="range">
+            <input type="time" class="open" value="${dayData[i]?.open || ""}">
+            <span>-</span>
+            <input type="time" class="close" value="${dayData[i]?.close || ""}">
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
 
   // =============================
   // TRAER STORE
@@ -141,6 +184,21 @@ if (store) {
   document.getElementById("coverPreview").src =
     store.cover_url || "/img/default-cover.jpg";
 
+  // HORARIOS (LOAD)
+let parsedHours = {};
+
+if (store.opening_hours) {
+  try {
+    parsedHours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    parsedHours = {};
+  }
+}
+
+createHoursUI(parsedHours);
+
 } else {
 
   // 🆕 CREAR TIENDA
@@ -148,6 +206,7 @@ if (store) {
   console.log("Modo creación limpio");
 
   loadSubcategories(categorySelect.value);
+  createHoursUI();
 
   document.getElementById("logoPreview").src = "/img/default.png";
   document.getElementById("coverPreview").src = "/img/default-cover.jpg";
