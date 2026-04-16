@@ -49,39 +49,101 @@ const CATEGORY_MAP = {
 
 function isStoreOpen(store) {
 
-  if (!store.opening_hours) return false;
+  if (!store.is_open) return false;
+
+  if (!store.opening_hours) return store.is_open;
+
+  let hours;
+
+  try {
+    hours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    return store.is_open;
+  }
+
+  // 🔥 24HS
+  if (hours.always_open) return true;
 
   const now = new Date();
-
   const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
   const todayKey = daysMap[now.getDay()];
 
-  const today = store.opening_hours[todayKey];
+  const today = hours[todayKey];
 
-  if (!today) return false;
-  if (today.closed) return false;
+  if (!today || today.closed) return false;
 
-  const currentTime = now.toTimeString().slice(0,5);
+  if (!today.open || !today.close) return false;
 
-  return currentTime >= today.open && currentTime <= today.close;
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const [oh, om] = today.open.split(":").map(Number);
+  const [ch, cm] = today.close.split(":").map(Number);
+
+  const openTime = oh * 60 + om;
+  const closeTime = ch * 60 + cm;
+
+  return current >= openTime && current <= closeTime;
 }
 
-  function updateStoreStatus(store) {
+ function updateStoreStatus(store) {
+
+  let hours;
+
+  try {
+    hours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    hours = null;
+  }
+
+  // 🔥 24HS
+  if (hours?.always_open) {
+    document.getElementById("storeStatus").innerHTML = `
+      <div style="
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin-top:6px;
+        font-weight:500;
+        font-size:14px;
+        color:#16a34a;
+      ">
+        <span style="
+          width:8px;
+          height:8px;
+          border-radius:50%;
+          background:#16a34a;
+          display:inline-block;
+        "></span>
+        Abierto 24hs
+      </div>
+    `;
+    return;
+  }
 
   const now = new Date();
   const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
   const todayKey = daysMap[now.getDay()];
 
-  const today = store.opening_hours?.[todayKey];
+  const today = hours?.[todayKey];
 
   let text = "Sin horarios";
   let color = "#6b7280";
 
   if (today && !today.closed) {
 
-    const currentTime = now.toTimeString().slice(0,5);
+    const current = now.getHours() * 60 + now.getMinutes();
 
-    if (currentTime >= today.open && currentTime <= today.close) {
+    const [oh, om] = today.open.split(":").map(Number);
+    const [ch, cm] = today.close.split(":").map(Number);
+
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
+
+    if (current >= openTime && current <= closeTime) {
       text = `Abierto ahora · Cierra ${today.close}`;
       color = "#16a34a";
     } else {
@@ -93,7 +155,6 @@ function isStoreOpen(store) {
     text = "Cerrado";
     color = "#dc2626";
   }
-
   const statusHTML = `
     <div style="
       display:flex;
