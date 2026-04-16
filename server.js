@@ -397,7 +397,6 @@ if (subcategory_ids) {
 
     const result = await pool.query(
       `INSERT INTO stores 
-      INSERT INTO stores 
 (user_id, name, slug, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url, opening_hours)
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
       RETURNING *`,
@@ -1865,15 +1864,6 @@ if (req.body.opening_hours) {
   }
 }
 
-    let opening_hours = null;
-
-if (req.body.opening_hours) {
-  try {
-    opening_hours = JSON.parse(req.body.opening_hours);
-  } catch (e) {
-    console.error("Error parsing opening_hours", e);
-  }
-}
 
 let logo_url = null;
 let cover_url = null;
