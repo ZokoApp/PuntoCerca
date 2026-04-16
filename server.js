@@ -397,8 +397,9 @@ if (subcategory_ids) {
 
     const result = await pool.query(
       `INSERT INTO stores 
-      (user_id, name, slug, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+      INSERT INTO stores 
+(user_id, name, slug, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url, opening_hours)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
       RETURNING *`,
       [
         req.user.id,
@@ -416,7 +417,8 @@ if (subcategory_ids) {
         lat || null,
         lng || null,
         logo_url,
-        cover_url
+        cover_url,
+        opening_hours
       ]
     );
 
@@ -1853,6 +1855,26 @@ console.log("FILES:", req.files);
   lng
 } = req.body;
 
+    let opening_hours = null;
+
+if (req.body.opening_hours) {
+  try {
+    opening_hours = JSON.parse(req.body.opening_hours);
+  } catch (e) {
+    console.error("Error parsing opening_hours", e);
+  }
+}
+
+    let opening_hours = null;
+
+if (req.body.opening_hours) {
+  try {
+    opening_hours = JSON.parse(req.body.opening_hours);
+  } catch (e) {
+    console.error("Error parsing opening_hours", e);
+  }
+}
+
 let logo_url = null;
 let cover_url = null;
 
@@ -1893,28 +1915,30 @@ if (subcategory_ids) {
      lng = COALESCE($12, lng),
      logo_url = COALESCE($13, logo_url),
      cover_url = COALESCE($14, cover_url),
-     subcategory_ids = COALESCE($15, subcategory_ids)
-   WHERE id = $16 AND user_id = $17
+     subcategory_ids = COALESCE($15, subcategory_ids),
+opening_hours = COALESCE($16, opening_hours)
+WHERE id = $17 AND user_id = $18
    RETURNING *`,
-  [
-    name,
-    description,
-    phone,
-    city,
-    category,
-    subcategory_id,
-    street,
-    local,
-    apartment,
-    reference_notes,
-    lat || null,
-    lng || null,
-    logo_url,
-    cover_url,
-    subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
-    req.params.id,
-    req.user.id
-  ]
+ [
+  name,
+  description,
+  phone,
+  city,
+  category,
+  subcategory_id,
+  street,
+  local,
+  apartment,
+  reference_notes,
+  lat || null,
+  lng || null,
+  logo_url,
+  cover_url,
+  subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
+  opening_hours,
+  req.params.id,
+  req.user.id
+]
 );
 
     if(!result.rows.length){
