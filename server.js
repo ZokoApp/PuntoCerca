@@ -2250,18 +2250,78 @@ app.get('/api/search', async (req, res) => {
     const search = `%${q.toLowerCase()}%`;
 
     // 🔍 BUSCAR TIENDAS
-    const storesResult = await pool.query(
-      `SELECT 
-        id,
-        name,
-        logo_url AS image,
-        'store' AS type
-      FROM stores
-      WHERE LOWER(name) LIKE $1
-         OR LOWER(category) LIKE $1`,
-      [search]
-    );
+    function normalize(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
+const normalizedQuery = normalize(q);
+
+// 🔥 MAPA SUBCATEGORÍAS
+const SUBCATEGORY_MAP = {
+  1: "Restaurante",
+  2: "Pizzería",
+  3: "Bar",
+  4: "Cafetería",
+  5: "Heladería",
+  6: "Ropa",
+  7: "Electrónica",
+  8: "Ferretería",
+  9: "Librería",
+  18: "Electricista",
+  19: "Plomería",
+  20: "Gasista",
+  21: "Técnico PC",
+  22: "Reparaciones",
+  23: "Taller mecánico",
+  24: "Lavadero",
+  25: "Gomería",
+  26: "Repuestos",
+  46: "Verdulería",
+  47: "Almacén",
+  48: "Kiosco",
+  49: "Supermercado",
+  50: "Carnicería",
+  51: "Panadería",
+  52: "Fiambrería",
+  53: "Dietética",
+  54: "Bebidas",
+  55: "Mayorista"
+};
+
+// 🔍 encontrar subcategorías que coinciden
+const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
+  .filter(([id, name]) =>
+    normalize(name).includes(normalizedQuery)
+  )
+  .map(([id]) => Number(id));
+
+const search = `%${q.toLowerCase()}%`;
+
+let query = `
+  SELECT 
+    id,
+    name,
+    logo_url AS image,
+    'store' AS type
+  FROM stores
+  WHERE LOWER(name) LIKE $1
+     OR LOWER(category) LIKE $1
+`;
+
+let params = [search];
+
+// 🔥 SI ENCUENTRA SUBCATEGORÍAS → AGREGAR
+if (matchedSubIds.length > 0) {
+  const subMatches = matchedSubIds.map(id => `%${id}%`);
+
+  query += ` OR subcategory_ids::text LIKE ANY($2)`;
+  params.push(subMatches);
+}
+
+const storesResult = await pool.query(query, params);
  
     // 🔍 BUSCAR PRODUCTOS
    const productsResult = await pool.query(
