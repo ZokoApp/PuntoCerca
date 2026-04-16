@@ -273,18 +273,57 @@ function initGoogleMap(lat, lng) {
 
   if (!map) {
     map = new google.maps.Map(document.getElementById("map"), {
-      center,
-      zoom: 16,
-      streetViewControl: false,
-      mapTypeControl: false,
-      fullscreenControl: false
-    });
+  center,
+  zoom: 16,
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: false,
+
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+
+    {
+      featureType: "poi",
+      stylers: [{ visibility: "off" }]
+    },
+
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#ffffff" }]
+    },
+
+    {
+      featureType: "road.arterial",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#757575" }]
+    },
+
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#dadada" }]
+    },
+
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#c9c9c9" }]
+    }
+  ]
+});
 
     marker = new google.maps.Marker({
-      position: center,
-      map,
-      draggable: true
-    });
+  position: center,
+  map,
+  draggable: true,
+  icon: {
+    url: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+  }
+});
 
     marker.addListener("dragend", async () => {
       const pos = marker.getPosition();
