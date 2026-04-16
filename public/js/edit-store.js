@@ -354,8 +354,10 @@ function initGoogleMap(lat, lng) {
     });
 
     autocomplete = new google.maps.places.Autocomplete(searchAddressInput, {
-      fields: ["formatted_address", "geometry", "name"]
-    });
+  fields: ["formatted_address", "geometry", "name"],
+  componentRestrictions: { country: "ar" }
+});
+    autocomplete.bindTo("bounds", map);
 
     autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
