@@ -530,7 +530,8 @@ saveLocationBtn.addEventListener("click", () => {
     e.preventDefault();
 
     const formData = new FormData();
-
+    const hours = getHoursData(); 
+formData.append("opening_hours", JSON.stringify(hours));
     formData.append("name", document.getElementById("name").value);
     formData.append("category", document.getElementById("category").value);
     formData.append("subcategory_ids", JSON.stringify(selectedSubcategories));
@@ -598,3 +599,22 @@ if (store && store.id) {
   });
 
 });
+
+function getHoursData() {
+  const days = ["mon","tue","wed","thu","fri","sat","sun"];
+  const data = {};
+
+  days.forEach(day => {
+    const open = document.querySelector(`[name="${day}_open"]`)?.value;
+    const close = document.querySelector(`[name="${day}_close"]`)?.value;
+    const closed = document.querySelector(`[name="${day}_closed"]`)?.checked;
+
+    data[day] = {
+      closed: closed || false,
+      open: open || "",
+      close: close || ""
+    };
+  });
+
+  return data;
+}
