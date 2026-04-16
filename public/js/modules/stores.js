@@ -8,17 +8,17 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
   const usedPositions = {};
 function isStoreOpen(store) {
 
-  if (!store.is_open) return false;
-
-  if (!store.opening_hours) return store.is_open;
+  if (!store.opening_hours) return false;
 
   let hours = store.opening_hours;
 
+  // 🔥 parse seguro
   if (typeof hours === "string") {
     try {
       hours = JSON.parse(hours);
-    } catch {
-      return store.is_open;
+    } catch (e) {
+      console.error("Error parsing opening_hours", e);
+      return false;
     }
   }
 
@@ -32,7 +32,8 @@ function isStoreOpen(store) {
 
   const today = hours[todayKey];
 
-  if (!today || today.closed) return false;
+  if (!today) return false;
+  if (today.closed) return false;
 
   if (!today.open || !today.close) return false;
 
