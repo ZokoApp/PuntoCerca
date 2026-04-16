@@ -90,7 +90,7 @@ categorySelect.addEventListener("change", () => {
 
 function createHoursUI(existing = {}) {
 
- const container = document.getElementById("openingHours");
+const container = document.getElementById("hoursContainer");
 
   const days = [
     { key: "mon", label: "Lunes" },
@@ -214,6 +214,25 @@ if (store.opening_hours) {
 }
 
 createHoursUI(parsedHours);
+
+  const alwaysOpenCheckbox = document.getElementById("alwaysOpen");
+
+// cargar estado guardado
+if (parsedHours.always_open) {
+  alwaysOpenCheckbox.checked = true;
+
+  const inputs = document.querySelectorAll("#hoursContainer input");
+  inputs.forEach(i => i.disabled = true);
+}
+
+// evento
+alwaysOpenCheckbox.addEventListener("change", () => {
+  const inputs = document.querySelectorAll("#hoursContainer input");
+
+  inputs.forEach(input => {
+    input.disabled = alwaysOpenCheckbox.checked;
+  });
+});
 
 } else {
 
@@ -615,25 +634,6 @@ if (store && store.id) {
   });
 
 });
-
-function getHoursData() {
-  const days = ["mon","tue","wed","thu","fri","sat","sun"];
-  const data = {};
-
-  days.forEach(day => {
-    const open = document.querySelector(`[name="${day}_open"]`)?.value;
-    const close = document.querySelector(`[name="${day}_close"]`)?.value;
-    const closed = document.querySelector(`[name="${day}_closed"]`)?.checked;
-
-    data[day] = {
-      closed: closed || false,
-      open: open || "",
-      close: close || ""
-    };
-  });
-
-  return data;
-}
 
 function getHoursData() {
   const days = ["mon","tue","wed","thu","fri","sat","sun"];
