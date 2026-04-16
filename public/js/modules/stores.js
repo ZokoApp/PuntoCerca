@@ -7,19 +7,31 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
 
   const usedPositions = {};
 function isStoreOpen(store) {
-  if (!store.is_open) return false;
-  if (!store.opening_time || !store.closing_time) return store.is_open;
+
+  if (!store.opening_hours) return false;
+
+  let hours = store.opening_hours;
+
+  if (typeof hours === "string") {
+    try {
+      hours = JSON.parse(hours);
+    } catch {
+      return false;
+    }
+  }
 
   const now = new Date();
-  const current = now.getHours() * 60 + now.getMinutes();
 
-  const [oh, om] = store.opening_time.split(":").map(Number);
-  const [ch, cm] = store.closing_time.split(":").map(Number);
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
 
-  const open = oh * 60 + om;
-  const close = ch * 60 + cm;
+  const today = hours[todayKey];
 
-  return current >= open && current <= close;
+  if (!today || today.closed) return false;
+
+  const currentTime = now.toTimeString().slice(0,5);
+
+  return currentTime >= today.open && currentTime <= today.close;
 }
 
 function getPositionKey(lat, lng) {
@@ -189,7 +201,7 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-       const open = store.is_open === true;
+     const open = isStoreOpen(store);
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
@@ -288,9 +300,9 @@ const res = await fetch(`/api/stores/${store.id}/products`);
     <div class="preview-image-wrapper">
   <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
 
-  <div class="preview-status ${store.is_open ? 'open' : 'closed'}">
+  <div class="preview-status ${isStoreOpen(store) ? 'open' : 'closed'}">
     <span class="dot"></span>
-    ${store.is_open ? 'Abierto' : 'Cerrado'}
+   ${isStoreOpen(store) ? 'Abierto' : 'Cerrado'}
   </div>
 </div>
 
