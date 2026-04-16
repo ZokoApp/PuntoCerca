@@ -2298,7 +2298,6 @@ const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
   )
   .map(([id]) => Number(id));
 
-const search = `%${q.toLowerCase()}%`;
 
 let query = `
   SELECT 
