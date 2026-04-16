@@ -634,3 +634,28 @@ function getHoursData() {
 
   return data;
 }
+
+function getHoursData() {
+  const days = ["mon","tue","wed","thu","fri","sat","sun"];
+  const data = {};
+
+  const alwaysOpen = document.getElementById("alwaysOpen")?.checked;
+
+  if (alwaysOpen) {
+    return { always_open: true };
+  }
+
+  days.forEach(day => {
+    const open = document.querySelector(`[name="${day}_open"]`)?.value;
+    const close = document.querySelector(`[name="${day}_close"]`)?.value;
+    const closed = document.querySelector(`[name="${day}_closed"]`)?.checked;
+
+    data[day] = {
+      closed: closed || false,
+      open: open || "",
+      close: close || ""
+    };
+  });
+
+  return data;
+}
