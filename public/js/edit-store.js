@@ -4,50 +4,9 @@ const CATEGORY_MAP = CATEGORIES;
 let store = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
-// =============================
-// HORARIOS UI
-// =============================
 
-const days = [
-  "Lunes",
-  "Martes",
-  "Miércoles",
-  "Jueves",
-  "Viernes",
-  "Sábado",
-  "Domingo"
-];
 
-function createHoursUI(savedHours = {}) {
-  const container = document.getElementById("openingHours");
-  if (!container) return;
 
-  container.innerHTML = "";
-
-  days.forEach(day => {
-
-    const dayData = savedHours[day] || [];
-
-    const div = document.createElement("div");
-    div.className = "day-row";
-
-    div.innerHTML = `
-      <strong>${day}</strong>
-
-      <div class="hours-group" data-day="${day}">
-        ${[0,1].map(i => `
-          <div class="range">
-            <input type="time" class="open" value="${dayData[i]?.open || ""}">
-            <span>-</span>
-            <input type="time" class="close" value="${dayData[i]?.close || ""}">
-          </div>
-        `).join("")}
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
 
   // =============================
   // TRAER STORE
@@ -125,6 +84,63 @@ categorySelect.addEventListener("change", () => {
   loadSubcategories(categorySelect.value);
 });
 
+// =============================
+// HORARIOS UI
+// =============================
+
+function createHoursUI(existing = {}) {
+
+ const container = document.getElementById("openingHours");
+
+  const days = [
+    { key: "mon", label: "Lunes" },
+    { key: "tue", label: "Martes" },
+    { key: "wed", label: "Miércoles" },
+    { key: "thu", label: "Jueves" },
+    { key: "fri", label: "Viernes" },
+    { key: "sat", label: "Sábado" },
+    { key: "sun", label: "Domingo" }
+  ];
+
+  container.innerHTML = "";
+
+  days.forEach(day => {
+
+    const data = existing[day.key] || {};
+
+    const row = document.createElement("div");
+    row.className = "hour-row";
+
+    row.innerHTML = `
+      <span class="day-label">${day.label}</span>
+
+      <input type="time" name="${day.key}_open" value="${data.open || ""}">
+      <input type="time" name="${day.key}_close" value="${data.close || ""}">
+
+      <label class="closed-label">
+        <input type="checkbox" name="${day.key}_closed" ${data.closed ? "checked" : ""}>
+        Cerrado
+      </label>
+    `;
+
+    const checkbox = row.querySelector(`[name="${day.key}_closed"]`);
+    const openInput = row.querySelector(`[name="${day.key}_open"]`);
+    const closeInput = row.querySelector(`[name="${day.key}_close"]`);
+
+    function toggle() {
+      const isClosed = checkbox.checked;
+      openInput.disabled = isClosed;
+      closeInput.disabled = isClosed;
+    }
+
+    checkbox.addEventListener("change", toggle);
+
+    toggle();
+
+    container.appendChild(row);
+  });
+}
+  
  // =============================
 // CARGAR DATOS
 // =============================
