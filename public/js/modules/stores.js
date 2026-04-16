@@ -8,7 +8,9 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
   const usedPositions = {};
 function isStoreOpen(store) {
 
-  if (!store.opening_hours) return false;
+  if (!store.is_open) return false;
+
+  if (!store.opening_hours) return store.is_open;
 
   let hours = store.opening_hours;
 
@@ -16,9 +18,12 @@ function isStoreOpen(store) {
     try {
       hours = JSON.parse(hours);
     } catch {
-      return false;
+      return store.is_open;
     }
   }
+
+  // 🔥 24HS
+  if (hours.always_open) return true;
 
   const now = new Date();
 
@@ -29,9 +34,17 @@ function isStoreOpen(store) {
 
   if (!today || today.closed) return false;
 
-  const currentTime = now.toTimeString().slice(0,5);
+  if (!today.open || !today.close) return false;
 
-  return currentTime >= today.open && currentTime <= today.close;
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const [oh, om] = today.open.split(":").map(Number);
+  const [ch, cm] = today.close.split(":").map(Number);
+
+  const openTime = oh * 60 + om;
+  const closeTime = ch * 60 + cm;
+
+  return current >= openTime && current <= closeTime;
 }
 
 function getPositionKey(lat, lng) {
@@ -201,7 +214,18 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-     const open = isStoreOpen(store);
+    const open = isStoreOpen(store);
+
+    let hours = store.opening_hours;
+
+if (typeof hours === "string") {
+  try {
+    hours = JSON.parse(hours);
+  } catch {}
+}
+
+const is24 = hours?.always_open;
+        
 card.className = "card";
 card.setAttribute("data-id", store.id);
 
@@ -212,11 +236,14 @@ card.innerHTML = `
 
     <h3>${store.name}</h3>
 
-    <div class="status-badge ${open ? 'open' : 'closed'}">
+   <div class="status-badge ${open ? 'open' : 'closed'}">
   <span class="dot"></span>
-  ${open ? 'Abierto' : 'Cerrado'}
+  ${
+    is24
+      ? 'Abierto 24hs'
+      : (open ? 'Abierto' : 'Cerrado')
+  }
 </div>
-
     <p>${store.street || "Sin dirección"}</p>
 
     <p class="store-subcats">
@@ -302,7 +329,17 @@ const res = await fetch(`/api/stores/${store.id}/products`);
 
   <div class="preview-status ${isStoreOpen(store) ? 'open' : 'closed'}">
     <span class="dot"></span>
-   ${isStoreOpen(store) ? 'Abierto' : 'Cerrado'}
+   ${(() => {
+  let hours = store.opening_hours;
+
+  if (typeof hours === "string") {
+    try { hours = JSON.parse(hours); } catch {}
+  }
+
+  if (hours?.always_open) return 'Abierto 24hs';
+
+  return isStoreOpen(store) ? 'Abierto' : 'Cerrado';
+})()}
   </div>
 </div>
 
