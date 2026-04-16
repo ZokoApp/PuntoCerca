@@ -189,18 +189,19 @@ if (store) {
     }
   });
 
-  // =============================
-  // GUARDAR
-  // =============================
+  
 
-   // =============================
-// MAPA
+  // =============================
+// MAPA GOOGLE
 // =============================
 
 let map = null;
 let marker = null;
-let selectedLat = store ? store.lat : null;
-let selectedLng = store ? store.lng : null;
+let autocomplete = null;
+let googleMapsLoaded = false;
+
+let selectedLat = store ? Number(store.lat) : null;
+let selectedLng = store ? Number(store.lng) : null;
 
 const mapModal = document.getElementById("mapModal");
 const openMapBtn = document.getElementById("openMap");
@@ -208,169 +209,211 @@ const closeMapBtn = document.getElementById("closeMap");
 const saveLocationBtn = document.getElementById("saveLocation");
 const searchAddressInput = document.getElementById("searchAddress");
 
-function createStoreIcon() {
-  return L.icon({
-    iconUrl: (store && store.logo_url)
-      ? store.logo_url
-      : "/img/default.png",
-    iconSize: [42, 42],
-    iconAnchor: [21, 42],
-    popupAnchor: [0, -36],
-    className: "custom-pin"
+async function loadGoogleMapsScript() {
+  if (googleMapsLoaded && window.google?.maps) return;
+
+  const res = await fetch("/api/google-maps-key");
+  const data = await res.json();
+
+  if (!data.key) {
+    throw new Error("No se encontró la API key de Google Maps");
+  }
+
+  await new Promise((resolve, reject) => {
+    if (document.getElementById("googleMapsScript")) {
+      googleMapsLoaded = true;
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "googleMapsScript";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      googleMapsLoaded = true;
+      resolve();
+    };
+    script.onerror = reject;
+
+    document.body.appendChild(script);
   });
 }
 
-async function reverseGeocode(lat, lng) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+async function reverseGeocodeGoogle(lat, lng) {
+  const geocoder = new google.maps.Geocoder();
+
+  return new Promise((resolve, reject) => {
+    geocoder.geocode(
+      { location: { lat, lng } },
+      (results, status) => {
+        if (status === "OK" && results[0]) {
+          const fullAddress = results[0].formatted_address;
+
+          let shortAddress = fullAddress;
+          const firstPart = fullAddress.split(",")[0]?.trim();
+          if (firstPart) shortAddress = firstPart;
+
+          document.getElementById("streetDisplay").textContent = shortAddress;
+          document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+          searchAddressInput.value = fullAddress;
+
+          resolve(results[0]);
+        } else {
+          reject(status);
+        }
+      }
     );
-
-    const data = await res.json();
-
-    if (data.address) {
-      const road = data.address.road || "";
-      const houseNumber = data.address.house_number || "";
-
-      const shortAddress = `${road} ${houseNumber}`.trim();
-
-      // 👉 FRONT (simple)
-      document.getElementById("streetDisplay").textContent = shortAddress;
-      searchAddressInput.value = shortAddress;
-
-      // 👉 BACKEND (completa)
-      document.getElementById("streetDisplay").dataset.fullAddress = data.display_name;
-    }
-
-  } catch (err) {
-    console.error("Error obteniendo dirección", err);
-  }
-}
-async function searchAddress(query) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`
-    );
-
-    const data = await res.json();
-
-    if (!data.length) return;
-
-    const result = data[0];
-
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
-
-    selectedLat = lat;
-    selectedLng = lng;
-
-    map.setView([lat, lng], 16);
-
-    if (marker) {
-      marker.setLatLng([lat, lng]);
-    } else {
-      marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
-    }
-
-    // 🔥 ACA ESTÁ LA CLAVE
-    const address = result.address || {};
-
-    const road =
-      address.road ||
-      address.pedestrian ||
-      address.suburb ||
-      address.neighbourhood ||
-      "";
-
-    const houseNumber = address.house_number || "";
-
-    let shortAddress = `${road} ${houseNumber}`.trim();
-
-    // fallback inteligente
-    if (!shortAddress) {
-      shortAddress = result.display_name.split(",").slice(0, 2).join(" ");
-    }
-
-    // ✅ FRONT (lo que ves)
-    document.getElementById("streetDisplay").textContent = shortAddress;
-
-    // ✅ BACKEND (opcional completo)
-    document.getElementById("streetDisplay").dataset.fullAddress =
-      result.display_name;
-
-    // input del buscador
-    searchAddressInput.value = shortAddress;
-
-  } catch (err) {
-    console.error("Error buscando dirección", err);
-  }
+  });
 }
 
-function initMapAt(lat, lng) {
+function initGoogleMap(lat, lng) {
+  const center = { lat, lng };
+
   if (!map) {
-    map = L.map("map").setView([lat, lng], 15);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap & Carto',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);
-
-    marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
-
-    map.on("click", async (e) => {
-      selectedLat = e.latlng.lat;
-      selectedLng = e.latlng.lng;
-
-      marker.setLatLng([selectedLat, selectedLng]);
-
-      await reverseGeocode(selectedLat, selectedLng);
+    map = new google.maps.Map(document.getElementById("map"), {
+      center,
+      zoom: 16,
+      streetViewControl: false,
+      mapTypeControl: false,
+      fullscreenControl: false
     });
+
+    marker = new google.maps.Marker({
+      position: center,
+      map,
+      draggable: true
+    });
+
+    marker.addListener("dragend", async () => {
+      const pos = marker.getPosition();
+      selectedLat = pos.lat();
+      selectedLng = pos.lng();
+
+      try {
+        await reverseGeocodeGoogle(selectedLat, selectedLng);
+      } catch (err) {
+        console.error("Error geocoding", err);
+      }
+    });
+
+    map.addListener("click", async (e) => {
+      selectedLat = e.latLng.lat();
+      selectedLng = e.latLng.lng();
+
+      marker.setPosition({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      try {
+        await reverseGeocodeGoogle(selectedLat, selectedLng);
+      } catch (err) {
+        console.error("Error geocoding", err);
+      }
+    });
+
+    autocomplete = new google.maps.places.Autocomplete(searchAddressInput, {
+      fields: ["formatted_address", "geometry", "name"]
+    });
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+
+      if (!place.geometry || !place.geometry.location) return;
+
+      selectedLat = place.geometry.location.lat();
+      selectedLng = place.geometry.location.lng();
+
+      map.setCenter({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      map.setZoom(17);
+
+      marker.setPosition({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      const fullAddress = place.formatted_address || place.name || "";
+      const shortAddress = fullAddress.split(",")[0]?.trim() || fullAddress;
+
+      document.getElementById("streetDisplay").textContent = shortAddress;
+      document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+      searchAddressInput.value = fullAddress;
+    });
+
   } else {
-    map.setView([lat, lng], 15);
+    map.setCenter(center);
+    map.setZoom(16);
 
     if (marker) {
-      marker.setLatLng([lat, lng]);
-    } else {
-      marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
+      marker.setPosition(center);
     }
   }
 
   setTimeout(() => {
-    map.invalidateSize();
-  }, 200);
+    google.maps.event.trigger(map, "resize");
+    map.setCenter(center);
+  }, 300);
 }
 
-openMapBtn.addEventListener("click", () => {
-  mapModal.classList.remove("hidden");
+openMapBtn.addEventListener("click", async () => {
+  try {
+    mapModal.classList.remove("hidden");
 
-  searchAddressInput.value =
-  document.getElementById("streetDisplay").textContent || "";
+    await loadGoogleMapsScript();
 
-  if (selectedLat && selectedLng) {
-    initMapAt(selectedLat, selectedLng);
-    return;
-  }
+    searchAddressInput.value =
+      document.getElementById("streetDisplay").dataset.fullAddress ||
+      document.getElementById("streetDisplay").textContent ||
+      "";
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        selectedLat = position.coords.latitude;
-        selectedLng = position.coords.longitude;
+    if (selectedLat && selectedLng) {
+      initGoogleMap(selectedLat, selectedLng);
+      return;
+    }
 
-        initMapAt(selectedLat, selectedLng);
-        await reverseGeocode(selectedLat, selectedLng);
-      },
-      () => {
-        selectedLat = -34.6037;
-        selectedLng = -58.3816;
-        initMapAt(selectedLat, selectedLng);
-      }
-    );
-  } else {
-    selectedLat = -34.6037;
-    selectedLng = -58.3816;
-    initMapAt(selectedLat, selectedLng);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          selectedLat = position.coords.latitude;
+          selectedLng = position.coords.longitude;
+
+          initGoogleMap(selectedLat, selectedLng);
+
+          try {
+            await reverseGeocodeGoogle(selectedLat, selectedLng);
+          } catch (err) {
+            console.error(err);
+          }
+        },
+        async () => {
+          selectedLat = -32.9442;
+          selectedLng = -60.6505;
+
+          initGoogleMap(selectedLat, selectedLng);
+
+          try {
+            await reverseGeocodeGoogle(selectedLat, selectedLng);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      );
+    } else {
+      selectedLat = -32.9442;
+      selectedLng = -60.6505;
+
+      initGoogleMap(selectedLat, selectedLng);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error cargando Google Maps");
   }
 });
 
@@ -380,13 +423,6 @@ closeMapBtn.addEventListener("click", () => {
 
 saveLocationBtn.addEventListener("click", () => {
   mapModal.classList.add("hidden");
-});
-
-searchAddressInput.addEventListener("change", async () => {
-  const query = searchAddressInput.value.trim();
-  if (!query) return;
-
-  await searchAddress(query);
 });
   document.getElementById("editStoreForm").addEventListener("submit", async (e) => {
 
@@ -404,7 +440,7 @@ searchAddressInput.addEventListener("change", async () => {
 
 formData.append(
   "street",
-  streetDisplay.textContent
+  streetDisplay.dataset.fullAddress || streetDisplay.textContent
 );
     formData.append("description", document.getElementById("description").value);
     formData.append("local", document.getElementById("local").value);
