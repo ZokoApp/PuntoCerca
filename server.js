@@ -1975,6 +1975,10 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(__dirname + '/public/dashboard.html');
 });
 
+app.get('/api/google-maps-key', (req, res) => {
+  res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
+});
+
 app.get("/products", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "products.html"));
 });
