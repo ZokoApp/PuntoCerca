@@ -2276,7 +2276,7 @@ const SUBCATEGORY_MAP = {
   19: ["Plomería", "plomero", "agua", "caños"],
   20: ["Gasista", "gas", "instalacion gas"],
   21: ["Técnico PC", "computadora", "pc", "reparacion pc"],
-  22: ["Reparaciones", "arreglos", "service", "tecnico"],
+  22: ["Reparaciones", "arreglos", "service", "tecnico", "servicio tecnico", "instalador de aire", "aires acondicionado"],
 
   23: ["Taller mecánico", "mecanico", "auto", "reparacion auto"],
   24: ["Lavadero", "lavado autos", "car wash"],
