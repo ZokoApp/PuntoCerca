@@ -1579,6 +1579,109 @@ app.post("/api/reset-password", async (req, res) => {
   }
 
 });
+
+app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
+  const storeId = req.params.id;
+  const userId = req.user.id;
+  const { rating } = req.body;
+
+  if (rating < 1 || rating > 5) {
+    return res.status(400).json({ error: "Rating inválido" });
+  }
+
+  try {
+
+    await pool.query(`
+      INSERT INTO store_ratings (user_id, store_id, rating)
+      VALUES ($1,$2,$3)
+      ON CONFLICT (user_id, store_id)
+      DO UPDATE SET rating = EXCLUDED.rating
+    `, [userId, storeId, rating]);
+
+    const result = await pool.query(`
+      SELECT 
+        AVG(rating)::numeric(10,2) as avg,
+        COUNT(*) as count
+      FROM store_ratings
+      WHERE store_id = $1
+    `, [storeId]);
+
+    res.json({
+      avg: result.rows[0].avg,
+      count: result.rows[0].count
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error rating tienda" });
+  }
+});
+app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
+
+  const { content } = req.body;
+  const storeId = req.params.id;
+  const userId = req.user.id;
+
+  if (!content || content.trim() === "") {
+    return res.status(400).json({ error: "Comentario vacío" });
+  }
+
+  try {
+
+    await pool.query(
+      `INSERT INTO store_comments (store_id, user_id, content)
+       VALUES ($1,$2,$3)`,
+      [storeId, userId, content]
+    );
+
+    res.json({ message: "Comentario agregado" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error comentando tienda" });
+  }
+});
+app.get('/api/stores/:id/comments', async (req, res) => {
+  try {
+
+    const result = await pool.query(
+      `SELECT 
+         sc.*,
+         u.name,
+         u.avatar_url
+       FROM store_comments sc
+       JOIN users u ON u.id = sc.user_id
+       WHERE sc.store_id = $1
+       ORDER BY sc.id DESC`,
+      [req.params.id]
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo comentarios" });
+  }
+});
+app.get('/api/stores/:id/rating', async (req, res) => {
+  try {
+
+    const result = await pool.query(`
+      SELECT 
+        AVG(rating)::numeric(10,2) as avg,
+        COUNT(*) as count
+      FROM store_ratings
+      WHERE store_id = $1
+    `, [req.params.id]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error obteniendo rating" });
+  }
+});
+
 app.post('/api/product-favorite', authMiddleware, async (req, res) => {
   try {
 
