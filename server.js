@@ -2285,16 +2285,36 @@ const SUBCATEGORY_MAP = {
 
   46: ["Verdulería", "verduras", "frutas"],
   47: ["Almacén", "almacen", "despensa"],
-  48: ["Kiosco", "kiosko", "minimarket"],
+  48: ["Kiosco", "kiosko", "snacks"],
   49: ["Supermercado", "super", "mercado"],
   50: ["Carnicería", "carne", "carnes"],
   51: ["Panadería", "panaderia", "pan", "facturas"],
   52: ["Fiambrería", "fiambres", "quesos"],
   53: ["Dietética", "dietetica", "saludable"],
-  54: ["Bebidas", "bebida", "alcohol", "gaseosas"],
+  54: ["Bebidas", "bebida", "alcohol", "refrescos"],
   55: ["Mayorista", "mayor", "por mayor"],
 
-  61: ["Cerrajería", "cerrajeria", "cerrajero", "llaves", "cerraduras"]
+  61: ["Cerrajería", "cerrajeria", "cerrajero", "llaves", "cerraduras"],
+
+  // 🔥 NUEVAS (BELLEZA / SERVICIOS)
+  70: ["Peluquería", "peluqueria", "corte de pelo", "cabello", "hair salon"],
+  71: ["Barbería", "barberia", "barbero", "barba", "fade"],
+  72: ["Uñas", "manicure", "manicura", "pedicure", "pedicura", "nails"],
+  73: ["Estética", "estetica", "belleza", "tratamientos faciales", "cosmetologia"],
+  74: ["Spa", "relajacion", "masajes", "spa day"],
+  75: ["Masajes", "masajista", "relajante", "terapeutico"],
+  76: ["Depilación", "depilacion", "laser", "cera"],
+  77: ["Cejas y pestañas", "lifting", "pestañas", "cejas"],
+  78: ["Maquillaje", "makeup", "maquilladora", "make up"],
+  79: ["Tatuajes", "tatuaje", "tattoo", "tattoo studio"],
+  80: ["Piercing", "piercings", "perforaciones"],
+
+  // 🔥 EXTRAS PRO (te van a servir MUCHO)
+  81: ["Gimnasio", "gym", "fitness", "entrenamiento"],
+  82: ["Yoga", "pilates", "bienestar"],
+  83: ["Farmacia", "medicamentos", "remedios"],
+  84: ["Veterinaria", "mascotas", "animales"],
+  85: ["Pet shop", "tienda mascotas", "alimento mascotas"]
 };
 
 
