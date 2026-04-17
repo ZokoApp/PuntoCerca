@@ -2289,6 +2289,7 @@ const SUBCATEGORY_MAP = {
   53: "Dietética",
   54: "Bebidas",
   55: "Mayorista"
+  56: "Cerrajeria"
 };
 
 // 🔍 encontrar subcategorías que coinciden
