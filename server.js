@@ -2288,8 +2288,8 @@ const SUBCATEGORY_MAP = {
   52: "Fiambrería",
   53: "Dietética",
   54: "Bebidas",
-  55: "Mayorista"
-  61: "Cerrajeria"
+  55: "Mayorista",
+  61: "Cerrajeria",
 };
 
 // 🔍 encontrar subcategorías que coinciden
