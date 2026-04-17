@@ -98,6 +98,40 @@
             <p class="section-subtitle">Explorá lo que ofrece esta tienda</p>
           </div>
 
+          <section class="store-section store-reviews-section">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Opiniones</h2>
+      <p class="section-subtitle">Lo que dicen los clientes</p>
+    </div>
+  </div>
+
+  <!-- ⭐ RATING -->
+  <div class="store-rating-box">
+    <div id="storeRatingStars" class="store-rating-stars"></div>
+    <div id="storeRatingInfo" class="store-rating-info"></div>
+  </div>
+
+  <!-- 🔒 MENSAJE LOGIN -->
+  <div id="storeLoginMessage" class="store-login-message hidden">
+    Iniciá sesión para calificar y comentar esta tienda.
+  </div>
+
+  <!-- 💬 COMENTAR -->
+  <div id="storeCommentBox" class="store-comment-box hidden">
+    <textarea
+      id="storeCommentInput"
+      placeholder="Escribí tu experiencia con esta tienda..."
+    ></textarea>
+    <button id="sendStoreComment" class="btn btn-primary" type="button">
+      Enviar comentario
+    </button>
+  </div>
+
+  <!-- 📜 LISTA -->
+  <div id="storeCommentsContainer" class="store-comments-container"></div>
+</section>
+
           <input 
   type="text" 
   id="searchProducts" 
