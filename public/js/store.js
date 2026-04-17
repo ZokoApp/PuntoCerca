@@ -204,6 +204,11 @@ if (pathParts[1] === "store") {
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
   await loadStore();
+
+  const btn = document.getElementById("sendStoreComment");
+  if (btn) {
+    btn.onclick = sendStoreComment;
+  }
 });
 
 /* ================================
@@ -254,6 +259,20 @@ async function loadStore(){
     renderStore(store);
 setupMap(store);
 handleUIByRole(store);
+
+    // ⭐ REVIEWS
+loadStoreRating(store.id);
+loadStoreComments(store.id);
+
+// mostrar caja de comentario
+const loginMsg = document.getElementById("storeLoginMessage");
+const commentBox = document.getElementById("storeCommentBox");
+
+if (currentUser) {
+  if (commentBox) commentBox.classList.remove("hidden");
+} else {
+  if (loginMsg) loginMsg.classList.remove("hidden");
+}
 
 // 🔥 asegurar carga de productos
 setTimeout(() => {
@@ -409,6 +428,159 @@ async function checkFollowing(storeId) {
 
   if (btn) {
     btn.innerText = data.following ? "Siguiendo" : "Seguir";
+  }
+}
+
+/* ================================
+   STORE REVIEWS (RATING + COMMENTS)
+================================ */
+
+async function loadStoreRating(storeId) {
+  try {
+    const res = await fetch(`/api/stores/${storeId}/rating`);
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    renderStoreStars(parseFloat(data.avg) || 0);
+    updateStoreRatingInfo(parseFloat(data.avg) || 0, Number(data.count) || 0);
+
+  } catch (err) {
+    console.error("Error rating tienda", err);
+  }
+}
+
+function renderStoreStars(avg = 0, userRating = 0) {
+  const container = document.getElementById("storeRatingStars");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+
+    const active = userRating ? i <= userRating : i <= Math.round(avg);
+
+    star.innerHTML = active ? "⭐" : "☆";
+    star.style.cursor = "pointer";
+    star.style.fontSize = "22px";
+    star.style.marginRight = "4px";
+
+    star.onclick = () => {
+      if (!currentUser) {
+        window.location.href = "/login";
+        return;
+      }
+      rateStore(i);
+    };
+
+    container.appendChild(star);
+  }
+}
+
+function updateStoreRatingInfo(avg, count, userRating = 0) {
+  const el = document.getElementById("storeRatingInfo");
+  if (!el) return;
+
+  let text = `⭐ ${avg.toFixed(1)} (${count} votos)`;
+
+  if (userRating) {
+    text += ` • Tu voto: ${userRating}⭐`;
+  }
+
+  el.innerText = text;
+}
+
+async function rateStore(value) {
+  try {
+    const res = await fetch(`/api/stores/${storeData.id}/rate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ rating: value })
+    });
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+
+    renderStoreStars(parseFloat(data.avg) || 0, value);
+    updateStoreRatingInfo(parseFloat(data.avg) || 0, Number(data.count) || 0, value);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* ================================
+   COMMENTS
+================================ */
+
+async function loadStoreComments(storeId) {
+  try {
+    const res = await fetch(`/api/stores/${storeId}/comments`);
+    if (!res.ok) return;
+
+    const comments = await res.json();
+    const container = document.getElementById("storeCommentsContainer");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!comments.length) {
+      container.innerHTML = `<p style="color:#888;">Todavía no hay opiniones</p>`;
+      return;
+    }
+
+    comments.forEach(c => {
+      const div = document.createElement("div");
+
+      div.innerHTML = `
+        <div style="display:flex;gap:10px;margin-bottom:15px;">
+          <img src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+               style="width:40px;height:40px;border-radius:50%;" />
+          <div>
+            <strong>${c.name}</strong>
+            <div style="font-size:12px;color:#888;">
+              ${new Date(c.created_at).toLocaleDateString()}
+            </div>
+            <p style="margin:5px 0;">${c.content}</p>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function sendStoreComment() {
+  const input = document.getElementById("storeCommentInput");
+  if (!input) return;
+
+  const content = input.value.trim();
+
+  if (!content) return;
+
+  try {
+    const res = await fetch(`/api/stores/${storeData.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content })
+    });
+
+    if (!res.ok) throw new Error();
+
+    input.value = "";
+    loadStoreComments(storeData.id);
+
+  } catch (err) {
+    console.error(err);
   }
 }
 
