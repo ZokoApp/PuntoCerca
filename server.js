@@ -2261,41 +2261,49 @@ const normalizedQuery = normalize(q);
 
 // 🔥 MAPA SUBCATEGORÍAS
 const SUBCATEGORY_MAP = {
-  1: "Restaurante",
-  2: "Pizzería",
-  3: "Bar",
-  4: "Cafetería",
-  5: "Heladería",
-  6: "Ropa",
-  7: "Electrónica",
-  8: "Ferretería",
-  9: "Librería",
-  18: "Electricista",
-  19: "Plomería",
-  20: "Gasista",
-  21: "Técnico PC",
-  22: "Reparaciones",
-  23: "Taller mecánico",
-  24: "Lavadero",
-  25: "Gomería",
-  26: "Repuestos",
-  46: "Verdulería",
-  47: "Almacén",
-  48: "Kiosco",
-  49: "Supermercado",
-  50: "Carnicería",
-  51: "Panadería",
-  52: "Fiambrería",
-  53: "Dietética",
-  54: "Bebidas",
-  55: "Mayorista",
-  61: "Cerrajeria",
+  1: ["Restaurante", "comida", "almuerzo", "cena"],
+  2: ["Pizzería", "pizza", "pizzas"],
+  3: ["Bar", "tragos", "bebidas", "cerveza"],
+  4: ["Cafetería", "cafe", "desayuno", "merienda"],
+  5: ["Heladería", "helado", "helados"],
+
+  6: ["Ropa", "indumentaria", "vestimenta"],
+  7: ["Electrónica", "electronica", "tecnologia", "gadgets"],
+  8: ["Ferretería", "herramientas", "materiales", "construccion"],
+  9: ["Librería", "libros", "papeleria", "utiles"],
+
+  18: ["Electricista", "electricidad", "electricista domicilio"],
+  19: ["Plomería", "plomero", "agua", "caños"],
+  20: ["Gasista", "gas", "instalacion gas"],
+  21: ["Técnico PC", "computadora", "pc", "reparacion pc"],
+  22: ["Reparaciones", "arreglos", "service", "tecnico"],
+
+  23: ["Taller mecánico", "mecanico", "auto", "reparacion auto"],
+  24: ["Lavadero", "lavado autos", "car wash"],
+  25: ["Gomería", "neumaticos", "cubiertas", "ruedas"],
+  26: ["Repuestos", "autopartes", "partes auto"],
+
+  46: ["Verdulería", "verduras", "frutas"],
+  47: ["Almacén", "almacen", "despensa"],
+  48: ["Kiosco", "kiosko", "minimarket"],
+  49: ["Supermercado", "super", "mercado"],
+  50: ["Carnicería", "carne", "carnes"],
+  51: ["Panadería", "panaderia", "pan", "facturas"],
+  52: ["Fiambrería", "fiambres", "quesos"],
+  53: ["Dietética", "dietetica", "saludable"],
+  54: ["Bebidas", "bebida", "alcohol", "gaseosas"],
+  55: ["Mayorista", "mayor", "por mayor"],
+
+  61: ["Cerrajería", "cerrajeria", "cerrajero", "llaves", "cerraduras"]
 };
+
 
 // 🔍 encontrar subcategorías que coinciden
 const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
-  .filter(([id, name]) =>
-    normalize(name).includes(normalizedQuery)
+  .filter(([id, names]) =>
+    names.some(name =>
+      normalize(name).includes(normalizedQuery)
+    )
   )
   .map(([id]) => Number(id));
 
