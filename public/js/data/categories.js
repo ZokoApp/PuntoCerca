@@ -48,6 +48,7 @@ export const CATEGORIES = {
   { id: 20, name: "Gasista" },
   { id: 21, name: "Técnico PC" },
   { id: 22, name: "Reparaciones" },
+  { id: 61, name: "Cerrajeria" },
 
   // 🔥 NUEVAS
   { id: 56, name: "Refrigeración" },
