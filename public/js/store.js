@@ -500,7 +500,13 @@ async function rateStore(value) {
       body: JSON.stringify({ rating: value })
     });
 
-    if (!res.ok) throw new Error();
+   const data = await res.json();
+
+if (!res.ok) {
+  console.error("❌ BACKEND ERROR:", data);
+  alert(data.detail || data.error);
+  return;
+}
 
     const data = await res.json();
 
