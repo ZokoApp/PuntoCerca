@@ -515,7 +515,7 @@ async function rateStore(value) {
     console.error(err);
   }
 }
-}
+
 
 /* ================================
    COMMENTS
