@@ -1080,34 +1080,57 @@ app.delete('/api/comments/:id', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/comments/:id', authMiddleware, async (req, res) => {
+app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
+
+  const { content } = req.body;
+  const storeId = req.params.id;
+  const userId = req.user?.id;
+
+  console.log("🟡 INTENTO COMENTARIO:", {
+    storeId,
+    userId,
+    content
+  });
+
+  if (!content || content.trim() === "") {
+    return res.status(400).json({ error: "Comentario vacío" });
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: "Usuario no válido" });
+  }
+
   try {
 
-    const { content } = req.body;
-    const commentId = req.params.id;
-    const userId = req.user.id;
-
-    if (!content || content.trim() === "") {
-      return res.status(400).json({ error: "Comentario vacío" });
-    }
-
-    const result = await pool.query(
-      `UPDATE comments
-       SET content = $1
-       WHERE id = $2 AND user_id = $3
-       RETURNING *`,
-      [content, commentId, userId]
+    // 🔍 validar tienda
+    const storeCheck = await pool.query(
+      `SELECT id FROM stores WHERE id = $1`,
+      [storeId]
     );
 
-    if (!result.rows.length) {
-      return res.status(403).json({ error: "No autorizado" });
+    if (!storeCheck.rows.length) {
+      return res.status(404).json({ error: "Tienda no existe" });
     }
 
-    res.json({ message: "Comentario actualizado" });
+    // 🔥 INSERT
+    const result = await pool.query(
+      `INSERT INTO store_comments (store_id, user_id, content)
+       VALUES ($1,$2,$3)
+       RETURNING *`,
+      [storeId, userId, content]
+    );
+
+    console.log("🟢 COMENTARIO OK:", result.rows[0]);
+
+    res.json(result.rows[0]);
 
   } catch (error) {
-    console.error("EDIT COMMENT ERROR:", error);
-    res.status(500).json({ error: "Error editando comentario" });
+    console.error("🔴 ERROR REAL:", error);
+
+    res.status(500).json({
+      error: "Error comentando tienda",
+      detail: error.message
+    });
   }
 });
 
