@@ -500,15 +500,13 @@ async function rateStore(value) {
       body: JSON.stringify({ rating: value })
     });
 
-   const data = await res.json();
-
-if (!res.ok) {
-  console.error("❌ BACKEND ERROR:", data);
-  alert(data.detail || data.error);
-  return;
-}
-
     const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ BACKEND ERROR:", data);
+      alert(data.detail || data.error);
+      return;
+    }
 
     renderStoreStars(parseFloat(data.avg) || 0, value);
     updateStoreRatingInfo(parseFloat(data.avg) || 0, Number(data.count) || 0, value);
@@ -517,52 +515,11 @@ if (!res.ok) {
     console.error(err);
   }
 }
+}
 
 /* ================================
    COMMENTS
 ================================ */
-
-async function loadStoreComments(storeId) {
-  try {
-    const res = await fetch(`/api/stores/${storeId}/comments`);
-    if (!res.ok) return;
-
-    const comments = await res.json();
-    const container = document.getElementById("storeCommentsContainer");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    if (!comments.length) {
-      container.innerHTML = `<p style="color:#888;">Todavía no hay opiniones</p>`;
-      return;
-    }
-
-    comments.forEach(c => {
-      const div = document.createElement("div");
-
-      div.innerHTML = `
-        <div style="display:flex;gap:10px;margin-bottom:15px;">
-          <img src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
-               style="width:40px;height:40px;border-radius:50%;" />
-          <div>
-            <strong>${c.name}</strong>
-            <div style="font-size:12px;color:#888;">
-              ${new Date(c.created_at).toLocaleDateString()}
-            </div>
-            <p style="margin:5px 0;">${c.content}</p>
-          </div>
-        </div>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    console.error(err);
-  }
-}
 
 async function sendStoreComment() {
   const input = document.getElementById("storeCommentInput");
@@ -580,7 +537,13 @@ async function sendStoreComment() {
       body: JSON.stringify({ content })
     });
 
-    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ BACKEND ERROR:", data);
+      alert(data.detail || data.error);
+      return;
+    }
 
     input.value = "";
     loadStoreComments(storeData.id);
