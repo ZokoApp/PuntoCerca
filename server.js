@@ -256,6 +256,67 @@ app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
     }
 });
 
+app.post("/api/stores/:id/rate", async (req, res) => {
+  const storeId = req.params.id;
+  const userId = req.session.user?.id;
+  const { rating } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: "No autenticado" });
+  }
+
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: "Rating inválido" });
+  }
+
+  try {
+    const existing = await db.query(
+      "SELECT * FROM store_ratings WHERE store_id = $1 AND user_id = $2",
+      [storeId, userId]
+    );
+
+    if (existing.rows.length > 0) {
+      await db.query(
+        "UPDATE store_ratings SET rating = $1 WHERE store_id = $2 AND user_id = $3",
+        [rating, storeId, userId]
+      );
+    } else {
+      await db.query(
+        "INSERT INTO store_ratings (store_id, user_id, rating) VALUES ($1, $2, $3)",
+        [storeId, userId, rating]
+      );
+    }
+
+    const result = await db.query(
+      "SELECT AVG(rating) as avg, COUNT(*) as count FROM store_ratings WHERE store_id = $1",
+      [storeId]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error guardando rating" });
+  }
+});
+
+app.get("/api/stores/:id/rating", async (req, res) => {
+  const storeId = req.params.id;
+
+  try {
+    const result = await db.query(
+      "SELECT AVG(rating) as avg, COUNT(*) as count FROM store_ratings WHERE store_id = $1",
+      [storeId]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error obteniendo rating" });
+  }
+});
+
 
 
 
