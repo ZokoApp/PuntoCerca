@@ -554,6 +554,48 @@ async function sendStoreComment() {
   }
 }
 
+async function loadStoreComments(storeId) {
+  try {
+    const res = await fetch(`/api/stores/${storeId}/comments`);
+    if (!res.ok) return;
+
+    const comments = await res.json();
+    const container = document.getElementById("storeCommentsContainer");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!comments.length) {
+      container.innerHTML = `<p style="color:#888;">Todavía no hay opiniones</p>`;
+      return;
+    }
+
+    comments.forEach(c => {
+      const div = document.createElement("div");
+
+      div.innerHTML = `
+        <div style="display:flex;gap:10px;margin-bottom:15px;">
+          <img src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+               style="width:40px;height:40px;border-radius:50%;" />
+          <div>
+            <strong>${c.name}</strong>
+            <div style="font-size:12px;color:#888;">
+              ${new Date(c.created_at).toLocaleDateString()}
+            </div>
+            <p style="margin:5px 0;">${c.content}</p>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("Error cargando comentarios:", err);
+  }
+}
+
 /* ================================
    MAPA
 ================================ */
