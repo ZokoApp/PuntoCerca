@@ -1,4 +1,5 @@
 // store.js
+console.log("STORE JS CARGADO");
 
 let currentUser = null;
 let isOwner = false;
@@ -694,3 +695,4 @@ fetch(`/api/store-followers/${store.id}`)
       `${data.count} seguidores`;
   });
 }
+console.log("STORE JS FINAL OK");
