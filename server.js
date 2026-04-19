@@ -1851,10 +1851,10 @@ app.get('/api/stores', async (req, res) => {
     const userLat = lat && !isNaN(lat) ? parseFloat(lat) : null;
     const userLng = lng && !isNaN(lng) ? parseFloat(lng) : null;
 
- 
+    const hasLocation = userLat !== null && userLng !== null;
 
-    let values = [userLat, userLng];
-    let index = values.length;
+    let values = [];
+    let index = 0;
 
     let query = `
 SELECT 
@@ -1866,22 +1866,33 @@ SELECT
   CASE 
     WHEN s.is_open = true THEN 1
     ELSE 0
-  END as open_priority,
+  END as open_priority
+`;
 
-  CASE 
-    WHEN $1 IS NOT NULL AND $2 IS NOT NULL AND s.lat IS NOT NULL AND s.lng IS NOT NULL
-   THEN (
-  6371 * acos(
-    LEAST(1, GREATEST(-1,
-      cos(radians($1)) * cos(radians(s.lat)) *
-      cos(radians(s.lng) - radians($2)) +
-      sin(radians($1)) * sin(radians(s.lat))
-    ))
-  )
-)
-    ELSE NULL
-  END as distance
+    // 📍 DISTANCIA SOLO SI HAY UBICACIÓN
+    if (hasLocation) {
+      index++;
+      values.push(userLat);
 
+      index++;
+      values.push(userLng);
+
+      query += `,
+  (
+    6371 * acos(
+      LEAST(1, GREATEST(-1,
+        cos(radians($1)) * cos(radians(s.lat)) *
+        cos(radians(s.lng) - radians($2)) +
+        sin(radians($1)) * sin(radians(s.lat))
+      ))
+    )
+  ) as distance
+`;
+    } else {
+      query += `, NULL as distance`;
+    }
+
+    query += `
 FROM stores s
 LEFT JOIN store_ratings r ON r.store_id = s.id
 `;
@@ -1909,7 +1920,7 @@ LEFT JOIN store_ratings r ON r.store_id = s.id
 GROUP BY s.id
 ORDER BY 
   open_priority DESC,
-  distance ASC NULLS LAST,
+  ${hasLocation ? 'distance ASC NULLS LAST,' : ''}
   rating_score DESC
 `;
 
@@ -1918,11 +1929,10 @@ ORDER BY
     res.json(result.rows);
 
   } catch (error) {
-    console.error(error);
+    console.error("🔥 ERROR /api/stores:", error);
     res.status(500).json({ error: "Error obteniendo tiendas" });
   }
 });
-
 
 
 /* ================================
