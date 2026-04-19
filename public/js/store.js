@@ -438,13 +438,23 @@ async function checkFollowing(storeId) {
 
 async function loadStoreRating(storeId) {
   try {
-    const res = await fetch(`/api/stores/${storeId}/rating`);
+    const res = await fetch(`/api/stores/${storeId}/rating`, {
+      credentials: "include"
+    });
+
     if (!res.ok) return;
 
     const data = await res.json();
 
-    renderStoreStars(parseFloat(data.avg) || 0);
-    updateStoreRatingInfo(parseFloat(data.avg) || 0, Number(data.count) || 0);
+    const avg = parseFloat(data.avg) || 0;
+    const count = Number(data.count) || 0;
+    const userRating = data.user_rating;
+
+   
+    const ratingToShow = userRating !== null ? userRating : avg;
+
+    renderStoreStars(avg, userRating);
+    updateStoreRatingInfo(avg, count, userRating);
 
   } catch (err) {
     console.error("Error rating tienda", err);
@@ -460,7 +470,9 @@ function renderStoreStars(avg = 0, userRating = 0) {
   for (let i = 1; i <= 5; i++) {
     const star = document.createElement("span");
 
-    const active = userRating ? i <= userRating : i <= Math.round(avg);
+    const active = userRating !== null
+  ? i <= userRating
+  : i <= Math.round(avg);
 
     star.innerHTML = active ? "⭐" : "☆";
     star.style.cursor = "pointer";
@@ -485,9 +497,9 @@ function updateStoreRatingInfo(avg, count, userRating = 0) {
 
   let text = `⭐ ${avg.toFixed(1)} (${count} votos)`;
 
-  if (userRating) {
-    text += ` • Tu voto: ${userRating}⭐`;
-  }
+  if (userRating !== null) {
+  text += ` • Tu voto: ${userRating}⭐`;
+}
 
   el.innerText = text;
 }
