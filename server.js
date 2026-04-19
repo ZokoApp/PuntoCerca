@@ -1846,44 +1846,68 @@ app.get('/api/following', authMiddleware, async (req, res) => {
 app.get('/api/stores', async (req, res) => {
   try {
 
-    const { category, subcategory_id } = req.query;
+    const { category, subcategory_id, lat, lng } = req.query;
+
+    const userLat = lat ? parseFloat(lat) : null;
+    const userLng = lng ? parseFloat(lng) : null;
+
+    let values = [userLat, userLng];
+    let index = values.length;
 
     let query = `
 SELECT 
   s.*,
   COALESCE(AVG(r.rating), 0)::numeric(10,2) as rating_avg,
   COUNT(r.rating) as rating_count,
- (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as rating_score,
+  (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as rating_score,
 
-CASE 
-  WHEN s.is_open = true THEN 1
-  ELSE 0
-END as open_priority
+  CASE 
+    WHEN s.is_open = true THEN 1
+    ELSE 0
+  END as open_priority,
+
+  CASE 
+    WHEN $1 IS NOT NULL AND $2 IS NOT NULL AND s.lat IS NOT NULL AND s.lng IS NOT NULL
+    THEN (
+      6371 * acos(
+        cos(radians($1)) * cos(radians(s.lat)) *
+        cos(radians(s.lng) - radians($2)) +
+        sin(radians($1)) * sin(radians(s.lat))
+      )
+    )
+    ELSE NULL
+  END as distance
+
 FROM stores s
 LEFT JOIN store_ratings r ON r.store_id = s.id
 `;
 
-const conditions = [];
-const values = [];
+    const conditions = [];
 
+    // 🔍 FILTROS
     if (category) {
+      index++;
       values.push(category);
-      conditions.push(`category = $${values.length}`);
+      conditions.push(`s.category = $${index}`);
     }
 
     if (subcategory_id) {
-  values.push(JSON.stringify([subcategory_id]));
-
-  conditions.push(`
-    subcategory_ids @> $${values.length}::jsonb
-  `);
-}
+      index++;
+      values.push(JSON.stringify([subcategory_id]));
+      conditions.push(`s.subcategory_ids @> $${index}::jsonb`);
+    }
 
     if (conditions.length) {
       query += " WHERE " + conditions.join(" AND ");
     }
 
-    query += " GROUP BY s.id ORDER BY open_priority DESC, rating_score DESC";
+    query += `
+GROUP BY s.id
+ORDER BY 
+  open_priority DESC,
+  distance ASC NULLS LAST,
+  rating_score DESC
+`;
 
     const result = await pool.query(query, values);
 
