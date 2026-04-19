@@ -297,17 +297,41 @@ app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
 // ⭐ GET RATING
 app.get('/api/stores/:id/rating', async (req, res) => {
   try {
+    const storeId = req.params.id;
+
     const result = await pool.query(`
       SELECT 
         AVG(rating)::numeric(10,2) as avg,
         COUNT(*) as count
       FROM store_ratings
       WHERE store_id = $1
-    `, [req.params.id]);
+    `, [storeId]);
+
+    let user_rating = null;
+
+    if (req.cookies.access_token) {
+      try {
+        const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
+
+        const userRes = await pool.query(`
+          SELECT rating
+          FROM store_ratings
+          WHERE user_id = $1 AND store_id = $2
+          LIMIT 1
+        `, [decoded.id, storeId]);
+
+        if (userRes.rows.length > 0) {
+          user_rating = userRes.rows[0].rating;
+        }
+      } catch (err) {
+        // si el token no sirve, no rompemos la respuesta
+      }
+    }
 
     res.json({
       avg: result.rows[0].avg || 0,
-      count: result.rows[0].count || 0
+      count: Number(result.rows[0].count) || 0,
+      user_rating
     });
 
   } catch (err) {
