@@ -1853,7 +1853,12 @@ SELECT
   s.*,
   COALESCE(AVG(r.rating), 0)::numeric(10,2) as rating_avg,
   COUNT(r.rating) as rating_count,
-  (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as score
+ (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as rating_score,
+
+CASE 
+  WHEN s.is_open = true THEN 1
+  ELSE 0
+END as open_priority
 FROM stores s
 LEFT JOIN store_ratings r ON r.store_id = s.id
 `;
@@ -1878,7 +1883,7 @@ const values = [];
       query += " WHERE " + conditions.join(" AND ");
     }
 
-    query += " GROUP BY s.id ORDER BY score DESC";
+    query += " GROUP BY s.id ORDER BY open_priority DESC, rating_score DESC";
 
     const result = await pool.query(query, values);
 
