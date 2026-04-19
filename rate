@@ -1223,45 +1223,6 @@ app.get('/api/products/:id/comments', async (req, res) => {
   }
 });
 
-app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
-  const productId = req.params.id;
-  const userId = req.user.id;
-  const { rating } = req.body;
-
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating inválido" });
-  }
-
-  try {
-
-    // 🔥 INSERT o UPDATE automático
-    await pool.query(`
-      INSERT INTO product_ratings (user_id, product_id, rating)
-      VALUES ($1,$2,$3)
-      ON CONFLICT (user_id, product_id)
-      DO UPDATE SET rating = EXCLUDED.rating
-    `, [userId, productId, rating]);
-
-    // 🔥 recalcular promedio
-    const result = await pool.query(`
-      SELECT 
-        AVG(rating)::numeric(10,2) as avg,
-        COUNT(*) as count
-      FROM product_ratings
-      WHERE product_id = $1
-    `, [productId]);
-
-    res.json({
-      avg: result.rows[0].avg,
-      count: result.rows[0].count
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error rating" });
-  }
-});
-
 app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
 
   let { is_open } = req.body;
