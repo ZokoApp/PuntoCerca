@@ -256,70 +256,65 @@ app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
     }
 });
 
-app.post("/api/stores/:id/rate", async (req, res) => {
+
+// ⭐ RATE STORE
+app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
   const storeId = req.params.id;
-  const userId = req.session.user?.id;
+  const userId = req.user.id;
   const { rating } = req.body;
 
-  if (!userId) {
-    return res.status(401).json({ error: "No autenticado" });
-  }
-
-  if (!rating || rating < 1 || rating > 5) {
+  if (rating < 1 || rating > 5) {
     return res.status(400).json({ error: "Rating inválido" });
   }
 
   try {
-    const existing = await db.query(
-      "SELECT * FROM store_ratings WHERE store_id = $1 AND user_id = $2",
-      [storeId, userId]
-    );
+    await pool.query(`
+      INSERT INTO store_ratings (user_id, store_id, rating)
+      VALUES ($1,$2,$3)
+      ON CONFLICT (user_id, store_id)
+      DO UPDATE SET rating = EXCLUDED.rating
+    `, [userId, storeId, rating]);
 
-    if (existing.rows.length > 0) {
-      await db.query(
-        "UPDATE store_ratings SET rating = $1 WHERE store_id = $2 AND user_id = $3",
-        [rating, storeId, userId]
-      );
-    } else {
-      await db.query(
-        "INSERT INTO store_ratings (store_id, user_id, rating) VALUES ($1, $2, $3)",
-        [storeId, userId, rating]
-      );
-    }
+    const result = await pool.query(`
+      SELECT 
+        AVG(rating)::numeric(10,2) as avg,
+        COUNT(*) as count
+      FROM store_ratings
+      WHERE store_id = $1
+    `, [storeId]);
 
-    const result = await db.query(
-      "SELECT AVG(rating) as avg, COUNT(*) as count FROM store_ratings WHERE store_id = $1",
-      [storeId]
-    );
-
-    res.json(result.rows[0]);
+    res.json({
+      avg: result.rows[0].avg || 0,
+      count: result.rows[0].count || 0
+    });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error guardando rating" });
+    console.error("ERROR RATE:", err);
+    res.status(500).json({ error: "Error rating tienda" });
   }
 });
 
-app.get("/api/stores/:id/rating", async (req, res) => {
-  const storeId = req.params.id;
-
+// ⭐ GET RATING
+app.get('/api/stores/:id/rating', async (req, res) => {
   try {
-    const result = await db.query(
-      "SELECT AVG(rating) as avg, COUNT(*) as count FROM store_ratings WHERE store_id = $1",
-      [storeId]
-    );
+    const result = await pool.query(`
+      SELECT 
+        AVG(rating)::numeric(10,2) as avg,
+        COUNT(*) as count
+      FROM store_ratings
+      WHERE store_id = $1
+    `, [req.params.id]);
 
-    res.json(result.rows[0]);
+    res.json({
+      avg: result.rows[0].avg || 0,
+      count: result.rows[0].count || 0
+    });
 
   } catch (err) {
-    console.error(err);
+    console.error("ERROR GET RATING:", err);
     res.status(500).json({ error: "Error obteniendo rating" });
   }
 });
-
-
-
-
 
 
 app.get('/product/:id', (req, res) => {
