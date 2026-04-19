@@ -1848,6 +1848,9 @@ app.get('/api/stores', async (req, res) => {
 
     const { category, subcategory_id, lat, lng } = req.query;
 
+    const userLat = lat && !isNaN(lat) ? parseFloat(lat) : null;
+const userLng = lng && !isNaN(lng) ? parseFloat(lng) : null;
+
     const userLat = lat ? parseFloat(lat) : null;
     const userLng = lng ? parseFloat(lng) : null;
 
@@ -1868,13 +1871,15 @@ SELECT
 
   CASE 
     WHEN $1 IS NOT NULL AND $2 IS NOT NULL AND s.lat IS NOT NULL AND s.lng IS NOT NULL
-    THEN (
-      6371 * acos(
-        cos(radians($1)) * cos(radians(s.lat)) *
-        cos(radians(s.lng) - radians($2)) +
-        sin(radians($1)) * sin(radians(s.lat))
-      )
-    )
+   THEN (
+  6371 * acos(
+    LEAST(1, GREATEST(-1,
+      cos(radians($1)) * cos(radians(s.lat)) *
+      cos(radians(s.lng) - radians($2)) +
+      sin(radians($1)) * sin(radians(s.lat))
+    ))
+  )
+)
     ELSE NULL
   END as distance
 
