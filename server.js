@@ -1824,9 +1824,18 @@ app.get('/api/stores', async (req, res) => {
 
     const { category, subcategory_id } = req.query;
 
-    let query = `SELECT * FROM stores`;
-    const conditions = [];
-    const values = [];
+    let query = `
+SELECT 
+  s.*,
+  COALESCE(AVG(r.rating), 0)::numeric(10,2) as rating_avg,
+  COUNT(r.rating) as rating_count,
+  (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as score
+FROM stores s
+LEFT JOIN store_ratings r ON r.store_id = s.id
+`;
+
+const conditions = [];
+const values = [];
 
     if (category) {
       values.push(category);
@@ -1844,6 +1853,8 @@ app.get('/api/stores', async (req, res) => {
     if (conditions.length) {
       query += " WHERE " + conditions.join(" AND ");
     }
+
+    query += " GROUP BY s.id ORDER BY score DESC";
 
     const result = await pool.query(query, values);
 
