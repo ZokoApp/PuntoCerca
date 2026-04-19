@@ -1849,10 +1849,9 @@ app.get('/api/stores', async (req, res) => {
     const { category, subcategory_id, lat, lng } = req.query;
 
     const userLat = lat && !isNaN(lat) ? parseFloat(lat) : null;
-const userLng = lng && !isNaN(lng) ? parseFloat(lng) : null;
+    const userLng = lng && !isNaN(lng) ? parseFloat(lng) : null;
 
-    const userLat = lat ? parseFloat(lat) : null;
-    const userLng = lng ? parseFloat(lng) : null;
+ 
 
     let values = [userLat, userLng];
     let index = values.length;
