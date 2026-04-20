@@ -701,3 +701,11 @@ nav {
   position: relative;
   z-index: 0;
 }
+
+#dailyOffers {
+  scroll-snap-type: x mandatory;
+}
+
+#dailyOffers > div {
+  scroll-snap-align: start;
+}
