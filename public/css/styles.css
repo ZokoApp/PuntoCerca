@@ -269,3 +269,18 @@ nav a{
   }
 
 }
+
+
+/* CONTENEDOR OFERTAS */
+#dailyOffers {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px;
+}
+
+/* 🔥 CLAVE DEL PROBLEMA */
+#dailyOffers > div {
+  flex: 0 0 auto;   /* evita que se deformen */
+  width: 180px;     /* tamaño fijo */
+}
