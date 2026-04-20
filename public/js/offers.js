@@ -31,8 +31,8 @@ function renderProducts(products) {
     const card = document.createElement("div");
 
  card.className = `
-  w-[70%] 
-  sm:w-[220px]
+  min-w-[160px] 
+  max-w-[160px]
   flex-shrink-0
   bg-white rounded-xl shadow hover:shadow-lg 
   overflow-hidden transition cursor-pointer
