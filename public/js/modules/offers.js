@@ -13,20 +13,43 @@ export function loadProducts(){
             card.className = "card";
 
             card.innerHTML = `
-                <img src="${product.image_url}" />
-                <h3>${product.name}</h3>
-                <p>${product.store_name}</p>
+  <div class="relative">
+    <img src="${offer.image_url}" 
+         class="w-full h-32 object-cover rounded-t-xl">
 
-               <p>${window.renderPriceHTML(product)}</p>
+    <div class="absolute top-2 left-2 bg-orange-500 text-white text-[11px] px-2 py-1 rounded-md leading-none">
+      🔥 Oferta
+    </div>
+  </div>
 
-                <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
-                  ${
-                    product.rating_avg
-                      ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-                      : "Sin valoraciones"
-                  }
-                </p>
-            `;
+  <div class="p-2">
+
+    <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
+      ${offer.product_name}
+    </h3>
+
+    <p class="text-[12px] text-gray-500 mt-1 leading-tight">
+      ${offer.store_name || ""}
+    </p>
+
+    <div class="mt-1 text-[13px] leading-tight">
+      ${window.renderPriceHTML({
+        price: offer.price,
+        old_price: offer.old_price,
+        is_offer: true
+      })}
+    </div>
+
+    <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
+      ${
+        offer.rating_avg
+          ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
+          : "Sin valoraciones"
+      }
+    </p>
+
+  </div>
+`;
 
             // ✅ FIX: usar slug
             card.addEventListener("click", () => {
@@ -53,13 +76,15 @@ export function loadOffers(){
 
       const card = document.createElement("div");
 
-      card.className = `
-        min-w-[160px] 
-        max-w-[160px]
-        flex-shrink-0
-        bg-white rounded-xl shadow hover:shadow-lg 
-        overflow-hidden transition cursor-pointer
-      `;
+     card.className = `
+  min-w-[42vw]
+  max-w-[42vw]
+  sm:min-w-[220px]
+  sm:max-w-[220px]
+  flex-shrink-0
+  bg-white rounded-xl shadow hover:shadow-lg
+  overflow-hidden transition cursor-pointer
+`;
 
       card.innerHTML = `
         <div class="relative">
