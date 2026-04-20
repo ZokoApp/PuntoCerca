@@ -30,13 +30,13 @@ function renderProducts(products) {
 
     const card = document.createElement("div");
 
-   card.className = `
-  min-w-[220px] 
-  max-w-[220px] 
+ card.className = `
+  w-[70%] 
+  sm:w-[220px]
   flex-shrink-0
   bg-white rounded-xl shadow hover:shadow-lg 
   overflow-hidden transition cursor-pointer
-`;;
+`;
 
     card.innerHTML = `
       <div class="relative">
