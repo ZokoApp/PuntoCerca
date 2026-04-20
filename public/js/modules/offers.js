@@ -12,43 +12,44 @@ export function loadProducts(){
 
     container.innerHTML = "";
 
-    products.forEach(product => {
+   products.forEach(product => {
 
-      const card = document.createElement("div");
-      card.className = "product-card";
+  const card = document.createElement("div");
+  card.className = "pc-card";
 
-      card.innerHTML = `
-        <div class="product-image">
-          <img src="${product.image_url}" alt="${product.name}">
+  card.innerHTML = `
+    <div class="pc-card-img">
+      <img src="${product.image_url}" alt="${product.name}">
+    </div>
+
+    <div class="pc-card-body">
+      <div>
+        <div class="pc-title">${product.name}</div>
+        <div class="pc-store">${product.store_name || ""}</div>
+      </div>
+
+      <div>
+        <div class="pc-price">
+          ${window.renderPriceHTML(product)}
         </div>
 
-        <div class="product-info">
-          <div class="product-title">${product.name}</div>
-
-          <div class="product-store">
-            ${product.store_name || ""}
-          </div>
-
-          <div class="product-price">
-            ${window.renderPriceHTML(product)}
-          </div>
-
-          <div class="product-rating">
-            ${
-              product.rating_avg
-                ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-                : "Sin valoraciones"
-            }
-          </div>
+        <div class="pc-rating">
+          ${
+            product.rating_avg
+              ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+              : "Sin valoraciones"
+          }
         </div>
-      `;
+      </div>
+    </div>
+  `;
 
-      card.addEventListener("click", () => {
-        window.location.href = `/product/${product.slug || product.id}`;
-      });
+  card.addEventListener("click", () => {
+    window.location.href = `/product/${product.slug || product.id}`;
+  });
 
-      container.appendChild(card);
-    });
+  container.appendChild(card);
+});
 
   })
   .catch(err => console.error("Error cargando productos:", err));
