@@ -52,7 +52,13 @@ export function loadOffers(){
         offers.forEach(offer => {
 
             const card = document.createElement("div");
-            card.className = "daily-card";
+           card.className = `
+  min-w-[160px] 
+  max-w-[160px]
+  flex-shrink-0
+  bg-white rounded-xl shadow hover:shadow-lg 
+  overflow-hidden transition cursor-pointer
+`;
 
             card.innerHTML = `
                 <div class="daily-badge">🔥 Oferta del Día</div>
