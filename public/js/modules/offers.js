@@ -15,24 +15,36 @@ export function loadProducts(){
     products.forEach(product => {
 
       const card = document.createElement("div");
-      card.className = "offer-card";
+      card.className = "product-card";
 
       card.innerHTML = `
-        <img src="${product.image_url}" />
+        <div class="relative">
+          <img src="${product.image_url}" class="w-full h-36 object-cover rounded-t-xl">
+        </div>
 
-        <h3>${product.name}</h3>
+        <div class="p-2">
 
-        <p>${product.store_name}</p>
+          <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
+            ${product.name}
+          </h3>
 
-        <p>${window.renderPriceHTML(product)}</p>
+          <p class="text-[12px] text-gray-500 mt-1 leading-tight">
+            ${product.store_name || ""}
+          </p>
 
-        <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
-          ${
-            product.rating_avg
-              ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-              : "Sin valoraciones"
-          }
-        </p>
+          <div class="mt-1 text-[13px] leading-tight">
+            ${window.renderPriceHTML(product)}
+          </div>
+
+          <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
+            ${
+              product.rating_avg
+                ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+                : "Sin valoraciones"
+            }
+          </p>
+
+        </div>
       `;
 
       card.addEventListener("click", () => {
@@ -63,17 +75,7 @@ export function loadOffers(){
     offers.forEach(offer => {
 
       const card = document.createElement("div");
-
-      // 👉 ancho correcto responsive
-      card.className = `
-        min-w-[42vw]
-        max-w-[42vw]
-        sm:min-w-[220px]
-        sm:max-w-[220px]
-        flex-shrink-0
-        bg-white rounded-xl shadow hover:shadow-lg
-        overflow-hidden transition cursor-pointer
-      `;
+      card.className = "offer-card";
 
       card.innerHTML = `
         <div class="relative">
