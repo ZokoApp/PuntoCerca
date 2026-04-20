@@ -15,7 +15,7 @@ export function loadProducts(){
     products.forEach(product => {
 
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "offer-card";
 
       card.innerHTML = `
         <img src="${product.image_url}" />
