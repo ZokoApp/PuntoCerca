@@ -1,66 +1,54 @@
+// ============================
+// PRODUCTOS DESTACADOS
+// ============================
 export function loadProducts(){
 
-    fetch('/api/products?featured=true')
-    .then(res => res.json())
-    .then(products => {
+  fetch('/api/products?featured=true')
+  .then(res => res.json())
+  .then(products => {
 
-        const container = document.getElementById("products");
-        container.innerHTML = "";
+    const container = document.getElementById("products");
+    if(!container) return;
 
-        products.forEach(product => {
+    container.innerHTML = "";
 
-            const card = document.createElement("div");
-            card.className = "card";
+    products.forEach(product => {
 
-            card.innerHTML = `
-  <div class="relative">
-    <img src="${offer.image_url}" 
-         class="w-full h-32 object-cover rounded-t-xl">
+      const card = document.createElement("div");
+      card.className = "card";
 
-    <div class="absolute top-2 left-2 bg-orange-500 text-white text-[11px] px-2 py-1 rounded-md leading-none">
-      🔥 Oferta
-    </div>
-  </div>
+      card.innerHTML = `
+        <img src="${product.image_url}" />
 
-  <div class="p-2">
+        <h3>${product.name}</h3>
 
-    <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
-      ${offer.product_name}
-    </h3>
+        <p>${product.store_name}</p>
 
-    <p class="text-[12px] text-gray-500 mt-1 leading-tight">
-      ${offer.store_name || ""}
-    </p>
+        <p>${window.renderPriceHTML(product)}</p>
 
-    <div class="mt-1 text-[13px] leading-tight">
-      ${window.renderPriceHTML({
-        price: offer.price,
-        old_price: offer.old_price,
-        is_offer: true
-      })}
-    </div>
+        <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
+          ${
+            product.rating_avg
+              ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+              : "Sin valoraciones"
+          }
+        </p>
+      `;
 
-    <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
-      ${
-        offer.rating_avg
-          ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
-          : "Sin valoraciones"
-      }
-    </p>
+      card.addEventListener("click", () => {
+        window.location.href = `/product/${product.slug || product.id}`;
+      });
 
-  </div>
-`;
-
-            // ✅ FIX: usar slug
-            card.addEventListener("click", () => {
-                window.location.href = `/product/${product.slug || product.id}`;
-            });
-
-            container.appendChild(card);
-        });
+      container.appendChild(card);
     });
+  })
+  .catch(err => console.error("Error cargando productos:", err));
 }
 
+
+// ============================
+// OFERTAS DEL DÍA
+// ============================
 export function loadOffers(){
 
   fetch('/api/daily-offers')
@@ -76,37 +64,38 @@ export function loadOffers(){
 
       const card = document.createElement("div");
 
-     card.className = `
-  min-w-[42vw]
-  max-w-[42vw]
-  sm:min-w-[220px]
-  sm:max-w-[220px]
-  flex-shrink-0
-  bg-white rounded-xl shadow hover:shadow-lg
-  overflow-hidden transition cursor-pointer
-`;
+      // 👉 ancho correcto responsive
+      card.className = `
+        min-w-[42vw]
+        max-w-[42vw]
+        sm:min-w-[220px]
+        sm:max-w-[220px]
+        flex-shrink-0
+        bg-white rounded-xl shadow hover:shadow-lg
+        overflow-hidden transition cursor-pointer
+      `;
 
       card.innerHTML = `
         <div class="relative">
           <img src="${offer.image_url}" 
                class="w-full h-32 object-cover rounded-t-xl">
 
-          <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
+          <div class="absolute top-2 left-2 bg-orange-500 text-white text-[11px] px-2 py-1 rounded-md leading-none">
             🔥 Oferta
           </div>
         </div>
 
         <div class="p-2">
 
-          <h3 class="text-xs font-semibold line-clamp-2">
+          <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
             ${offer.product_name}
           </h3>
 
-          <p class="text-xs text-gray-500 mt-1">
+          <p class="text-[12px] text-gray-500 mt-1 leading-tight">
             ${offer.store_name || ""}
           </p>
 
-          <div class="mt-1 text-xs">
+          <div class="mt-1 text-[13px] leading-tight">
             ${window.renderPriceHTML({
               price: offer.price,
               old_price: offer.old_price,
@@ -114,7 +103,7 @@ export function loadOffers(){
             })}
           </div>
 
-          <p class="text-yellow-500 text-[11px] mt-1">
+          <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
             ${
               offer.rating_avg
                 ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
@@ -131,5 +120,6 @@ export function loadOffers(){
 
       container.appendChild(card);
     });
-  });
+  })
+  .catch(err => console.error("Error cargando ofertas:", err));
 }
