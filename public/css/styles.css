@@ -88,35 +88,42 @@ nav a{
    PRODUCTOS
 =============================== */
 
-.product-card{
-  min-width:180px;
-  max-width:180px;
-  flex-shrink:0;
-  background:#fff;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  cursor:pointer;
-  transition:0.2s;
+.product-card {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  height: 240px; /* 🔥 CLAVE */
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover{
   transform:translateY(-4px);
 }
 
-.product-image{
-  width:100%;
-  height:140px;
+.product-image {
+  width: 100%;
+  height: 120px; 
 }
 
-.product-image img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.product-info{
-  padding:8px;
+.product-info {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
 }
 
 .product-title{
@@ -145,32 +152,35 @@ nav a{
    OFERTAS
 =============================== */
 
-.offer-card{
-  min-width:180px;
-  max-width:180px;
-  flex-shrink:0;
-  background:#fff;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  cursor:pointer;
-  transition:0.2s;
+.offer-card {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  height: 240px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .offer-card:hover{
   transform:translateY(-4px);
 }
 
-.offer-image{
-  position:relative;
-  height:140px;
+.offer-image {
+  height: 120px;
 }
 
-.offer-image img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+
+.offer-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
+
 
 .offer-badge{
   position:absolute;
@@ -183,8 +193,12 @@ nav a{
   border-radius:6px;
 }
 
-.offer-info{
-  padding:8px;
+.offer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
 }
 
 .offer-title{
