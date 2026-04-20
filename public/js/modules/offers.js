@@ -40,72 +40,71 @@ export function loadProducts(){
 
 export function loadOffers(){
 
-    fetch('/api/daily-offers')
-    .then(res => res.json())
-    .then(offers => {
+  fetch('/api/daily-offers')
+  .then(res => res.json())
+  .then(offers => {
 
-        const container = document.getElementById("dailyOffers");
-        if(!container) return;
+    const container = document.getElementById("dailyOffers");
+    if(!container) return;
 
-        container.innerHTML = "";
+    container.innerHTML = "";
 
-        offers.forEach(offer => {
+    offers.forEach(offer => {
 
-            const card = document.createElement("div");
-           card.className = `
-  min-w-[160px] 
-  max-w-[160px]
-  flex-shrink-0
-  bg-white rounded-xl shadow hover:shadow-lg 
-  overflow-hidden transition cursor-pointer
-`;
+      const card = document.createElement("div");
 
-           card.innerHTML = `
-  <div class="relative">
-    <img src="${offer.image_url}" 
-         class="w-full h-32 object-cover rounded-t-xl">
+      card.className = `
+        min-w-[160px] 
+        max-w-[160px]
+        flex-shrink-0
+        bg-white rounded-xl shadow hover:shadow-lg 
+        overflow-hidden transition cursor-pointer
+      `;
 
-    <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
-      🔥 Oferta
-    </div>
-  </div>
+      card.innerHTML = `
+        <div class="relative">
+          <img src="${offer.image_url}" 
+               class="w-full h-32 object-cover rounded-t-xl">
 
-  <div class="p-2">
+          <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
+            🔥 Oferta
+          </div>
+        </div>
 
-    <h3 class="text-xs font-semibold line-clamp-2">
-      ${offer.product_name}
-    </h3>
+        <div class="p-2">
 
-    <p class="text-xs text-gray-500 mt-1">
-      ${offer.store_name || ""}
-    </p>
+          <h3 class="text-xs font-semibold line-clamp-2">
+            ${offer.product_name}
+          </h3>
 
-    <div class="mt-1 text-xs">
-      ${window.renderPriceHTML({
-        price: offer.price,
-        old_price: offer.old_price,
-        is_offer: true
-      })}
-    </div>
+          <p class="text-xs text-gray-500 mt-1">
+            ${offer.store_name || ""}
+          </p>
 
-  </div>
-`;
+          <div class="mt-1 text-xs">
+            ${window.renderPriceHTML({
+              price: offer.price,
+              old_price: offer.old_price,
+              is_offer: true
+            })}
+          </div>
 
-                <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
-                  ${
-                    offer.rating_avg
-                      ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
-                      : "Sin valoraciones"
-                  }
-                </p>
-            `;
+          <p class="text-yellow-500 text-[11px] mt-1">
+            ${
+              offer.rating_avg
+                ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
+                : "Sin valoraciones"
+            }
+          </p>
 
-            // ✅ FIX: usar slug si existe
-            card.addEventListener("click", () => {
-                window.location.href = `/product/${offer.slug || offer.product_id}`;
-            });
+        </div>
+      `;
 
-            container.appendChild(card);
-        });
+      card.addEventListener("click", () => {
+        window.location.href = `/product/${offer.slug || offer.product_id}`;
+      });
+
+      container.appendChild(card);
     });
+  });
 }
