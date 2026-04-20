@@ -60,16 +60,36 @@ export function loadOffers(){
   overflow-hidden transition cursor-pointer
 `;
 
-            card.innerHTML = `
-                <div class="daily-badge">🔥 Oferta del Día</div>
-                <img src="${offer.image_url}" />
-                <h3>${offer.product_name}</h3>
+           card.innerHTML = `
+  <div class="relative">
+    <img src="${offer.image_url}" 
+         class="w-full h-32 object-cover rounded-t-xl">
 
-               <p class="price">${window.renderPriceHTML({
-  price: offer.price,
-  old_price: offer.old_price,
-  is_offer: true
-})}</p>
+    <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
+      🔥 Oferta
+    </div>
+  </div>
+
+  <div class="p-2">
+
+    <h3 class="text-xs font-semibold line-clamp-2">
+      ${offer.product_name}
+    </h3>
+
+    <p class="text-xs text-gray-500 mt-1">
+      ${offer.store_name || ""}
+    </p>
+
+    <div class="mt-1 text-xs">
+      ${window.renderPriceHTML({
+        price: offer.price,
+        old_price: offer.old_price,
+        is_offer: true
+      })}
+    </div>
+
+  </div>
+`;
 
                 <p style="color:#f59e0b;font-size:12px;margin-top:4px;">
                   ${
