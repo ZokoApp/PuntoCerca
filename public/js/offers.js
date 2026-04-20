@@ -18,7 +18,7 @@ async function loadOffers() {
 
 function renderProducts(products) {
 
-  const grid = document.getElementById("offersGrid");
+  const grid = document.getElementById("dailyOffers");
   grid.innerHTML = "";
 
   if (!products.length) {
@@ -29,36 +29,47 @@ function renderProducts(products) {
   products.forEach(p => {
 
     const card = document.createElement("div");
-    card.className = "card";
 
-   card.innerHTML = `
-  <div class="img-box">
-    <img src="${p.image_url}" />
-  </div>
+    card.className = `
+      min-w-[220px] max-w-[220px] 
+      bg-white rounded-xl shadow hover:shadow-lg 
+      overflow-hidden transition cursor-pointer
+    `;
 
-  <div class="card-body">
-    <div class="product-name">
-      ${p.product_name}
-      <span class="badge">OFERTA</span>
-    </div>
+    card.innerHTML = `
+      <div class="relative">
+        <img src="${p.image_url}" 
+             class="w-full h-40 object-cover">
 
-  <div class="price-row">
+        <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
+          🔥 Oferta
+        </div>
+      </div>
 
-  ${p.old_price ? `
-    <span class="old-price">
-      $${parseFloat(p.old_price).toLocaleString()}
-    </span>
-  ` : ""}
+      <div class="p-3">
 
- ${window.renderPriceHTML(p)}
+        <h3 class="text-sm font-semibold line-clamp-2">
+          ${p.product_name}
+        </h3>
 
-</div>
+        <p class="text-xs text-gray-500 mt-1">
+          ${p.store_name}
+        </p>
 
-    <div class="store">
-      ${p.store_name}
-    </div>
-  </div>
-`;
+        <div class="mt-2">
+          ${p.old_price ? `
+            <span class="text-gray-400 line-through text-xs mr-1">
+              $${parseFloat(p.old_price).toLocaleString()}
+            </span>
+          ` : ""}
+
+          <span class="text-orange-600 font-bold">
+            ${window.renderPriceHTML(p)}
+          </span>
+        </div>
+
+      </div>
+    `;
 
     card.onclick = () => {
       window.location.href = `/product/${p.slug}`;
