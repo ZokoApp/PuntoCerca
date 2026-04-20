@@ -73,45 +73,34 @@ export function loadOffers(){
     offers.forEach(offer => {
 
       const card = document.createElement("div");
-      card.className = "offer-card";
+      card.className = "product-card";
 
       card.innerHTML = `
-        <div class="offer-image">
-          <img src="${offer.image_url}" alt="${offer.product_name}">
+  <div class="product-image">
+    <img src="${offer.image_url}">
+  </div>
 
-          <div class="offer-badge">
-            🔥 Oferta
-          </div>
-        </div>
+  <div class="product-info">
+    <div class="product-title">${offer.product_name}</div>
+    <div class="product-store">${offer.store_name || ""}</div>
 
-        <div class="offer-info">
+    <div class="product-price">
+      ${window.renderPriceHTML({
+        price: offer.price,
+        old_price: offer.old_price,
+        is_offer: true
+      })}
+    </div>
 
-          <div class="offer-title">
-            ${offer.product_name}
-          </div>
-
-          <div class="offer-store">
-            ${offer.store_name || ""}
-          </div>
-
-          <div class="offer-price">
-            ${window.renderPriceHTML({
-              price: offer.price,
-              old_price: offer.old_price,
-              is_offer: true
-            })}
-          </div>
-
-          <div class="offer-rating">
-            ${
-              offer.rating_avg
-                ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
-                : "Sin valoraciones"
-            }
-          </div>
-
-        </div>
-      `;
+    <div class="product-rating">
+      ${
+        offer.rating_avg
+          ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
+          : "Sin valoraciones"
+      }
+    </div>
+  </div>
+`;
 
       card.addEventListener("click", () => {
         window.location.href = `/product/${offer.slug || offer.product_id}`;
