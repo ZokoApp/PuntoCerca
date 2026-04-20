@@ -14,38 +14,30 @@ export function loadProducts(){
 
     products.forEach(product => {
 
-      const card = document.createElement("div");
-      card.className = "product-card";
+    const card = document.createElement("div");
+card.className = "product-card";
 
-      card.innerHTML = `
-        <div class="relative">
-          <img src="${product.image_url}" class="w-full h-36 object-cover rounded-t-xl">
-        </div>
+card.innerHTML = `
+  <div class="product-image">
+    <img src="${product.image_url}">
+  </div>
 
-        <div class="p-2">
+  <div class="product-info">
+    <div class="product-title">${product.name}</div>
+    <div class="product-store">${product.store_name || ""}</div>
+    <div class="product-price">
+      ${window.renderPriceHTML(product)}
+    </div>
 
-          <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
-            ${product.name}
-          </h3>
-
-          <p class="text-[12px] text-gray-500 mt-1 leading-tight">
-            ${product.store_name || ""}
-          </p>
-
-          <div class="mt-1 text-[13px] leading-tight">
-            ${window.renderPriceHTML(product)}
-          </div>
-
-          <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
-            ${
-              product.rating_avg
-                ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-                : "Sin valoraciones"
-            }
-          </p>
-
-        </div>
-      `;
+    <div class="product-rating">
+      ${
+        product.rating_avg
+          ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+          : "Sin valoraciones"
+      }
+    </div>
+  </div>
+`;
 
       card.addEventListener("click", () => {
         window.location.href = `/product/${product.slug || product.id}`;
