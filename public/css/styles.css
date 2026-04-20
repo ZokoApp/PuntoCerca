@@ -1,11 +1,4 @@
-/* SOLO anulamos lo viejo sin romper Tailwind */
-.index-page .hero,
-.index-page .section,
-.index-page .cards,
-.index-page .card {
-  all: unset;
-  display: revert;
-}
+
 
 *{
 margin:0;
@@ -174,7 +167,8 @@ right:10px;
 =============================== */
 
 .card{
-min-width:280px;
+min-width:220px;
+max-width:220px;
 flex-shrink:0;
 background:white;
 border-radius:15px;
