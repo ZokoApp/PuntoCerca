@@ -757,3 +757,7 @@ nav {
   font-size: 11px;
   color: #f59e0b;
 }
+
+.index-page .card {
+  all: unset;
+}
