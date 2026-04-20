@@ -14,30 +14,34 @@ export function loadProducts(){
 
     products.forEach(product => {
 
-    const card = document.createElement("div");
-card.className = "product-card";
+      const card = document.createElement("div");
+      card.className = "product-card";
 
-card.innerHTML = `
-  <div class="product-image">
-    <img src="${product.image_url}">
-  </div>
+      card.innerHTML = `
+        <div class="product-image">
+          <img src="${product.image_url}" alt="${product.name}">
+        </div>
 
-  <div class="product-info">
-    <div class="product-title">${product.name}</div>
-    <div class="product-store">${product.store_name || ""}</div>
-    <div class="product-price">
-      ${window.renderPriceHTML(product)}
-    </div>
+        <div class="product-info">
+          <div class="product-title">${product.name}</div>
 
-    <div class="product-rating">
-      ${
-        product.rating_avg
-          ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-          : "Sin valoraciones"
-      }
-    </div>
-  </div>
-`;
+          <div class="product-store">
+            ${product.store_name || ""}
+          </div>
+
+          <div class="product-price">
+            ${window.renderPriceHTML(product)}
+          </div>
+
+          <div class="product-rating">
+            ${
+              product.rating_avg
+                ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+                : "Sin valoraciones"
+            }
+          </div>
+        </div>
+      `;
 
       card.addEventListener("click", () => {
         window.location.href = `/product/${product.slug || product.id}`;
@@ -45,6 +49,7 @@ card.innerHTML = `
 
       container.appendChild(card);
     });
+
   })
   .catch(err => console.error("Error cargando productos:", err));
 }
@@ -70,26 +75,25 @@ export function loadOffers(){
       card.className = "offer-card";
 
       card.innerHTML = `
-        <div class="relative">
-          <img src="${offer.image_url}" 
-               class="w-full h-32 object-cover rounded-t-xl">
+        <div class="offer-image">
+          <img src="${offer.image_url}" alt="${offer.product_name}">
 
-          <div class="absolute top-2 left-2 bg-orange-500 text-white text-[11px] px-2 py-1 rounded-md leading-none">
+          <div class="offer-badge">
             🔥 Oferta
           </div>
         </div>
 
-        <div class="p-2">
+        <div class="offer-info">
 
-          <h3 class="text-[13px] font-semibold leading-tight min-h-[38px]">
+          <div class="offer-title">
             ${offer.product_name}
-          </h3>
+          </div>
 
-          <p class="text-[12px] text-gray-500 mt-1 leading-tight">
+          <div class="offer-store">
             ${offer.store_name || ""}
-          </p>
+          </div>
 
-          <div class="mt-1 text-[13px] leading-tight">
+          <div class="offer-price">
             ${window.renderPriceHTML({
               price: offer.price,
               old_price: offer.old_price,
@@ -97,13 +101,13 @@ export function loadOffers(){
             })}
           </div>
 
-          <p class="text-yellow-500 text-[11px] mt-1 leading-tight">
+          <div class="offer-rating">
             ${
               offer.rating_avg
                 ? `⭐ ${parseFloat(offer.rating_avg).toFixed(1)} (${offer.rating_count || 0})`
                 : "Sin valoraciones"
             }
-          </p>
+          </div>
 
         </div>
       `;
@@ -114,6 +118,7 @@ export function loadOffers(){
 
       container.appendChild(card);
     });
+
   })
   .catch(err => console.error("Error cargando ofertas:", err));
 }
