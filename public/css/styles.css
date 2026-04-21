@@ -273,8 +273,15 @@ nav a{
   padding: 10px;
 }
 
-/* 🔥 CLAVE DEL PROBLEMA */
+
 #dailyOffers > div {
   flex: 0 0 auto;   /* evita que se deformen */
   width: 180px;     /* tamaño fijo */
+}
+
+nav img {
+  height: 48px !important;
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
 }
