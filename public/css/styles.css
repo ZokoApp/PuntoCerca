@@ -268,3 +268,17 @@ nav a{
   flex: 0 0 auto;
   width: 180px;
 }
+
+
+.logo-img {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Mobile */
+@media (max-width:768px){
+  .logo-img {
+    height: 60px;
+  }
+}
