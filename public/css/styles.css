@@ -244,8 +244,9 @@ nav a{
   }
 
   nav img{
-    height:60px !important;
-  }
+  height: 48px;
+  object-fit: contain;
+}
 
   #map{
     height:300px;
