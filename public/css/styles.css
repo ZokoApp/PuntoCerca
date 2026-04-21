@@ -279,9 +279,4 @@ nav a{
   width: 180px;     /* tamaño fijo */
 }
 
-nav img {
-  height: 48px !important;
-  max-height: 48px;
-  width: auto;
-  object-fit: contain;
-}
+
