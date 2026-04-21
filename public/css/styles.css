@@ -275,5 +275,18 @@ nav a{
   width: 180px;     /* tamaño fijo */
 }
 
+.logo-img {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* MOBILE */
+@media (max-width:768px){
+  .logo-img {
+    height: 55px;
+  }
+}
+
 
 
