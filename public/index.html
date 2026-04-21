@@ -21,16 +21,16 @@
  <body class="index-page bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
 <!-- ================= NAVBAR ================= -->
-<nav class="sticky top-0 z-50 bg-white">
+<nav class="sticky top-0 z-50 bg-white shadow">
 
-  <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center">
 
-    <!-- IZQUIERDA -->
-    <a href="/" class="flex items-center gap-2 shrink-0">
-     <img src="/img/logo.png" class="h-20 md:h-80 object-contain">
+    <!-- LOGO -->
+    <a href="/" class="flex items-center shrink-0">
+      <img src="/img/logo.png" class="logo-img">
     </a>
 
-    <!-- DERECHA -->
+    <!-- MENU DERECHA -->
     <div id="navRight" class="flex items-center gap-6 ml-auto">
 
       <a href="/" class="hover:text-orange-600 transition">Inicio</a>
@@ -45,23 +45,16 @@
         Registrate
       </a>
 
-     <div id="userMenu" class="hidden relative">
+      <!-- USER -->
+      <div id="userMenu" class="hidden relative">
+        <button id="userMenuBtn" class="flex items-center gap-2 font-medium">
+          <span id="userName"></span>
+          <span>▼</span>
+        </button>
 
-  <button id="userMenuBtn" class="flex items-center gap-2 font-medium">
-    <span id="userName"></span>
-    <span>▼</span>
-  </button>
-
-  <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg border p-2 z-50">
-    <!-- se llena dinámicamente -->
-  </div>
-
-</div>
-
-  <span id="userName" class="font-medium text-gray-700"></span>
-
- 
-</div>
+        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg border p-2 z-50">
+        </div>
+      </div>
 
     </div>
 
