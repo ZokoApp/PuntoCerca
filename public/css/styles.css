@@ -243,10 +243,6 @@ nav a{
     padding:10px 15px;
   }
 
-  nav img{
-  height: 48px;
-  object-fit: contain;
-}
 
   #map{
     height:300px;
@@ -279,9 +275,5 @@ nav a{
   width: 180px;     /* tamaño fijo */
 }
 
-nav img {
-  max-height: 48px;
-  max-width: 160px;
-}
 
 
