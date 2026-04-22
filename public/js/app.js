@@ -205,15 +205,8 @@ window.showFeaturedStores = async function(subId) {
 
   try {
 
-    const res = await fetch(`/api/stores?subcategory_id=${subId}`);
+    const res = await fetch("/api/stores");
     const stores = await res.json();
-
-    if (!stores.length) {
-      featuredContainer.innerHTML = `
-        <p class="text-gray-400 text-sm">No hay tiendas en esta subcategoría</p>
-      `;
-      return;
-    }
 
     let html = `<h4 class="text-sm font-semibold mb-3">Tiendas recomendadas</h4>`;
     html += `<div class="flex gap-4 overflow-x-auto pb-2">`;
