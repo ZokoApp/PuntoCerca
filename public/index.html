@@ -69,98 +69,45 @@
 </header>
 
 <!-- ================= HERO ================= -->
-<section class="bg-gradient-to-r from-orange-500 to-orange-400 py-16 md:py-20">
+<section class="relative min-h-[520px] flex items-center overflow-hidden">
 
-  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center gap-12">
+  <!-- IMAGEN DE FONDO -->
+  <div class="absolute inset-0">
+    <img 
+      src="/img/hero.png"
+      class="w-full h-full object-cover"
+    >
+  </div>
 
-    <!-- IZQUIERDA -->
-    <div>
+  <!-- OVERLAY NARANJA -->
+  <div class="absolute inset-0 bg-gradient-to-r from-orange-600/90 via-orange-500/80 to-orange-400/60"></div>
 
-      <!-- BADGE -->
-      <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-white text-sm mb-6">
+  <!-- CONTENIDO -->
+  <div class="relative max-w-7xl mx-auto px-6 w-full">
+
+    <div class="max-w-xl text-white">
+
+      <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm mb-6">
         📍 Cerca tuyo, siempre
       </div>
 
-      <!-- TITULO -->
-      <h1 class="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+      <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
         Todo lo que necesitás,
         <span class="text-orange-200">cerca tuyo</span>
       </h1>
 
-      <!-- TEXTO -->
-      <p class="text-white/90 text-lg mb-10 max-w-lg">
+      <p class="text-lg text-white/90 mb-10">
         Descubrí negocios reales, ofertas increíbles y productos de comercios locales.
       </p>
 
-      <!-- FEATURES -->
-      <div class="flex flex-wrap gap-10 mb-10">
-
-        <div class="flex items-start gap-4">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
-            📍
-          </div>
-          <div>
-            <p class="text-white font-semibold">Negocios cerca tuyo</p>
-            <p class="text-white/80 text-sm">Encontrá fácilmente</p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-4">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
-            %
-          </div>
-          <div>
-            <p class="text-white font-semibold">Ofertas todos los días</p>
-            <p class="text-white/80 text-sm">Ahorra en grande</p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-4">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
-            🛍
-          </div>
-          <div>
-            <p class="text-white font-semibold">Productos locales</p>
-            <p class="text-white/80 text-sm">Apoyá tu comunidad</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- BOTONES -->
       <div class="flex gap-4">
-
-        <a href="/stores.html"
-          class="flex items-center gap-2 bg-white text-orange-600 px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition">
-          🔍 Explorar negocios
+        <a href="/stores.html" class="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold">
+          Explorar negocios
         </a>
 
-        <a href="/map"
-          class="flex items-center gap-2 border border-white text-white px-6 py-3 rounded-full hover:bg-white/10 transition">
-          📍 Ver en el mapa
+        <a href="/map" class="border border-white px-6 py-3 rounded-full">
+          Ver en el mapa
         </a>
-
-      </div>
-
-    </div>
-
-    <!-- DERECHA -->
-    <div class="hidden md:flex justify-end items-center relative min-h-[480px]">
-
-     <img 
-  src="https://puntocerca.com.ar/img/hero.png"
-  class="w-[580px] relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.35)]"
->
-
-     <div class="absolute bottom-10 w-[85%] h-[90px] bg-orange-300/40 blur-3xl rounded-full"></div>
-
-      <!-- CARDS FLOTANTES -->
-     <div class="absolute top-16 right-6 bg-white px-4 py-2 rounded-xl shadow text-sm">
-        ⭐ 4.8 promedio
-      </div>
-
-      <div class="absolute top-2 right-28 bg-white px-4 py-2 rounded-xl shadow text-sm">
-        +1200 negocios
       </div>
 
     </div>
