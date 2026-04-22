@@ -32,7 +32,7 @@ async function loadFeaturedStores() {
     const res = await fetch("/api/stores");
     const stores = await res.json();
 
-    const container = document.getElementById("featuredStoresSlider");
+    const container = document.getElementById("featuredTrack");
 
     if (!container) return;
 
@@ -237,3 +237,5 @@ window.showFeaturedStores = async function(subId) {
   }
   if (!subId) return;
 };
+
+
