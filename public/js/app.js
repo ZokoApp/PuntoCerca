@@ -21,6 +21,49 @@ loadStores();
 loadProducts();
 loadOffers();
 initSliders();
+loadFeaturedStores(); 
+
+// =============================
+// TIENDAS DESTACADAS HOME
+// =============================
+
+async function loadFeaturedStores() {
+  try {
+    const res = await fetch("/api/stores");
+    const stores = await res.json();
+
+    const container = document.getElementById("featuredStoresSlider");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    stores.slice(0, 12).forEach(store => {
+      container.innerHTML += `
+        <div class="min-w-[200px] bg-white shadow-lg rounded-xl overflow-hidden cursor-pointer hover:scale-105 transition"
+             onclick="viewStore(${store.id})">
+
+          <div class="relative">
+            <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}"
+                 class="w-full h-32 object-cover">
+
+            <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-1 rounded">
+              Destacado
+            </span>
+          </div>
+
+          <div class="p-3">
+            <h3 class="font-semibold text-sm truncate">${store.name}</h3>
+            <p class="text-xs text-gray-500">${store.category || ''}</p>
+          </div>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Error cargando destacadas", err);
+  }
+}
 
 // =============================
 // BUSCADOR
