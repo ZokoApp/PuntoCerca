@@ -83,82 +83,48 @@
  <p class="hidden">
   PuntoCerca, también conocido como punto cerca, es una plataforma para encontrar negocios locales cerca tuyo.
 </p>
- <section class="relative bg-gradient-to-r from-orange-500 to-orange-400 text-white py-20 overflow-hidden">
+ <section class="relative h-[420px] flex items-center overflow-hidden">
 
-  <!-- TEXTURA -->
-  <div
-    class="absolute inset-0 pointer-events-none z-[1]"
-    style="
-      background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
-      opacity: 0.15;
-    ">
+  <!-- IMAGEN DE FONDO -->
+  <div class="absolute inset-0 z-0">
+    <img 
+      src="/img/hero.png" 
+      class="w-full h-full object-cover"
+    >
   </div>
 
-  <div class="relative z-10 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
+  <!-- OVERLAY (para que el texto se lea) -->
+  <div class="absolute inset-0 bg-black/40 z-10"></div>
 
-    <!-- IZQUIERDA -->
-    <div>
+  <!-- CONTENIDO -->
+  <div class="relative z-20 max-w-7xl mx-auto px-6">
 
-      <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-        Todo lo que necesitás, <br> cerca tuyo
-      </h1>
+    <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">
+      Todo lo que necesitás,
+      <span class="text-orange-300">cerca tuyo</span>
+    </h1>
 
-      <p class="text-lg mb-8 opacity-90 max-w-md">
-        Descubrí negocios, productos y servicios locales en segundos.
-      </p>
+    <p class="text-lg text-white/90 mb-6">
+      Descubrí negocios, productos y servicios locales en segundos.
+    </p>
 
-      <!-- FEATURES -->
-      <div class="flex flex-wrap gap-8 text-sm">
+    <!-- ICONOS SIN EMOJIS -->
+    <div class="flex gap-8 text-sm text-white/90">
 
-  <!-- ITEM -->
-  <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <img src="/img/icons/location.svg" class="w-5 h-5">
+        <span>Negocios cercanos</span>
+      </div>
 
-    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-      <!-- ICONO MAP -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-width="2" d="M12 21c-4-4.5-6-7-6-10a6 6 0 1112 0c0 3-2 5.5-6 10z"/>
-      </svg>
-    </div>
+      <div class="flex items-center gap-2">
+        <img src="/img/icons/tag.svg" class="w-5 h-5">
+        <span>Ofertas reales</span>
+      </div>
 
-    <span>Negocios cercanos</span>
-  </div>
-
-  <!-- ITEM -->
-  <div class="flex items-center gap-3">
-
-    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-      <!-- ICONO TAG -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-width="2" d="M7 7h6l4 4-8 8-6-6 8-8z"/>
-      </svg>
-    </div>
-
-    <span>Ofertas reales</span>
-  </div>
-
-  <!-- ITEM -->
-  <div class="flex items-center gap-3">
-
-    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-      <!-- ICONO BAG -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-width="2" d="M5 8h14l-1 12H6L5 8zm4-3a3 3 0 016 0"/>
-      </svg>
-    </div>
-
-    <span>Productos locales</span>
-  </div>
-
-</div>
-    </div>
-
-    <!-- DERECHA (IMAGEN) -->
-    <div class="hidden md:flex justify-center relative z-20">
-
-      <img 
-        src="/img/hero.png" 
-        class="max-w-[480px] w-full h-auto object-contain drop-shadow-2xl"
-      >
+      <div class="flex items-center gap-2">
+        <img src="/img/icons/bag.svg" class="w-5 h-5">
+        <span>Productos locales</span>
+      </div>
 
     </div>
 
