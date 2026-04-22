@@ -29,8 +29,14 @@ loadFeaturedStores();
 
 async function loadFeaturedStores() {
   try {
-    const res = await fetch("/api/stores");
-    const stores = await res.json();
+    cconst res = await fetch("/api/stores?featured=true");
+let stores = await res.json();
+
+// 🔥 fallback automático
+if (!stores.length) {
+  const resAll = await fetch("/api/stores");
+  stores = await resAll.json();
+}
 
     const container = document.getElementById("featuredTrack");
 
