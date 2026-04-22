@@ -277,3 +277,28 @@ nav a{
     height: 60px;
   }
 }
+
+.cat-card {
+  background: #f3f4f6;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cat-card:hover {
+  background: #fff;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.cat-card .icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.cat-card p {
+  font-weight: 500;
+  font-size: 14px;
+}
