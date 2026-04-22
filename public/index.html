@@ -83,47 +83,51 @@
  <p class="hidden">
   PuntoCerca, también conocido como punto cerca, es una plataforma para encontrar negocios locales cerca tuyo.
 </p>
- <section class="relative h-[420px] flex items-center overflow-hidden">
+ <section class="relative h-[500px] flex items-center overflow-hidden">
 
-  <!-- IMAGEN DE FONDO -->
-  <div class="absolute inset-0 z-0">
+  <!-- IMAGEN -->
+  <div class="absolute inset-0">
     <img 
       src="/img/hero.png" 
       class="w-full h-full object-cover"
     >
   </div>
 
-  <!-- OVERLAY (para que el texto se lea) -->
-  <div class="absolute inset-0 bg-black/40 z-10"></div>
+  <!-- OVERLAY (clave para legibilidad) -->
+  <div class="absolute inset-0 bg-black/50"></div>
 
   <!-- CONTENIDO -->
-  <div class="relative z-20 max-w-7xl mx-auto px-6">
+  <div class="relative z-10 max-w-7xl mx-auto px-6">
 
-    <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">
-      Todo lo que necesitás,
-      <span class="text-orange-300">cerca tuyo</span>
-    </h1>
+    <div class="max-w-xl">
 
-    <p class="text-lg text-white/90 mb-6">
-      Descubrí negocios, productos y servicios locales en segundos.
-    </p>
+      <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white leading-tight">
+        Todo lo que necesitás,
+        <span class="text-orange-400">cerca tuyo</span>
+      </h1>
 
-    <!-- ICONOS SIN EMOJIS -->
-    <div class="flex gap-8 text-sm text-white/90">
+      <p class="text-lg text-white/90 mb-6">
+        Descubrí negocios, productos y servicios locales en segundos.
+      </p>
 
-      <div class="flex items-center gap-2">
-        <img src="/img/icons/location.svg" class="w-5 h-5">
-        <span>Negocios cercanos</span>
-      </div>
+      <!-- ICONOS PRO (SIN EMOJIS) -->
+      <div class="flex gap-6 text-sm text-white/90">
 
-      <div class="flex items-center gap-2">
-        <img src="/img/icons/tag.svg" class="w-5 h-5">
-        <span>Ofertas reales</span>
-      </div>
+        <div class="flex items-center gap-2">
+          <img src="/img/icons/location.svg" class="w-5 h-5 opacity-90">
+          <span>Negocios cercanos</span>
+        </div>
 
-      <div class="flex items-center gap-2">
-        <img src="/img/icons/bag.svg" class="w-5 h-5">
-        <span>Productos locales</span>
+        <div class="flex items-center gap-2">
+          <img src="/img/icons/tag.svg" class="w-5 h-5 opacity-90">
+          <span>Ofertas reales</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <img src="/img/icons/bag.svg" class="w-5 h-5 opacity-90">
+          <span>Productos locales</span>
+        </div>
+
       </div>
 
     </div>
@@ -131,7 +135,6 @@
   </div>
 
 </section>
-
 
  <!-- ================= MEGA MENÚ CATEGORÍAS ================= -->
 <section class="bg-white border-t border-gray-200 relative z-[99999]">
