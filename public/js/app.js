@@ -39,26 +39,36 @@ async function loadFeaturedStores() {
     container.innerHTML = "";
 
     stores.slice(0, 12).forEach(store => {
-      container.innerHTML += `
-        <div class="min-w-[200px] bg-white shadow-lg rounded-xl overflow-hidden cursor-pointer hover:scale-105 transition"
-             onclick="viewStore(${store.id})">
+  container.innerHTML += `
+    <div class="min-w-[240px] bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition cursor-pointer"
+         onclick="viewStore(${store.id})">
 
-          <div class="relative">
-            <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}"
-                 class="w-full h-32 object-cover">
+      <div class="relative">
 
-            <span class="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-1 rounded">
-              Destacado
-            </span>
-          </div>
+        <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}"
+             class="w-full h-40 object-cover">
 
-          <div class="p-3">
-            <h3 class="font-semibold text-sm truncate">${store.name}</h3>
-            <p class="text-xs text-gray-500">${store.category || ''}</p>
-          </div>
+        <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
+          ⭐ Destacado
         </div>
-      `;
-    });
+
+      </div>
+
+      <div class="p-4">
+
+        <h3 class="font-semibold text-base truncate">
+          ${store.name}
+        </h3>
+
+        <p class="text-sm text-gray-500">
+          ${store.category || 'Comercio'}
+        </p>
+
+      </div>
+
+    </div>
+  `;
+});
 
   } catch (err) {
     console.error("Error cargando destacadas", err);
