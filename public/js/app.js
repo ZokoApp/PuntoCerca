@@ -29,7 +29,7 @@ loadFeaturedStores();
 
 async function loadFeaturedStores() {
   try {
-    cconst res = await fetch("/api/stores?featured=true");
+    const res = await fetch("/api/stores?featured=true");
 let stores = await res.json();
 
 // 🔥 fallback automático
