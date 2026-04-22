@@ -20,130 +20,123 @@
 
  <body class="index-page bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-<!-- ================= NAVBAR ================= -->
-<nav class="fixed top-0 left-0 w-full z-50 bg-white shadow">
+<!-- ================= HEADER + HERO ================= -->
+<header class="sticky top-0 z-50 bg-white shadow-sm">
 
-<div class="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
+  <!-- NAV SUPERIOR -->
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
 
-   <!-- LOGO -->
-<a href="/" class="flex items-center">
-  <img src="/img/logo.png" class="logo-img">
-</a>
+    <!-- LOGO -->
+    <a href="/" class="flex items-center">
+      <img src="/img/logo.png" class="h-10">
+    </a>
 
-<!-- 🔥 BUSCADOR -->
-<input 
-  id="searchInputHeader"
-  type="text" 
-  placeholder="Buscar negocios, productos..."
-  class="flex-1 px-5 py-2 border rounded-full shadow-sm focus:outline-none"
->
+    <!-- BUSCADOR -->
+    <div class="flex-1">
+      <input 
+        type="text" 
+        placeholder="Buscar negocios, productos..."
+        class="w-full px-5 py-2 border rounded-full shadow-sm focus:outline-none"
+      >
+    </div>
 
-<!-- DERECHA -->
-<div class="flex items-center gap-6">
+    <!-- LINKS -->
+    <div class="flex items-center gap-6 text-sm">
+      <a href="/" class="hover:text-orange-600">Inicio</a>
+      <a href="/login" class="hover:text-orange-600">Login</a>
 
-  <a href="/" class="hover:text-orange-600">Inicio</a>
-  <a href="/login" class="hover:text-orange-600">Login</a>
+      <a href="/register.html"
+        class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700">
+        Registrate
+      </a>
+    </div>
 
-  <a href="/register.html"
-    class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700">
-    Registrate
-  </a>
-
-</div>
   </div>
 
-</nav>
+  <!-- MENU -->
+  <div class="border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex justify-center gap-10 text-sm font-medium text-gray-700">
 
-  <section class="fixed top-16 left-0 w-full z-40 bg-gray-50 border-t border-gray-200">
-  <div class="max-w-7xl mx-auto px-6 py-3 flex justify-center gap-10 text-sm font-medium text-gray-700">
+      <a href="/stores.html" class="hover:text-orange-600">Tiendas</a>
+      <a href="/offers" class="hover:text-orange-600">Ofertas del día</a>
+      <a href="/products" class="hover:text-orange-600">Productos</a>
+      <a href="/map" class="hover:text-orange-600">Ver mapa</a>
 
-    <a href="/stores.html" class="hover:text-orange-600 transition">
-      Tiendas 
-    </a>
-
-    <a href="/offers" class="hover:text-orange-600 transition">
-      Ofertas del día
-    </a>
-
-    <a href="/products" class="hover:text-orange-600 transition">
-      Productos
-    </a>
-
-    <a href="/map" class="hover:text-orange-600 transition">
-      Ver mapa
-    </a>
-
+    </div>
   </div>
-</section>
 
-<!-- CONTENIDO PRINCIPAL -->
-<main class="flex-grow pt-[130px]">
+</header>
 
-  <!-- ================= HERO ================= -->
- <p class="hidden">
-  PuntoCerca, también conocido como punto cerca, es una plataforma para encontrar negocios locales cerca tuyo.
-</p>
 <!-- ================= HERO ================= -->
-<section class="relative z-10 bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400 min-h-screen flex items-center overflow-hidden">
+<section class="bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400 py-24">
 
-  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center gap-10 w-full">
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 items-center gap-12">
 
     <!-- IZQUIERDA -->
-    <div class="max-w-xl">
+    <div>
 
       <!-- BADGE -->
-      <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-4 py-1 rounded-full mb-4 text-white text-sm">
+      <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-white text-sm mb-6">
         📍 Cerca tuyo, siempre
       </div>
 
       <!-- TITULO -->
-      <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight">
+      <h1 class="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-6">
         Todo lo que necesitás,
         <span class="text-orange-200">cerca tuyo</span>
       </h1>
 
-      <!-- DESCRIPCIÓN -->
-      <p class="text-white/90 text-lg mt-4 mb-8">
+      <!-- TEXTO -->
+      <p class="text-white/90 text-lg mb-10 max-w-lg">
         Descubrí negocios reales, ofertas increíbles y productos de comercios locales.
       </p>
 
       <!-- FEATURES -->
-      <div class="flex flex-wrap gap-6 text-white/90 text-sm mb-10">
+      <div class="flex flex-wrap gap-10 mb-10">
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
             📍
           </div>
-          <span>Negocios cercanos</span>
+          <div>
+            <p class="text-white font-semibold">Negocios cerca tuyo</p>
+            <p class="text-white/80 text-sm">Encontrá fácilmente</p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
-            💸
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
+            %
           </div>
-          <span>Ofertas reales</span>
+          <div>
+            <p class="text-white font-semibold">Ofertas todos los días</p>
+            <p class="text-white/80 text-sm">Ahorra en grande</p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
-            🛒
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white">
+            🛍
           </div>
-          <span>Productos locales</span>
+          <div>
+            <p class="text-white font-semibold">Productos locales</p>
+            <p class="text-white/80 text-sm">Apoyá tu comunidad</p>
+          </div>
         </div>
 
       </div>
 
       <!-- BOTONES -->
-      <div class="flex flex-wrap gap-4">
+      <div class="flex gap-4">
 
         <a href="/stores.html"
-          class="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition">
-          Explorar negocios
+          class="flex items-center gap-2 bg-white text-orange-600 px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition">
+          🔍 Explorar negocios
         </a>
 
         <a href="/map"
-          class="border border-white text-white px-6 py-3 rounded-full hover:bg-white/10 transition">
-          Ver en el mapa
+          class="flex items-center gap-2 border border-white text-white px-6 py-3 rounded-full hover:bg-white/10 transition">
+          📍 Ver en el mapa
         </a>
 
       </div>
@@ -153,19 +146,17 @@
     <!-- DERECHA -->
     <div class="hidden md:flex justify-end relative">
 
-      <!-- IMAGEN -->
       <img 
         src="https://puntocerca.com.ar/img/hero.png"
-        class="w-[600px] max-w-none drop-shadow-2xl translate-x-10 relative z-10"
+        class="w-[620px] drop-shadow-2xl"
       >
 
-      <!-- CARD FLOTANTE -->
-      <div class="absolute top-10 right-10 bg-white text-gray-800 px-4 py-2 rounded-xl shadow-lg text-sm">
+      <!-- CARDS FLOTANTES -->
+      <div class="absolute top-10 right-0 bg-white px-4 py-2 rounded-xl shadow text-sm">
         ⭐ 4.8 promedio
       </div>
 
-      <!-- BURBUJA -->
-      <div class="absolute bottom-10 left-10 bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow text-sm">
+      <div class="absolute top-0 right-24 bg-white px-4 py-2 rounded-xl shadow text-sm">
         +1200 negocios
       </div>
 
