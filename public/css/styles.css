@@ -270,11 +270,6 @@ nav a{
 }
 
 
-.logo-img {
-  height: 180px;
-  width: auto;
-  object-fit: contain;
-}
 
 /* Mobile */
 @media (max-width:768px){
