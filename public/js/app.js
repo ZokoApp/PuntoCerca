@@ -212,18 +212,31 @@ window.showFeaturedStores = async function(subId) {
     html += `<div class="flex gap-4 overflow-x-auto pb-2">`;
 
     stores.slice(0, 6).forEach(store => {
-      html += `
-        <div class="min-w-[120px] bg-white shadow rounded-lg p-2 text-center hover:scale-105 transition cursor-pointer"
-             onclick="viewStore(${store.id})">
+     html += `
+  <div class="min-w-[220px] bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer"
+       onclick="viewStore(${store.id})">
 
-          <img src="${store.logo_url || 'https://source.unsplash.com/100x100/?store'}"
-               class="w-full h-20 object-cover rounded mb-2">
+    <!-- IMAGEN CONTROLADA -->
+    <div class="w-full h-32 bg-gray-100 flex items-center justify-center overflow-hidden">
+      <img src="${store.logo_url || 'https://via.placeholder.com/150'}"
+           class="max-h-full max-w-full object-contain">
+    </div>
 
-          <p class="text-xs font-medium truncate">${store.name}</p>
-        </div>
-      `;
-    });
+    <!-- INFO -->
+    <div class="p-3">
 
+      <p class="text-sm font-semibold truncate">
+        ${store.name}
+      </p>
+
+      <p class="text-xs text-gray-500">
+        ${store.category || 'Comercio'}
+      </p>
+
+    </div>
+
+  </div>
+`;
     html += `</div>`;
 
     featuredContainer.innerHTML = html;
