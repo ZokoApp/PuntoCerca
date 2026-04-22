@@ -3,6 +3,9 @@ import { initSliders } from './modules/ui.js';
 import { loadProducts, loadOffers } from './modules/offers.js';
 import { CATEGORIES } from './data/categories.js';
 
+let currentCategory = null;
+let currentSubcategory = null;
+
 // GLOBAL
 window.loadStores = loadStores;
 
@@ -15,6 +18,13 @@ window.goToProduct = (product) => {
 };
 
 window.focusStore = focusStore;
+
+window.selectSubcategory = function(cat, subId){
+  currentCategory = cat;
+  currentSubcategory = subId;
+
+  loadStores(currentCategory, currentSubcategory);
+};
 
 // INIT
 loadStores();
@@ -123,15 +133,15 @@ document.querySelectorAll(".category-item").forEach(item => {
     let html = "";
 
     subs.forEach(sub => {
-      html += `
-        <a href="#" 
-           onmouseenter="showFeaturedStores(${sub.id})"
-           onclick="loadStores('${cat}', ${sub.id}); return false;"
-           class="w-[45%] hover:text-orange-600">
-           ${sub.name}
-        </a>
-      `;
-    });
+  html += `
+    <a href="#" 
+       onmouseenter="showFeaturedStores(${sub.id})"
+       onclick="selectSubcategory('${cat}', ${sub.id}); return false;"
+       class="w-[45%] hover:text-orange-600">
+       ${sub.name}
+    </a>
+  `;
+});
 
     subContainer.innerHTML = html;
 
