@@ -237,6 +237,7 @@ window.showFeaturedStores = async function(subId) {
 
   </div>
 `;
+   });   
     html += `</div>`;
 
     featuredContainer.innerHTML = html;
