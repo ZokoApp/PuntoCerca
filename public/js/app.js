@@ -6,6 +6,17 @@ import { CATEGORIES } from './data/categories.js';
 let currentCategory = null;
 let currentSubcategory = null;
 
+window.selectCategory = function(cat){
+  console.log("CLICK CATEGORIA:", cat);
+
+  if (typeof loadStores !== "function") {
+    console.error("loadStores no está disponible");
+    return;
+  }
+
+  loadStores(cat);
+};
+
 // GLOBAL
 window.loadStores = loadStores;
 
