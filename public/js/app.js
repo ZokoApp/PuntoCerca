@@ -150,7 +150,6 @@ if (categoriesContainer) {
 
 window.selectCategory = function(cat){
 
-  // evitar recarga innecesaria
   if (currentCategory === cat && !currentSubcategory) return;
 
   currentCategory = cat;
@@ -164,7 +163,6 @@ window.selectCategory = function(cat){
 
 window.selectSubcategory = function(cat, subId){
 
-  // evitar recarga innecesaria
   if (currentCategory === cat && currentSubcategory === subId) return;
 
   currentCategory = cat;
