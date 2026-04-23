@@ -2,58 +2,136 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Productos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos | PuntoCerca</title>
+
+  <!-- ESTILOS -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/styles.css">
-   <link rel="icon" type="image/png" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
 </head>
-<body>
 
-  <nav>
-  <div class="logo">PuntoCerca</div>
+<body class="bg-gray-50 text-gray-800">
 
-  <ul>
-    <li><a href="/">Inicio</a></li>
-    <li><a href="/products">Productos</a></li>
-    <li><a href="/map">Mapa</a></li>
-  </ul>
-</nav>
-<a href="#" onclick="history.back()" class="back-btn">← Volver</a>
+<!-- ================= HEADER ================= -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
 
-  <div class="products-topbar">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-  <div class="products-title">
-    <h1>Productos</h1>
-    <span>Explorá lo que hay cerca tuyo</span>
+    <!-- LOGO -->
+    <a href="/" class="flex items-center gap-2">
+      <img src="/img/logo.png" class="h-10">
+    </a>
+
+    <!-- NAV -->
+    <nav class="flex gap-6 text-sm font-medium">
+      <a href="/" class="hover:text-orange-600">Inicio</a>
+      <a href="/products" class="text-orange-600 font-semibold">Productos</a>
+      <a href="/map" class="hover:text-orange-600">Mapa</a>
+    </nav>
+
   </div>
 
-  <div class="products-actions">
+</header>
 
-    <div class="search-box">
+<!-- ================= CONTENIDO ================= -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- VOLVER -->
+  <button onclick="history.back()" 
+    class="text-sm text-gray-500 hover:text-orange-600 mb-4">
+    ← Volver
+  </button>
+
+  <!-- ================= TOPBAR ================= -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+    <div>
+      <h1 class="text-2xl font-bold">Productos</h1>
+      <p class="text-sm text-gray-500">Explorá lo que hay cerca tuyo</p>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-3">
+
       <input 
         type="text" 
         id="searchInput" 
         placeholder="Buscar productos..."
+        class="border px-4 py-2 rounded-lg w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-orange-500"
       />
-      <span class="search-icon"></span>
-    </div>
 
-    <select id="filterSelect" class="filter-select">
-      <option value="">Ordenar</option>
-      <option value="cheap"> Más baratos</option>
-      <option value="expensive"> Más caros</option>
-      <option value="best"> Mejor valorados</option>
-    </select>
+      <select id="filterSelect"
+        class="border px-4 py-2 rounded-lg focus:outline-none">
+        <option value="">Ordenar</option>
+        <option value="cheap">Más baratos</option>
+        <option value="expensive">Más caros</option>
+        <option value="best">Mejor valorados</option>
+      </select>
+
+    </div>
 
   </div>
 
-</div>
-  <!-- 🛒 LISTA -->
-  <div id="productsContainer"></div>
+  <!-- ================= CATEGORÍAS ================= -->
+  <div id="productCategories"
+    class="flex gap-3 overflow-x-auto pb-4 mb-6">
+  </div>
 
-  <script src="/js/utils/prices.js"></script> 
+  <!-- ================= SUBCATEGORÍAS ================= -->
+  <div id="subcategoriesContainer" class="mb-6 hidden">
+    <div id="subcategoriesList"
+      class="flex gap-3 overflow-x-auto pb-2">
+    </div>
+  </div>
 
-  <script src="/js/products.js"></script>
-  
+  <!-- ================= GRID PRODUCTOS ================= -->
+  <div 
+    id="productsContainer" 
+    class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  </div>
+
+  <!-- ================= ESTADO VACÍO ================= -->
+  <div id="emptyState" class="hidden text-center text-gray-500 py-10">
+    No se encontraron productos 😕
+  </div>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="bg-gray-900 text-gray-300 mt-16">
+  <div class="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
+
+    <div>
+      <h3 class="text-white font-semibold mb-2">PuntoCerca</h3>
+      <p class="text-sm text-gray-400">
+        Conectamos negocios locales con personas cercanas.
+      </p>
+    </div>
+
+    <div>
+      <h3 class="text-white font-semibold mb-2">Enlaces</h3>
+      <ul class="text-sm space-y-1">
+        <li><a href="/" class="hover:text-white">Inicio</a></li>
+        <li><a href="/products" class="hover:text-white">Productos</a></li>
+        <li><a href="/map" class="hover:text-white">Mapa</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="text-white font-semibold mb-2">Contacto</h3>
+      <p class="text-sm text-gray-400">soporte@puntocerca.com</p>
+    </div>
+
+  </div>
+
+  <div class="text-center text-xs text-gray-500 pb-4">
+    ©️ 2026 PuntoCerca
+  </div>
+</footer>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="/js/utils/prices.js"></script>
+<script src="/js/products.js"></script>
 
 </body>
 </html>
