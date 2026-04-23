@@ -1,4 +1,5 @@
 let myStoreId = null;
+import { CATEGORIES } from './data/categories.js';
 
 // =============================
 // CARGAR TIENDA DEL USUARIO
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const checkColors = document.getElementById("checkColors")?.checked || false;
     const checkSKU = document.getElementById("checkSKU")?.checked || false;
     const checkMaterial = document.getElementById("checkMaterial")?.checked || false;
+    const subcategory = document.getElementById("subcategory")?.value || "";
 
     const sizes = checkSizes
       ? (document.getElementById("sizes")?.value.trim() || "")
@@ -114,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     formData.append("is_offer", isOffer);
     formData.append("old_price", "");
     formData.append("image_url", imageUrl);
+    formData.append("subcategory_id", subcategory);
 
     // modelo + sku + material van dentro de extra
     const extraData = {
@@ -156,4 +159,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert(err.message || "Error creando producto");
     }
   });
+});
+const categorySelect = document.getElementById("category");
+const subcategorySelect = document.getElementById("subcategory");
+
+// cargar categorías
+categorySelect.innerHTML += Object.keys(CATEGORIES).map(cat => `
+  <option value="${cat}">${cat}</option>
+`).join("");
+
+// cuando cambia categoría
+categorySelect.addEventListener("change", () => {
+
+  const cat = categorySelect.value;
+  const subs = CATEGORIES[cat];
+
+  if (!subs) {
+    subcategorySelect.innerHTML = `<option value="">Sin subcategorías</option>`;
+    return;
+  }
+
+  subcategorySelect.innerHTML = `
+    <option value="">Seleccionar subcategoría</option>
+    ${subs.map(sub => `
+      <option value="${sub.id}">${sub.name}</option>
+    `).join("")}
+  `;
 });
