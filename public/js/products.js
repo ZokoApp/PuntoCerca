@@ -106,12 +106,16 @@ function applyFilters(){
     );
   }
 
-  // 🧠 CATEGORÍA
-  if(currentCategory){
-    filtered = filtered.filter(p =>
-      p.category === currentCategory
-    );
-  }
+
+if(currentCategory){
+
+  const subs = CATEGORIES[currentCategory] || [];
+  const subIds = subs.map(s => s.id);
+
+  filtered = filtered.filter(p =>
+    subIds.includes(p.subcategory_id)
+  );
+}
 
   // 🧠 SUBCATEGORÍA
   if(currentSubcategory){
