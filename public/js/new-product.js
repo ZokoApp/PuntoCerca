@@ -1,5 +1,6 @@
-let myStoreId = null;
 import { CATEGORIES } from './data/categories.js';
+
+let myStoreId = null;
 
 // =============================
 // CARGAR TIENDA DEL USUARIO
@@ -15,7 +16,6 @@ async function loadMyStore() {
     const store = await res.json();
     myStoreId = store.id;
 
-    console.log("Mi tienda:", myStoreId);
   } catch (err) {
     console.error(err);
     alert("No tenés tienda creada");
@@ -43,6 +43,7 @@ function toggleField(checkId, fieldId) {
 // INIT
 // =============================
 document.addEventListener("DOMContentLoaded", async () => {
+
   await loadMyStore();
 
   toggleField("checkSizes", "sizesField");
@@ -50,8 +51,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   toggleField("checkSKU", "skuField");
   toggleField("checkMaterial", "materialField");
 
-  const form = document.getElementById("productForm");
+  initCategories();
 
+  const form = document.getElementById("productForm");
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
@@ -64,80 +66,71 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const formData = new FormData();
 
-    const name = document.getElementById("name")?.value.trim() || "";
-    const price = document.getElementById("price")?.value.trim() || "";
-    const brand = document.getElementById("brand")?.value.trim() || "";
-    const model = document.getElementById("model")?.value.trim() || "";
-    const category = document.getElementById("category")?.value || "";
-    const imageUrl = document.getElementById("image_url")?.value.trim() || "";
-    const description = document.getElementById("description")?.value.trim() || "";
-    const isOffer = document.getElementById("isOffer")?.checked || false;
+    const name = document.getElementById("name")?.value.trim();
+    const price = document.getElementById("price")?.value.trim();
+    const brand = document.getElementById("brand")?.value.trim();
+    const model = document.getElementById("model")?.value.trim();
+    const category = document.getElementById("category")?.value;
+    const subcategory = document.getElementById("subcategory")?.value;
+    const imageUrl = document.getElementById("image_url")?.value.trim();
+    const description = document.getElementById("description")?.value.trim();
+    const isOffer = document.getElementById("isOffer")?.checked;
 
-    const checkSizes = document.getElementById("checkSizes")?.checked || false;
-    const checkColors = document.getElementById("checkColors")?.checked || false;
-    const checkSKU = document.getElementById("checkSKU")?.checked || false;
-    const checkMaterial = document.getElementById("checkMaterial")?.checked || false;
-    const subcategory = document.getElementById("subcategory")?.value || "";
+    // ⚠️ VALIDACIONES IMPORTANTES
+    if (!name) return alert("Ingresá el nombre");
+    if (!price) return alert("Ingresá el precio");
+    if (!category) return alert("Seleccioná una categoría");
+    if (!subcategory) return alert("Seleccioná una subcategoría");
 
-    const sizes = checkSizes
-      ? (document.getElementById("sizes")?.value.trim() || "")
+    // dinámicos
+    const sizes = document.getElementById("checkSizes")?.checked
+      ? document.getElementById("sizes")?.value.trim()
       : "";
 
-    const selectedColors = checkColors
-      ? Array.from(document.getElementById("colors")?.selectedOptions || []).map(
-          (option) => option.value
-        )
+    const colors = document.getElementById("checkColors")?.checked
+      ? Array.from(document.getElementById("colors").selectedOptions).map(o => o.value)
       : [];
 
-    const sku = checkSKU
-      ? (document.getElementById("sku")?.value.trim() || "")
+    const sku = document.getElementById("checkSKU")?.checked
+      ? document.getElementById("sku")?.value.trim()
       : "";
 
-    const material = checkMaterial
-      ? (document.getElementById("material")?.value.trim() || "")
+    const material = document.getElementById("checkMaterial")?.checked
+      ? document.getElementById("material")?.value.trim()
       : "";
 
-    if (!name) {
-      alert("Ingresá el nombre del producto");
-      return;
-    }
-
-    if (!price) {
-      alert("Ingresá el precio");
-      return;
-    }
+    // =============================
+    // APPEND DATA
+    // =============================
 
     formData.append("name", name);
     formData.append("price", price);
     formData.append("brand", brand);
-    formData.append("size", sizes);
     formData.append("category", category);
+    formData.append("subcategory_id", subcategory); // 🔥 CLAVE
     formData.append("store_id", myStoreId);
     formData.append("is_offer", isOffer);
-    formData.append("old_price", "");
-    formData.append("image_url", imageUrl);
-    formData.append("subcategory_id", subcategory);
+    formData.append("image_url", imageUrl || "");
 
-    // modelo + sku + material van dentro de extra
-    const extraData = {
+    formData.append("extra", JSON.stringify({
       model,
       sku,
       material,
-      description
-    };
+      description,
+      sizes
+    }));
 
-    formData.append("extra", JSON.stringify(extraData));
-    formData.append("colors", JSON.stringify(selectedColors));
+    formData.append("colors", JSON.stringify(colors));
 
+    // imágenes
     const files = document.getElementById("productImages")?.files || [];
 
     if (files.length > 5) {
-      alert("Máximo 5 imágenes");
-      return;
+      return alert("Máximo 5 imágenes");
     }
 
-    for (let i = 0; i < files.length; i++) {
-      formData.append("images", files[i]);
+    for (let file of files) {
+      formData.append("images", file);
     }
 
     try {
@@ -154,35 +147,52 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       alert("Producto creado 🚀");
       window.location.href = "/dashboard";
+
     } catch (err) {
       console.error(err);
-      alert(err.message || "Error creando producto");
+      alert(err.message);
     }
+
   });
+
 });
-const categorySelect = document.getElementById("category");
-const subcategorySelect = document.getElementById("subcategory");
 
-// cargar categorías
-categorySelect.innerHTML += Object.keys(CATEGORIES).map(cat => `
-  <option value="${cat}">${cat}</option>
-`).join("");
 
-// cuando cambia categoría
-categorySelect.addEventListener("change", () => {
+// =============================
+// CATEGORÍAS + SUBCATEGORÍAS
+// =============================
+function initCategories(){
 
-  const cat = categorySelect.value;
-  const subs = CATEGORIES[cat];
+  const categorySelect = document.getElementById("category");
+  const subcategorySelect = document.getElementById("subcategory");
 
-  if (!subs) {
-    subcategorySelect.innerHTML = `<option value="">Sin subcategorías</option>`;
-    return;
-  }
+  if (!categorySelect || !subcategorySelect) return;
 
-  subcategorySelect.innerHTML = `
-    <option value="">Seleccionar subcategoría</option>
-    ${subs.map(sub => `
-      <option value="${sub.id}">${sub.name}</option>
+  // cargar categorías
+  categorySelect.innerHTML = `
+    <option value="">Seleccionar categoría</option>
+    ${Object.keys(CATEGORIES).map(cat => `
+      <option value="${cat}">${cat}</option>
     `).join("")}
   `;
-});
+
+  // cambio de categoría
+  categorySelect.addEventListener("change", () => {
+
+    const cat = categorySelect.value;
+    const subs = CATEGORIES[cat];
+
+    if (!subs) {
+      subcategorySelect.innerHTML = `<option value="">Sin subcategorías</option>`;
+      return;
+    }
+
+    subcategorySelect.innerHTML = `
+      <option value="">Seleccionar subcategoría</option>
+      ${subs.map(sub => `
+        <option value="${sub.id}">${sub.name}</option>
+      `).join("")}
+    `;
+  });
+
+}
