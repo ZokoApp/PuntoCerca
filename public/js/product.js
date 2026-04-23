@@ -57,7 +57,18 @@ if (!param) {
 
 
 
-   const res = await fetch(`/api/products/slug/${param}`);
+  // 🔥 detectar si es ID o SLUG
+const isId = !isNaN(param);
+
+const url = isId
+  ? `/api/products/${param}`
+  : `/api/products/slug/${param}`;
+
+const res = await fetch(url);
+
+if (!res.ok) throw new Error("Producto no encontrado");
+
+const product = await res.json();
     if (!res.ok) throw new Error("Producto no encontrado");
   
     const product = await res.json();
