@@ -282,3 +282,23 @@ window.selectCategory = function(cat){
   renderSubcategories(cat);
 };
 
+function renderSubcategories(cat){
+
+  const subs = CATEGORIES[cat];
+
+  if (!subs || subs.length === 0){
+    subContainer.classList.add("hidden");
+    return;
+  }
+
+  subContainer.classList.remove("hidden");
+
+  subList.innerHTML = subs.map(sub => `
+    <button
+      onclick="selectSubcategory('${cat}', ${sub.id})"
+      class="px-4 py-2 bg-white border rounded-full text-sm hover:bg-orange-600 hover:text-white transition whitespace-nowrap">
+      ${sub.name}
+    </button>
+  `).join("");
+}
+
