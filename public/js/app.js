@@ -266,3 +266,19 @@ if (categoriesContainer) {
 
 }
 
+const subContainer = document.getElementById("subcategoriesContainer");
+const subList = document.getElementById("subcategoriesList");
+
+window.selectCategory = function(cat){
+
+  currentCategory = cat;
+  currentSubcategory = null;
+
+  console.log("CATEGORIA:", cat);
+
+  loadStores(cat);
+
+  // 🔥 mostrar subcategorías
+  renderSubcategories(cat);
+};
+
