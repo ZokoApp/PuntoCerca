@@ -209,4 +209,49 @@ window.showFeaturedStores = async function(subId) {
   if (!subId) return;
 };
 
+// =============================
+// RENDER CATEGORÍAS (DINÁMICO)
+// =============================
+
+const categoriesContainer = document.getElementById("categoriesContainer");
+
+if (categoriesContainer) {
+
+  const mainCategories = [
+    "Gastronomía",
+    "Alimentos",
+    "Belleza",
+    "Salud",
+    "Servicios",
+    "Automotor",
+    "Hogar"
+  ];
+
+  const icons = {
+    "Gastronomía": "🍔",
+    "Alimentos": "🛒",
+    "Belleza": "💄",
+    "Salud": "➕",
+    "Servicios": "🛠",
+    "Automotor": "🚗",
+    "Hogar": "🏠"
+  };
+
+  categoriesContainer.innerHTML = mainCategories.map(cat => `
+    <div 
+      onclick="selectCategory('${cat}')"
+      class="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer text-center">
+
+      <div class="text-3xl mb-2">
+        ${icons[cat] || "📍"}
+      </div>
+
+      <p class="font-medium text-gray-700">
+        ${cat}
+      </p>
+
+    </div>
+  `).join("");
+
+}
 
