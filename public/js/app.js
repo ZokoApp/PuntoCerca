@@ -120,12 +120,7 @@ if (categoriesBtn && megaMenu) {
 
 }
 
-// cerrar afuera
-document.addEventListener("click", (e) => {
-  if (!categoriesBtn.contains(e.target) && !megaMenu.contains(e.target)) {
-    megaMenu.classList.add("hidden");
-  }
-});
+
 
 // render subcategorías
 document.querySelectorAll(".category-item").forEach(item => {
