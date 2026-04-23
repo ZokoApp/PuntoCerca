@@ -106,9 +106,19 @@ const subContainer = document.getElementById("subcategories");
 const featuredContainer = document.getElementById("featuredStores");
 
 // toggle menú
-categoriesBtn.addEventListener("click", () => {
-  megaMenu.classList.toggle("hidden");
-});
+if (categoriesBtn && megaMenu) {
+
+  categoriesBtn.addEventListener("click", () => {
+    megaMenu.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!categoriesBtn.contains(e.target) && !megaMenu.contains(e.target)) {
+      megaMenu.classList.add("hidden");
+    }
+  });
+
+}
 
 // cerrar afuera
 document.addEventListener("click", (e) => {
