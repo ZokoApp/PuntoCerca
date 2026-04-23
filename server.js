@@ -1027,18 +1027,19 @@ product.is_favorite = isFavorite;
 app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
   try {
     const {
-      name,
-      price,
-      old_price,
-      store_id,
-      brand,
-      size,
-      stock,
-      extra,
-      category,
-      colors,
-      is_offer
-    } = req.body;
+  name,
+  price,
+  old_price,
+  store_id,
+  brand,
+  size,
+  stock,
+  extra,
+  category,
+  colors,
+  is_offer,
+  subcategory_id 
+} = req.body;
 
     const parsedPrice = price && price !== "" ? parseFloat(price) : null;
 const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
@@ -1079,28 +1080,28 @@ const parsedStock = stock && stock !== "" && !isNaN(stock)
     const mainImage = images[0] || null;
 
     const result = await pool.query(
-      `INSERT INTO products
-      (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer, slug)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-      RETURNING *`,
-      [
-        name,
-        parsedPrice,
-        parsedOldPrice,
-        mainImage,
-        JSON.stringify(images),
-        store_id,
-        brand || null,
-        size || null,
-        parsedStock,
-        extra || null,
-        colors || "[]",
-        category || null,
-        is_offer === "true" || is_offer === true,
-        slug
-      ]
-    );
-
+  `INSERT INTO products
+  (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, slug)
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+  RETURNING *`,
+  [
+    name,
+    parsedPrice,
+    parsedOldPrice,
+    mainImage,
+    JSON.stringify(images),
+    store_id,
+    brand || null,
+    size || null,
+    parsedStock,
+    extra || null,
+    colors || "[]",
+    category || null,
+    subcategory_id || null, // 🔥 CLAVE
+    is_offer === "true" || is_offer === true,
+    slug
+  ]
+);
     res.json(result.rows[0]);
 
   } catch (error) {
