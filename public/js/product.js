@@ -50,282 +50,236 @@ if (!param) {
   }
   
   async function init() {
-  
-    await checkAuth();
-  
-  
 
-
+  await checkAuth();
 
   // 🔥 detectar si es ID o SLUG
-const isId = !isNaN(param);
+  const isId = !isNaN(param);
 
-const url = isId
-  ? `/api/products/${param}`
-  : `/api/products/slug/${param}`;
+  const url = isId
+    ? `/api/products/${param}`
+    : `/api/products/slug/${param}`;
 
-const res = await fetch(url);
+  const res = await fetch(url);
 
-if (!res.ok) throw new Error("Producto no encontrado");
-
-const product = await res.json();
-    if (!res.ok) throw new Error("Producto no encontrado");
-  
-    const product = await res.json();
-
-    const specsContainer = document.getElementById("productSpecs");
-
-if (!specsContainer) return;
-
-let specsHTML = "";
-
-// parsear extra
-let extraData = {};
-
-if (product.extra) {
-  try {
-    extraData = typeof product.extra === "string"
-      ? JSON.parse(product.extra)
-      : product.extra;
-  } catch (e) {
-    console.error("Error parseando extra", e);
+  if (!res.ok) {
+    alert("Producto no encontrado");
+    return;
   }
-}
 
-// helper
-function addSpec(label, value) {
-  if (!value || value === "" || value.length === 0) return;
+  const product = await res.json();
 
-  specsHTML += `
-    <div>
-      <strong>${label}:</strong> ${value}
-    </div>
-  `;
-}
+  // 🔁 redirección si cambia slug
+  if (product.redirect_slug && param !== product.redirect_slug) {
+    window.location.replace(`/product/${product.redirect_slug}`);
+    return;
+  }
 
-// agregar datos
-addSpec("Modelo", extraData.model);
-addSpec("SKU", extraData.sku);
-addSpec("Material", extraData.material);
-addSpec("Talles", product.size);
-addSpec("Categoría", product.category);
+  const specsContainer = document.getElementById("productSpecs");
+  if (!specsContainer) return;
 
-// colores
-// colores (FIX PRO)
-let colors = [];
+  let specsHTML = "";
 
-try {
-  colors = typeof product.colors === "string"
-    ? JSON.parse(product.colors)
-    : product.colors || [];
-} catch {
-  colors = [];
-}
+  let extraData = {};
 
-if (colors.length > 0) {
-  const colorsHTML = colors.map(c => `
-    <span style="
-      display:inline-block;
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      background:${c.toLowerCase()};
-      margin-right:5px;
-    "></span>
-  `).join("");
+  if (product.extra) {
+    try {
+      extraData = typeof product.extra === "string"
+        ? JSON.parse(product.extra)
+        : product.extra;
+    } catch (e) {
+      console.error("Error parseando extra", e);
+    }
+  }
 
-  specsHTML += `
-    <div>
-      <strong>Color:</strong> ${colorsHTML}
-    </div>
-  `;
-}
-// render final
-if (specsHTML.trim() === "") {
-  specsContainer.style.display = "none";
-} else {
-  specsContainer.innerHTML = specsHTML;
-}
+  function addSpec(label, value) {
+    if (!value || value === "" || value.length === 0) return;
 
-    if (product.redirect_slug && param !== product.redirect_slug) {
-  window.location.replace(`/product/${product.redirect_slug}`);
-  return;
-}
-  
-    const isFavorite = product.is_favorite;
-  
-    renderStars(
+    specsHTML += `
+      <div>
+        <strong>${label}:</strong> ${value}
+      </div>
+    `;
+  }
+
+  addSpec("Modelo", extraData.model);
+  addSpec("SKU", extraData.sku);
+  addSpec("Material", extraData.material);
+  addSpec("Talles", product.size);
+  addSpec("Categoría", product.category);
+
+  let colors = [];
+
+  try {
+    colors = typeof product.colors === "string"
+      ? JSON.parse(product.colors)
+      : product.colors || [];
+  } catch {
+    colors = [];
+  }
+
+  if (colors.length > 0) {
+    const colorsHTML = colors.map(c => `
+      <span style="
+        display:inline-block;
+        width:14px;
+        height:14px;
+        border-radius:50%;
+        background:${c.toLowerCase()};
+        margin-right:5px;
+      "></span>
+    `).join("");
+
+    specsHTML += `
+      <div>
+        <strong>Color:</strong> ${colorsHTML}
+      </div>
+    `;
+  }
+
+  if (specsHTML.trim() === "") {
+    specsContainer.style.display = "none";
+  } else {
+    specsContainer.innerHTML = specsHTML;
+  }
+
+  const isFavorite = product.is_favorite;
+
+  renderStars(
     parseFloat(product.rating_avg) || 0,
     product.user_rating || 0
   );
+
   updateRatingInfo(
     product.rating_avg || 0,
     product.rating_count || 0,
     product.user_rating || 0
   );
 
-   
-  
-   
-  
-    // =============================
-    // UI LOGIN
-    // =============================
-    const loginMessage = document.getElementById("loginMessage");
-    const commentBox = document.getElementById("commentBox");
-  
-    if (isLogged) {
-      commentBox.classList.remove("hidden");
-    } else {
-      loginMessage.classList.remove("hidden");
-    }
-  
-    // =============================
-    // DATA PRODUCTO
-    // =============================
-    document.getElementById("productImage").src = product.image_url;
-    document.getElementById("productName").innerText = product.name;
-    document.getElementById("productPrice").innerHTML =
-  window.renderPriceHTML(product);
-  
-    let description = "Sin descripción";
+  const loginMessage = document.getElementById("loginMessage");
+  const commentBox = document.getElementById("commentBox");
 
-const extraParsed = safeJSON(product.extra, {});
+  if (isLogged) {
+    commentBox.classList.remove("hidden");
+  } else {
+    loginMessage.classList.remove("hidden");
+  }
 
-if (extraParsed.description) {
-  description = extraParsed.description;
-}
+  document.getElementById("productImage").src = product.image_url;
+  document.getElementById("productName").innerText = product.name;
+  document.getElementById("productPrice").innerHTML =
+    window.renderPriceHTML(product);
 
-document.getElementById("productDescription").innerText = description;
-  
+  let description = "Sin descripción";
+  const extraParsed = safeJSON(product.extra, {});
 
-  
-    const storeLink = document.getElementById("storeLink");
-    storeLink.innerText = product.store_name;
-    storeLink.href = `/${product.store_slug}`;
-  
-    // =============================
-  // GALERÍA DE IMÁGENES
-  // =============================
-  
+  if (extraParsed.description) {
+    description = extraParsed.description;
+  }
+
+  document.getElementById("productDescription").innerText = description;
+
+  const storeLink = document.getElementById("storeLink");
+  storeLink.innerText = product.store_name;
+  storeLink.href = `/${product.store_slug}`;
+
   const mainImage = document.getElementById("productImage");
   const thumbsContainer = document.getElementById("thumbsContainer");
-  
-  // usamos images si existe, sino fallback a image_url
+
   const images = product.images && product.images.length > 0
     ? product.images
     : [product.image_url];
-  
-  // imagen principal inicial
+
   mainImage.src = images[0];
-  
-  // limpiar contenedor
   thumbsContainer.innerHTML = "";
-  
-  // crear thumbnails
-  images.forEach((imgUrl, index) => {
-  
+
+  images.forEach((imgUrl) => {
     const thumb = document.createElement("img");
-  
+
     thumb.src = imgUrl;
     thumb.className = "w-16 h-16 object-cover rounded-lg border cursor-pointer bg-white p-1";
-  
+
     thumb.onclick = () => {
       mainImage.src = imgUrl;
     };
-  
+
     thumbsContainer.appendChild(thumb);
-  
   });
-  
-    // =============================
-    // VIEWS + DETALLES
-    // =============================
-    fetch(`/api/product-view/${product.id}`, { method: "POST" });
-  
-    document.getElementById("productViews").innerText =
-      ` ${product.views || 0} vistas`;
-  
-   
-  
-    // =============================
-    // FAVORITOS
-    // =============================
-    const favBtn = document.getElementById("favBtn");
-  
-  // estado inicial
+
+  fetch(`/api/product-view/${product.id}`, { method: "POST" });
+
+  document.getElementById("productViews").innerText =
+    ` ${product.views || 0} vistas`;
+
+  const favBtn = document.getElementById("favBtn");
+
   favBtn.innerText = isFavorite ? "Guardado" : "Guardar";
-  
+
   favBtn.addEventListener("click", async () => {
-  
+
     if (!isLogged) {
       alert("Iniciá sesión primero");
       return window.location.href = "/login";
     }
-  
+
     try {
-  
+
       const isSaved = favBtn.innerText === "Guardado";
-  
+
       if (isSaved) {
-  
+
         const res = await fetch(`/api/product-favorite/${product.id}`, {
           method: "DELETE",
           credentials: "include"
         });
-  
+
         if (!res.ok) throw new Error();
-  
+
         favBtn.innerText = "Guardar";
-  
+
       } else {
-  
+
         const res = await fetch(`/api/product-favorite`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ product_id: product.id })
         });
-  
+
         if (!res.ok) throw new Error();
-  
+
         favBtn.innerText = "Guardado";
       }
-  
+
     } catch (err) {
       console.error(err);
       alert("Error");
     }
   });
-    // =============================
-  // WHATSAPP
-  // =============================
 
-    const contactBtn = document.getElementById("contactBtn");
+  const contactBtn = document.getElementById("contactBtn");
 
+  contactBtn.innerText = isLogged
+    ? "Consultar"
+    : "Registrate para consultar";
 
-if (!isLogged) {
-  contactBtn.innerText = "Registrate para consultar";
-} else {
-  contactBtn.innerText = "Consultar";
-}
   contactBtn.addEventListener("click", (e) => {
 
-  e.preventDefault(); // 🔥 ESTO ES LA CLAVE
+    e.preventDefault();
 
-  if (!isLogged) {
-    window.location.href = "/register";
-    return;
-  }
+    if (!isLogged) {
+      window.location.href = "/register";
+      return;
+    }
 
-  if (!product.store_phone) {
-    alert("Esta tienda no tiene teléfono cargado");
-    return;
-  }
+    if (!product.store_phone) {
+      alert("Esta tienda no tiene teléfono cargado");
+      return;
+    }
 
-  const telefono = product.store_phone.replace(/\D/g, "");
+    const telefono = product.store_phone.replace(/\D/g, "");
 
-  const mensaje = `Hola! Quiero consultar por este producto:
+    const mensaje = `Hola! Quiero consultar por este producto:
 
 ${product.name}
 $${parseFloat(product.price).toLocaleString()}
@@ -334,14 +288,13 @@ $${parseFloat(product.price).toLocaleString()}
 
 ${window.location.href}`;
 
-  window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
 
-});
-  
-    // =============================
-    // COMENTARIOS
-    // =============================
-    loadComments(product.id);
+  });
+
+  loadComments(product.id);
+  loadRelated(product);
+}
   
     const sendBtn = document.getElementById("sendComment");
   
