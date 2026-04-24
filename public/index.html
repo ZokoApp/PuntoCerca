@@ -43,13 +43,35 @@
 
     <!-- LINKS / AUTH DINÁMICO -->
 <div id="navAuth" class="flex items-center gap-6 text-sm">
-  <a href="/" class="hover:text-orange-600">Inicio</a>
-  <a href="/login" class="hover:text-orange-600">Login</a>
 
-  <a href="/register.html"
+  <a href="/" class="hover:text-orange-600">Inicio</a>
+
+  <!-- LOGIN -->
+  <a id="loginLink" href="/login" class="hover:text-orange-600">
+    Login
+  </a>
+
+  <!-- REGISTER -->
+  <a id="registerLink" href="/register.html"
     class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700">
     Registrate
   </a>
+
+  <!-- USER MENU (oculto por defecto) -->
+  <div id="userMenu" class="relative hidden">
+
+    <button id="userMenuBtn"
+      class="font-semibold text-gray-800">
+      <span id="userName"></span> ⌄
+    </button>
+
+    <div id="userDropdown"
+      class="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-lg hidden p-2 z-50">
+      <!-- dinámico -->
+    </div>
+
+  </div>
+
 </div>
 
   </div>
