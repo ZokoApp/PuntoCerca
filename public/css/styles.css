@@ -41,14 +41,12 @@ nav a{
   border-radius:25px;
 }
 
-/* 🔥 LOGO BIEN CONTROLADO */
 .logo-img {
-  height: 120px;
+  height: 70px;
   width: auto;
   object-fit: contain;
 }
 
-/* MOBILE */
 @media (max-width:768px){
   .logo-img {
     height: 50px;
