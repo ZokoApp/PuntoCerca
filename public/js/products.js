@@ -79,9 +79,13 @@ function renderProducts(products){
       </div>
     `;
 
-    div.addEventListener("click", () => {
-      window.location.href = `/product/${p.id}`;
-    });
+   div.addEventListener("click", () => {
+  const url = p.slug
+    ? `/product/${p.slug}`
+    : `/product/${p.id}`;
+
+  window.location.href = url;
+});
 
     container.appendChild(div);
   });
