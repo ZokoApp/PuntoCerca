@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mapa | PuntoCerca</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="/css/styles.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  #mapFull {
+    height: 100vh;
+    width: 100%;
+  }
+
+  .store-preview {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 999;
+  }
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER SIMPLE -->
+<header class="bg-white shadow px-6 py-4 flex justify-between">
+  <a href="/" class="font-bold text-orange-600 text-xl">PuntoCerca</a>
+  <a href="/" class="text-sm">Inicio</a>
+</header>
+
+<!-- MAPA -->
+<div id="mapFull"></div>
+
+<!-- PREVIEW -->
+<div id="storePreview" class="store-preview hidden"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="/js/map.js"></script>
+
+</body>
+</html>
