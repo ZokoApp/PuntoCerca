@@ -13,14 +13,38 @@ async function loadMapStores() {
 
     stores.forEach(store => {
 
-      if (!store.lat || !store.lng) return;
+  if (!store.lat || !store.lng) return;
 
-      const marker = L.marker([store.lat, store.lng]).addTo(map);
+  // 🔥 ESTADO ABIERTO / CERRADO
+  const isOpen = store.is_open;
+  const borderColor = isOpen ? "#22c55e" : "#ef4444";
 
-      marker.on("click", () => showPreview(store));
+  // 🔥 ICONO PERSONALIZADO
+  const icon = L.divIcon({
+    className: "custom-marker",
+    html: `
+      <div style="
+        width:50px;
+        height:50px;
+        border-radius:50%;
+        overflow:hidden;
+        border:3px solid ${borderColor};
+        box-shadow:0 4px 10px rgba(0,0,0,0.3);
+        background:#fff;
+      ">
+        <img src="${store.logo_url || '/img/default.png'}"
+             style="width:100%;height:100%;object-fit:cover;">
+      </div>
+    `,
+    iconSize: [50, 50],
+    iconAnchor: [25, 50]
+  });
 
-      markers.push(marker);
-    });
+  const marker = L.marker([store.lat, store.lng], { icon }).addTo(map);
+
+  marker.on("click", () => showPreview(store));
+
+});
 
   } catch (err) {
     console.error(err);
