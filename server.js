@@ -1263,53 +1263,9 @@ app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
 
 
 
+
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
   try {
-
-    
-// 🔥 obtener store_id del producto
-const productData = await pool.query(
-  `SELECT store_id FROM products WHERE id = $1 FOR UPDATE`,
-  [req.params.id]
-);
-
-const storeId = productData.rows[0]?.store_id;
-
-// 🔥 buscar última oferta de ESA TIENDA
-const lastOffer = await pool.query(
-  `SELECT offer_expires_at 
-   FROM products 
-   WHERE store_id = $1
-   AND is_offer = true
-   ORDER BY offer_expires_at DESC
-   LIMIT 1`,
-  [storeId]
-);
-
-const lastExpires = lastOffer.rows[0]?.offer_expires_at;
-
-const now = new Date();
-
-if (parsedIsOffer && lastExpires) {
-
-  const expiresDate = new Date(lastExpires);
-
-  // 🚫 oferta activa
-  if (expiresDate > now) {
-    return res.status(400).json({
-      error: "Tu tienda ya tiene una oferta activa"
-    });
-  }
-
-  // 🚫 cooldown 24h después
-  const cooldownEnd = new Date(expiresDate.getTime() + (24 * 60 * 60 * 1000));
-
-  if (now < cooldownEnd) {
-    return res.status(400).json({
-      error: "Debes esperar 24h para crear otra oferta en tu tienda"
-    });
-  }
-}
 
     const { 
       name, 
@@ -1324,47 +1280,87 @@ if (parsedIsOffer && lastExpires) {
       is_offer
     } = req.body;
 
-    // 🔥 traer precio actual desde DB
-    const current = await pool.query(
-      "SELECT price FROM products WHERE id = $1",
+    // 🔥 VALIDAR PRODUCTO
+    const productData = await pool.query(
+      `SELECT store_id, is_offer, price FROM products WHERE id = $1`,
       [req.params.id]
     );
 
-    const currentPrice = current.rows[0]?.price;
+    if (!productData.rows.length) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
 
-    // 🔥 parsear UNA SOLA VEZ
-    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-    let parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-    const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
+    const storeId = productData.rows[0].store_id;
+    const currentPrice = productData.rows[0].price;
+    const wasOffer = productData.rows[0].is_offer;
+
+    // 🔥 PARSEOS
+    const parsedPrice = price ? parseFloat(price) : null;
+    let parsedOldPrice = old_price ? parseFloat(old_price) : null;
+    const parsedStock = stock ? parseInt(stock) : null;
     const parsedIsOffer = is_offer === "true" || is_offer === true;
 
+    let parsedColors = null;
+    if (colors) {
+      try {
+        parsedColors = typeof colors === "string" ? colors : JSON.stringify(colors);
+      } catch {
+        parsedColors = null;
+      }
+    }
+
+    // 🔥 VALIDACIÓN OFERTAS
+    const lastOffer = await pool.query(
+      `SELECT offer_expires_at 
+       FROM products 
+       WHERE store_id = $1
+       AND is_offer = true
+       ORDER BY offer_expires_at DESC
+       LIMIT 1`,
+      [storeId]
+    );
+
+    const lastExpires = lastOffer.rows[0]?.offer_expires_at;
+    const now = new Date();
+
+    if (parsedIsOffer && lastExpires) {
+      const expiresDate = new Date(lastExpires);
+
+      if (expiresDate > now) {
+        return res.status(400).json({
+          error: "Tu tienda ya tiene una oferta activa"
+        });
+      }
+
+      const cooldownEnd = new Date(expiresDate.getTime() + (24 * 60 * 60 * 1000));
+
+      if (now < cooldownEnd) {
+        return res.status(400).json({
+          error: "Debes esperar 24h para crear otra oferta"
+        });
+      }
+    }
+
+    // 🔥 FECHAS OFERTA
     let offerCreatedAt = null;
-let offerExpiresAt = null;
+    let offerExpiresAt = null;
 
-// 🔥 traer estado actual
-const currentOffer = await pool.query(
-  "SELECT is_offer FROM products WHERE id = $1",
-  [req.params.id]
-);
+    if (parsedIsOffer && !wasOffer) {
+      offerCreatedAt = new Date();
+      offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
 
-const wasOffer = currentOffer.rows[0]?.is_offer;
+    if (!parsedIsOffer && wasOffer) {
+      offerCreatedAt = null;
+      offerExpiresAt = null;
+    }
 
-// 🔥 lógica de transición
-if (parsedIsOffer && !wasOffer) {
-  offerCreatedAt = new Date();
-  offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-}
-
-if (!parsedIsOffer && wasOffer) {
-  offerCreatedAt = null;
-  offerExpiresAt = null;
-}
-
-    // 🔥 AUTO-DESCUENTO
+    // 🔥 AUTO DESCUENTO
     if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
       parsedOldPrice = currentPrice;
     }
 
+    // 🔥 IMÁGENES
     let images = [];
 
     if (req.files && req.files.length > 0) {
@@ -1374,6 +1370,7 @@ if (!parsedIsOffer && wasOffer) {
     const mainImage = images[0] || null;
     const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
 
+    // 🔥 UPDATE
     const result = await pool.query(
       `UPDATE products
        SET 
@@ -1387,37 +1384,30 @@ if (!parsedIsOffer && wasOffer) {
          category = COALESCE($8, category),
          colors = COALESCE($9, colors),
          is_offer = COALESCE($10, is_offer),
-
-        offer_created_at = COALESCE($11, offer_created_at),
-        offer_expires_at = COALESCE($12, offer_expires_at),
-
-        image_url = COALESCE($13, image_url),
-        images = COALESCE($14, images)
-
-        WHERE id = $15
+         offer_created_at = COALESCE($11, offer_created_at),
+         offer_expires_at = COALESCE($12, offer_expires_at),
+         image_url = COALESCE($13, image_url),
+         images = COALESCE($14, images)
+       WHERE id = $15
        RETURNING *`,
       [
-  name || null,
-  parsedPrice,
-  parsedOldPrice,
-  brand || null,
-  size || null,
-  parsedStock,
-  extra || null,
-  category || null,
-  colors || null,
-  parsedIsOffer,
-  offerCreatedAt,
-  offerExpiresAt,
-  mainImage,
-  imagesValue,
-  req.params.id
-]
+        name || null,
+        parsedPrice,
+        parsedOldPrice,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        category || null,
+        parsedColors,
+        parsedIsOffer,
+        offerCreatedAt,
+        offerExpiresAt,
+        mainImage,
+        imagesValue,
+        req.params.id
+      ]
     );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
 
     res.json(result.rows[0]);
 
