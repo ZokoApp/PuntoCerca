@@ -1269,7 +1269,7 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
     
 // 🔥 obtener store_id del producto
 const productData = await pool.query(
-  `SELECT store_id FROM products WHERE id = $1`,
+  `SELECT store_id FROM products WHERE id = $1 FOR UPDATE`,
   [req.params.id]
 );
 
