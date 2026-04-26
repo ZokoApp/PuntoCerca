@@ -612,7 +612,7 @@ if (countEl) {
     comments.forEach(c => {
       const div = document.createElement("div");
 
-      div.innerHTML = `
+     div.innerHTML = `
   <div style="
     display:flex;
     gap:10px;
@@ -626,12 +626,26 @@ if (countEl) {
       style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
     />
 
-    <div>
+    <div style="flex:1;">
       <strong>${c.name}</strong>
       <div style="font-size:12px;color:#888;">
         ${new Date(c.created_at).toLocaleDateString()}
       </div>
-      <p style="margin:5px 0;">${c.content}</p>
+
+      <p style="margin:5px 0;" id="comment-text-${c.id}">
+        ${c.content}
+      </p>
+
+      ${
+        isMine
+        ? `
+        <div style="display:flex; gap:10px; margin-top:5px;">
+          <button onclick="deleteComment(${c.id})" style="color:red;">Eliminar</button>
+        </div>
+        `
+        : ""
+      }
+
     </div>
   </div>
 `;
@@ -785,6 +799,25 @@ fetch(`/api/store-followers/${store.id}`)
   });
 }
 
+async function deleteComment(commentId) {
+  if (!confirm("¿Eliminar comentario?")) return;
 
+  try {
+    const res = await fetch(`/api/stores/comments/${commentId}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!res.ok) {
+      alert("Error eliminando");
+      return;
+    }
+
+    loadStoreComments(storeData.id);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 
