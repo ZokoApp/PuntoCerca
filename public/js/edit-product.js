@@ -1,72 +1,198 @@
 import { showToast } from "/js/utils/toast.js";
+import { CATEGORIES } from "/js/data/categories.js";
 
-const productId = window.location.pathname.split("/").pop();
+const param = window.location.pathname.split("/").pop();
 
-if (!productId || productId === "null") {
+if (!param || param === "null") {
   showToast("ID de producto inválido", "error");
   throw new Error("ID inválido");
 }
 
-// cargar producto
-async function loadProduct() {
-  const res = await fetch(`/api/products/${productId}`);
+// 🔥 detectar ID o SLUG (PRO)
+const isId = !isNaN(param);
 
-if (!res.ok) {
-  showToast("Error cargando producto", "error");
-  return;
+const GET_URL = isId
+  ? `/api/products/${param}`
+  : `/api/products/slug/${param}`;
+
+const UPDATE_URL = isId
+  ? `/api/products/${param}`
+  : `/api/products/${param}`; // ⚠️ backend solo soporta ID en PUT
+
+// ============================
+// CATEGORÍAS DINÁMICAS
+// ============================
+
+function loadCategories(selectedCategory, selectedSub = null) {
+
+  const catSelect = document.getElementById("category");
+  const subSelect = document.getElementById("subcategory");
+  const subContainer = document.getElementById("subcategoriesContainer");
+
+  if (!catSelect) return;
+
+  catSelect.innerHTML = `<option value="">Seleccionar categoría</option>`;
+
+  Object.keys(CATEGORIES).forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+
+    if (cat === selectedCategory) option.selected = true;
+
+    catSelect.appendChild(option);
+  });
+
+  if (selectedCategory && CATEGORIES[selectedCategory]) {
+
+    subContainer.classList.remove("hidden");
+
+    subSelect.innerHTML = `<option value="">Subcategoría</option>`;
+
+    CATEGORIES[selectedCategory].forEach(sub => {
+      const option = document.createElement("option");
+      option.value = sub.id;
+      option.textContent = sub.name;
+
+      if (sub.id == selectedSub) option.selected = true;
+
+      subSelect.appendChild(option);
+    });
+
+  } else {
+    subContainer.classList.add("hidden");
+  }
+
+  catSelect.addEventListener("change", () => {
+    loadCategories(catSelect.value);
+  });
 }
 
-const product = await res.json();
+// ============================
+// CARGAR PRODUCTO
+// ============================
 
-  document.getElementById("name").value = product.name;
-  document.getElementById("price").value = product.price;
-  document.getElementById("old_price").value = product.old_price || "";
-  document.getElementById("brand").value = product.brand || "";
-  document.getElementById("size").value = product.size || "";
-  document.getElementById("stock").value = product.stock || "";
-  document.getElementById("extra").value = product.extra || "";
-  document.getElementById("category").value = product.category || "";
-  document.getElementById("isOffer").checked = product.is_offer;
+async function loadProduct() {
+  try {
+
+    const res = await fetch(GET_URL);
+
+    if (!res.ok) {
+      showToast("Error cargando producto", "error");
+      return;
+    }
+
+    const product = await res.json();
+
+    // 🔥 preview nombre
+    const titlePreview = document.getElementById("productTitlePreview");
+    if (titlePreview) {
+      titlePreview.innerText = product.name;
+    }
+
+    document.getElementById("name").value = product.name || "";
+    document.getElementById("price").value = product.price || "";
+    document.getElementById("old_price").value = product.old_price || "";
+    document.getElementById("brand").value = product.brand || "";
+    document.getElementById("size").value = product.size || "";
+    document.getElementById("stock").value = product.stock || "";
+    document.getElementById("isOffer").checked = product.is_offer;
+
+    // 🔥 DESCRIPCIÓN LIMPIA (clave)
+    let description = "";
+
+    try {
+      const parsed = typeof product.extra === "string"
+        ? JSON.parse(product.extra)
+        : product.extra;
+
+      description = parsed?.description || product.extra || "";
+    } catch {
+      description = product.extra || "";
+    }
+
+    document.getElementById("extra").value = description;
+
+    // 🔥 categorías dinámicas
+    loadCategories(product.category, product.subcategory_id);
+
+    // 🔥 botón ver producto
+    const viewBtn = document.getElementById("viewProductBtn");
+    if (viewBtn) {
+      viewBtn.href = `/product/${product.slug || product.id}`;
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error cargando producto", "error");
+  }
 }
 
 loadProduct();
 
-// submit
+// ============================
+// SUBMIT
+// ============================
+
 document.getElementById("editProductForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const formData = new FormData();
+  const saveBtn = document.getElementById("saveBtn");
+  const overlay = document.getElementById("loadingOverlay");
 
-  formData.append("name", document.getElementById("name").value);
-  formData.append("price", document.getElementById("price").value);
-  formData.append("old_price", document.getElementById("old_price").value);
-  formData.append("brand", document.getElementById("brand").value);
-  formData.append("size", document.getElementById("size").value);
-  formData.append("stock", document.getElementById("stock").value);
-  formData.append("extra", document.getElementById("extra").value);
-  formData.append("category", document.getElementById("category").value);
-  formData.append("is_offer", document.getElementById("isOffer").checked);
+  try {
 
-  const files = document.getElementById("images").files;
+    saveBtn.disabled = true;
+    overlay?.classList.remove("hidden");
 
-  for (let i = 0; i < files.length; i++) {
-    formData.append("images", files[i]);
+    const formData = new FormData();
+
+    formData.append("name", document.getElementById("name").value);
+    formData.append("price", document.getElementById("price").value);
+    formData.append("old_price", document.getElementById("old_price").value);
+    formData.append("brand", document.getElementById("brand").value);
+    formData.append("size", document.getElementById("size").value);
+    formData.append("stock", document.getElementById("stock").value);
+
+    // 🔥 guardar como JSON limpio
+    formData.append("extra", JSON.stringify({
+      description: document.getElementById("extra").value
+    }));
+
+    formData.append("category", document.getElementById("category").value);
+
+    const subcategory = document.getElementById("subcategory")?.value;
+    if (subcategory) {
+      formData.append("subcategory_id", subcategory);
+    }
+
+    formData.append("is_offer", document.getElementById("isOffer").checked);
+
+    const files = document.getElementById("images").files;
+
+    for (let i = 0; i < files.length; i++) {
+      formData.append("images", files[i]);
+    }
+
+    const res = await fetch(UPDATE_URL, {
+      method: "PUT",
+      credentials: "include",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error();
+
+    showToast("Producto actualizado", "success");
+
+    setTimeout(() => {
+      window.location.href = `/product/${param}`;
+    }, 1500);
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error actualizando producto", "error");
+  } finally {
+    saveBtn.disabled = false;
+    overlay?.classList.add("hidden");
   }
-
-  const res = await fetch(`/api/products/${productId}`, {
-    method: "PUT",
-    credentials: "include",
-    body: formData
-  });
-
-if (res.ok) {
-  showToast("Producto actualizado", "success");
-
-  setTimeout(() => {
-    window.location.href = `/product/${productId}`;
-  }, 1500);
-
-} else {
-  showToast("Error actualizando producto", "error");
-}
 });
