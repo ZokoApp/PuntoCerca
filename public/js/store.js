@@ -4,6 +4,7 @@
 let currentUser = null;
 let isOwner = false;
 let storeData = null;
+let storeIdGlobal = null;
 
 const CATEGORY_MAP = {
   "Gastronomía": [
@@ -203,6 +204,24 @@ if (pathParts[1] === "store") {
 ================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+  // 🟣 MODAL COMENTARIOS
+const openModalBtn = document.getElementById("openStoreCommentsModal");
+const closeModalBtn = document.getElementById("closeStoreCommentsModal");
+const modal = document.getElementById("storeCommentsModal");
+
+if (openModalBtn && modal) {
+  openModalBtn.onclick = () => {
+    modal.classList.remove("hidden");
+  };
+}
+
+if (closeModalBtn && modal) {
+  closeModalBtn.onclick = () => {
+    modal.classList.add("hidden");
+  };
+}
+  
   await loadUser();
   await loadStore();
 
@@ -263,7 +282,8 @@ handleUIByRole(store);
 
     // ⭐ REVIEWS
 loadStoreRating(store.id);
-loadStoreComments(store.id);
+
+storeIdGlobal = store.id;
 
 // mostrar caja de comentario
 const loginMsg = document.getElementById("storeLoginMessage");
@@ -573,6 +593,11 @@ async function loadStoreComments(storeId) {
 
     const comments = await res.json();
     const container = document.getElementById("storeCommentsContainer");
+const countEl = document.getElementById("commentsCount");
+
+if (countEl) {
+  countEl.innerText = comments.length;
+}
 
     if (!container) return;
 
@@ -587,19 +612,28 @@ async function loadStoreComments(storeId) {
       const div = document.createElement("div");
 
       div.innerHTML = `
-        <div style="display:flex;gap:10px;margin-bottom:15px;">
-          <img src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
-               style="width:40px;height:40px;border-radius:50%;" />
-          <div>
-            <strong>${c.name}</strong>
-            <div style="font-size:12px;color:#888;">
-              ${new Date(c.created_at).toLocaleDateString()}
-            </div>
-            <p style="margin:5px 0;">${c.content}</p>
-          </div>
-        </div>
-      `;
+  <div style="
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+    padding:10px;
+    border-radius:10px;
+    background:#f9fafb;
+  ">
+    <img 
+      src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+      style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+    />
 
+    <div>
+      <strong>${c.name}</strong>
+      <div style="font-size:12px;color:#888;">
+        ${new Date(c.created_at).toLocaleDateString()}
+      </div>
+      <p style="margin:5px 0;">${c.content}</p>
+    </div>
+  </div>
+`;
       container.appendChild(div);
     });
 
