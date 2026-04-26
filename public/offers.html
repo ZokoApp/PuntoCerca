@@ -1,118 +1,188 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ofertas - PuntoCerca</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<title>Ofertas del día | PuntoCerca</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
- <style>
-  body {
-    font-family: Arial;
-    background: #f5f5f5;
-    margin: 0;
-  }
+<link rel="icon" type="image/png" href="/img/favicon.png">
 
-  header {
-    background: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #eee;
-  }
+<style>
 
-  .logo {
-    color: #ff6600;
-    font-weight: bold;
-    font-size: 20px;
-  }
+/* ================= BASE ================= */
 
-  .container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-  }
-
-  h1 {
-    margin-bottom: 20px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-  }
-
-  .card {
-    background: white;
-    border-radius: 14px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #eee;
-  }
-
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  }
-
-  .img-box {
-    height: 180px;
-    background: #fafafa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .img-box img {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-  }
-
-  .card-body {
-    padding: 12px;
-  }
-
-  .product-name {
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #333;
-  }
-
-  .price {
-    color: #ff6600;
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .store {
-    font-size: 12px;
-    color: #777;
-    margin-top: 4px;
-  }
-
-  .badge {
-    background: #ff3b30;
-    color: white;
-    font-size: 10px;
-    padding: 3px 6px;
-    border-radius: 6px;
-    margin-left: 6px;
-  }
-
-   .old-price {
-  text-decoration: line-through;
-  color: #999;
-  font-size: 13px;
-  margin-right: 6px;
+body {
+  font-family: 'Segoe UI', Arial;
+  background: #f5f5f5;
+  margin: 0;
+  color: #333;
 }
+
+/* ================= HEADER ================= */
+
+header {
+  background: white;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff6a00;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #555;
+  margin-left: 20px;
+  font-size: 14px;
+}
+
+.nav a:hover {
+  color: #ff6a00;
+}
+
+/* ================= CONTAINER ================= */
+
+.container {
+  padding: 30px 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+/* ================= FILTROS ================= */
+
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.filters input,
+.filters select {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.filters input {
+  flex: 1;
+}
+
+/* ================= GRID ================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* ================= CARD ================= */
+
+.card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid #eee;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+}
+
+/* ================= IMAGE ================= */
+
+.img-box {
+  height: 180px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.img-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ================= BADGE ================= */
+
+.badge-offer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #ff3b30;
+  color: white;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+/* ================= BODY ================= */
+
+.card-body {
+  padding: 12px;
+}
+
+.product-name {
+  font-size: 14px;
+  font-weight: 600;
+  height: 36px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.store {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+/* ================= PRICE ================= */
 
 .price-row {
   display: flex;
   align-items: center;
   gap: 6px;
 }
+
+.old-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 13px;
+}
+
+.price {
+  color: #ff6a00;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* ================= EMPTY ================= */
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}
+
 </style>
 </head>
 
@@ -120,29 +190,32 @@
 
 <header>
   <div class="logo">PuntoCerca</div>
-  <div>
+
+  <div class="nav">
     <a href="/">Inicio</a>
+    <a href="/products">Productos</a>
+    <a href="/stores">Tiendas</a>
   </div>
 </header>
 
 <div class="container">
+
   <h1>🔥 Ofertas del día</h1>
 
   <!-- FILTROS -->
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+  <div class="filters">
     
     <input 
       type="text" 
       id="searchInput"
       placeholder="Buscar producto..."
-      style="padding:10px;border-radius:8px;border:1px solid #ddd;flex:1;"
     />
 
-    <select id="storeFilter" style="padding:10px;border-radius:8px;border:1px solid #ddd;">
+    <select id="storeFilter">
       <option value="">Todas las tiendas</option>
     </select>
 
-    <select id="sortPrice" style="padding:10px;border-radius:8px;border:1px solid #ddd;">
+    <select id="sortPrice">
       <option value="">Ordenar</option>
       <option value="asc">Precio menor a mayor</option>
       <option value="desc">Precio mayor a menor</option>
@@ -150,8 +223,11 @@
 
   </div>
 
+  <!-- GRID -->
   <div id="offersGrid" class="grid"></div>
+
 </div>
+
 <script src="/js/utils/prices.js"></script> 
 <script src="/js/offers.js"></script>
 
