@@ -267,7 +267,7 @@ if (!param) {
 
   contactBtn.innerText = isLogged
     ? "Consultar"
-    : "Registrate para consultar";
+    : "Registrate para consultar por Whatsapp";
 
   contactBtn.addEventListener("click", (e) => {
 
