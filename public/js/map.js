@@ -55,23 +55,76 @@ function showPreview(store){
 
   const preview = document.getElementById("storePreview");
 
-  preview.innerHTML = `
-    <div style="display:flex;gap:10px;align-items:center;">
-      <img src="${store.logo_url || '/img/default.png'}"
-           style="width:50px;height:50px;border-radius:10px;object-fit:cover;">
-      
-      <div>
-        <strong>${store.name}</strong><br>
-        <span style="font-size:12px;color:#666;">${store.category || ""}</span>
-      </div>
-    </div>
+  const isOpen = store.is_open;
+  const statusText = isOpen ? "🟢 Abierto ahora" : "🔴 Cerrado";
+  const statusColor = isOpen ? "#22c55e" : "#ef4444";
 
-    <div style="margin-top:10px;">
-      <a href="/${store.slug}" 
-         style="display:block;text-align:center;
-         background:#ff6a00;color:white;padding:8px;border-radius:10px;">
-         Ver tienda
-      </a>
+  preview.innerHTML = `
+    <div style="
+      background:white;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+    ">
+
+      <!-- COVER -->
+      <div style="
+        height:120px;
+        background:url('${store.cover_url || "/img/hero.png"}') center/cover;
+        position:relative;
+      ">
+        <div style="
+          position:absolute;
+          top:10px;
+          left:10px;
+          background:${statusColor};
+          color:white;
+          padding:4px 10px;
+          border-radius:999px;
+          font-size:12px;
+        ">
+          ${statusText}
+        </div>
+      </div>
+
+      <!-- CONTENIDO -->
+      <div style="padding:12px">
+
+        <div style="display:flex;gap:10px;align-items:center;">
+          <img src="${store.logo_url || '/img/default.png'}"
+               style="width:50px;height:50px;border-radius:10px;object-fit:cover;">
+
+          <div>
+            <strong>${store.name}</strong><br>
+            <span style="font-size:12px;color:#666;">
+              ${store.category || ""}
+            </span>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;font-size:13px;color:#555;">
+          📍 ${store.street || "Sin dirección"}
+        </div>
+
+        <div style="margin-top:5px;font-size:13px;">
+          ⭐ ${store.rating_avg || "0"} (${store.rating_count || 0})
+        </div>
+
+        <a href="/${store.slug}" 
+           style="
+            display:block;
+            margin-top:12px;
+            text-align:center;
+            background:#ff6a00;
+            color:white;
+            padding:10px;
+            border-radius:12px;
+            font-weight:bold;
+           ">
+          Ver tienda
+        </a>
+
+      </div>
     </div>
   `;
 
