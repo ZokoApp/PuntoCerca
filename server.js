@@ -1079,13 +1079,20 @@ const parsedStock = stock && stock !== "" && !isNaN(stock)
 
     const mainImage = images[0] || null;
 
-    const parsedIsOffer = is_offer === "true" || is_offer === true;
-const offerCreatedAt = parsedIsOffer ? new Date() : null;
+    let offerCreatedAt = null;
+let offerExpiresAt = null;
+
+const parsedIsOffer = is_offer === "true" || is_offer === true;
+
+if (parsedIsOffer) {
+  offerCreatedAt = new Date();
+  offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+}
 
 const result = await pool.query(
   `INSERT INTO products
-  (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, slug)
-  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+    (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
   RETURNING *`,
   [
     name,
@@ -1103,6 +1110,7 @@ const result = await pool.query(
     subcategory_id || null,
     parsedIsOffer,
     offerCreatedAt,
+    offerExpiresAt,
     slug
   ]
 );
@@ -1285,6 +1293,28 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
     const parsedStock = stock && !isNaN(stock) ? parseInt(stock) : null;
     const parsedIsOffer = is_offer === "true" || is_offer === true;
 
+    let offerCreatedAt = null;
+let offerExpiresAt = null;
+
+// 🔥 traer estado actual
+const currentOffer = await pool.query(
+  "SELECT is_offer FROM products WHERE id = $1",
+  [req.params.id]
+);
+
+const wasOffer = currentOffer.rows[0]?.is_offer;
+
+// 🔥 lógica de transición
+if (parsedIsOffer && !wasOffer) {
+  offerCreatedAt = new Date();
+  offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+}
+
+if (!parsedIsOffer && wasOffer) {
+  offerCreatedAt = null;
+  offerExpiresAt = null;
+}
+
     // 🔥 AUTO-DESCUENTO
     if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
       parsedOldPrice = currentPrice;
@@ -1312,25 +1342,32 @@ app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (r
          category = COALESCE($8, category),
          colors = COALESCE($9, colors),
          is_offer = COALESCE($10, is_offer),
-         image_url = COALESCE($11, image_url),
-         images = COALESCE($12, images)
-       WHERE id = $13
+
+        offer_created_at = COALESCE($11, offer_created_at),
+        offer_expires_at = COALESCE($12, offer_expires_at),
+
+        image_url = COALESCE($13, image_url),
+        images = COALESCE($14, images)
+
+        WHERE id = $15
        RETURNING *`,
       [
-        name || null,
-        parsedPrice,
-        parsedOldPrice,
-        brand || null,
-        size || null,
-        parsedStock,
-        extra || null,
-        category || null,
-        colors || null,
-        parsedIsOffer,
-        mainImage,
-        imagesValue,
-        req.params.id
-      ]
+  name || null,
+  parsedPrice,
+  parsedOldPrice,
+  brand || null,
+  size || null,
+  parsedStock,
+  extra || null,
+  category || null,
+  colors || null,
+  parsedIsOffer,
+  offerCreatedAt,
+  offerExpiresAt,
+  mainImage,
+  imagesValue,
+  req.params.id
+]
     );
 
     if (!result.rows.length) {
@@ -2320,6 +2357,17 @@ GROUP BY products.id, stores.name
 app.get('/api/daily-offers', async (req, res) => {
   try {
 
+    // 🔥 1. Expirar ofertas vencidas de verdad
+    await pool.query(`
+      UPDATE products
+      SET 
+        is_offer = false
+      WHERE is_offer = true
+      AND offer_expires_at IS NOT NULL
+      AND offer_expires_at <= NOW()
+    `);
+
+    // 🔥 2. Traer solo ofertas activas
     const result = await pool.query(`
       SELECT 
         p.id AS product_id,
@@ -2330,6 +2378,7 @@ app.get('/api/daily-offers', async (req, res) => {
         p.image_url,
         p.store_id,
         p.offer_created_at,
+        p.offer_expires_at,
         s.name AS store_name,
         AVG(r.rating) AS rating_avg,
         COUNT(r.rating) AS rating_count
@@ -2337,17 +2386,17 @@ app.get('/api/daily-offers', async (req, res) => {
       JOIN stores s ON s.id = p.store_id
       LEFT JOIN product_ratings r ON r.product_id = p.id
       WHERE p.is_offer = true
-      AND p.offer_created_at IS NOT NULL
-      AND p.offer_created_at > NOW() - INTERVAL '24 hours'
+      AND p.offer_expires_at IS NOT NULL
+      AND p.offer_expires_at > NOW()
       GROUP BY p.id, s.name
-      ORDER BY p.offer_created_at DESC
+      ORDER BY p.offer_expires_at ASC
       LIMIT 8
     `);
 
     res.json(result.rows);
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR DAILY OFFERS:", error);
     res.status(500).json({ error: "Error obteniendo ofertas" });
   }
 });
