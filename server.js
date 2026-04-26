@@ -1772,6 +1772,30 @@ app.delete('/api/follow/:storeId', authMiddleware, async (req, res) => {
 
 });
 
+app.delete('/api/stores/comments/:id', authMiddleware, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      `DELETE FROM store_comments 
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [commentId, userId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    res.json({ message: "Comentario eliminado" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error eliminando comentario" });
+  }
+});
+
 app.get('/api/following', authMiddleware, async (req, res) => {
 
   try {
