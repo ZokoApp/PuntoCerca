@@ -54,7 +54,33 @@ export function loadProducts(){
   })
   .catch(err => console.error("Error cargando productos:", err));
 }
+function startOfferTimers() {
+  const timers = document.querySelectorAll(".offer-timer");
 
+  timers.forEach(timer => {
+
+    const expire = new Date(timer.dataset.expire);
+
+    function update() {
+      const now = new Date();
+      const diff = expire - now;
+
+      if (diff <= 0) {
+        timer.innerHTML = "⛔ Oferta finalizada";
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      timer.innerHTML = `⏳ ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    update();
+    setInterval(update, 1000);
+  });
+}
 
 // ============================
 // OFERTAS DEL DÍA
@@ -85,12 +111,16 @@ export function loadOffers(){
     <div class="product-store">${offer.store_name || ""}</div>
 
     <div class="product-price">
-      ${window.renderPriceHTML({
-        price: offer.price,
-        old_price: offer.old_price,
-        is_offer: true
-      })}
-    </div>
+  ${window.renderPriceHTML({
+    price: offer.price,
+    old_price: offer.old_price,
+    is_offer: true
+  })}
+</div>
+
+${offer.offer_expires_at ? `
+  <div class="offer-timer" data-expire="${offer.offer_expires_at}"></div>
+` : ""}
 
     <div class="product-rating">
       ${
@@ -108,6 +138,7 @@ export function loadOffers(){
 
       container.appendChild(card);
     });
+    startOfferTimers();
 
   })
   .catch(err => console.error("Error cargando ofertas:", err));
