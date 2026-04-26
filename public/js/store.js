@@ -283,7 +283,7 @@ handleUIByRole(store);
     // ⭐ REVIEWS
 loadStoreRating(store.id);
 
-storeIdGlobal = store.id;
+
 
 // mostrar caja de comentario
 const loginMsg = document.getElementById("storeLoginMessage");
