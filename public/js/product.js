@@ -170,6 +170,12 @@ if (!param) {
   document.getElementById("productPrice").innerHTML =
     window.renderPriceHTML(product);
 
+    if (product.is_offer && product.offer_expires_at) {
+  document.getElementById("productPrice").innerHTML += `
+    <div class="offer-timer" data-expire="${product.offer_expires_at}"></div>
+  `;
+}
+
   let description = "Sin descripción";
   const extraParsed = safeJSON(product.extra, {});
 
@@ -294,6 +300,7 @@ ${window.location.href}`;
 
   loadComments(product.id);
   loadRelated(product);
+    startOfferTimers();
 }
   
     const sendBtn = document.getElementById("sendComment");
@@ -614,7 +621,33 @@ ${window.location.href}`;
   // INIT
   init();
   
-  
+  function startOfferTimers() {
+  const timers = document.querySelectorAll(".offer-timer");
+
+  timers.forEach(timer => {
+
+    const expire = new Date(timer.dataset.expire);
+
+    function update() {
+      const now = new Date();
+      const diff = expire - now;
+
+      if (diff <= 0) {
+        timer.innerHTML = "⛔ Oferta finalizada";
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      timer.innerHTML = `⏳ ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    update();
+    setInterval(update, 1000);
+  });
+}
   
   // =============================
   // ZOOM
