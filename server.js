@@ -405,20 +405,31 @@ app.post('/api/stores',
   try {
 
     const { 
-      name, 
-      description, 
-      phone, 
-      city, 
-      category, 
-      subcategory_ids,
-      street,
-      local,
-      apartment,
-      reference_notes,
-      lat,
-      lng
-    } = req.body;
-    let subcategoriesToSave = null;
+  name, 
+  description, 
+  phone, 
+  city, 
+  category, 
+  subcategory_ids,
+  street,
+  local,
+  apartment,
+  reference_notes,
+  lat,
+  lng
+} = req.body;
+
+let opening_hours = null;
+
+if (req.body.opening_hours) {
+  try {
+    opening_hours = JSON.parse(req.body.opening_hours);
+  } catch (e) {
+    opening_hours = null;
+  }
+}
+
+let subcategoriesToSave = null;
 
 if (subcategory_ids) {
   try {
