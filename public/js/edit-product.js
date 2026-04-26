@@ -1,10 +1,22 @@
-const productId = window.location.pathname.split("/").pop();
 import { showToast } from "/js/utils/toast.js";
+
+const productId = window.location.pathname.split("/").pop();
+
+if (!productId || productId === "null") {
+  showToast("ID de producto inválido", "error");
+  throw new Error("ID inválido");
+}
 
 // cargar producto
 async function loadProduct() {
   const res = await fetch(`/api/products/${productId}`);
-  const product = await res.json();
+
+if (!res.ok) {
+  showToast("Error cargando producto", "error");
+  return;
+}
+
+const product = await res.json();
 
   document.getElementById("name").value = product.name;
   document.getElementById("price").value = product.price;
@@ -51,7 +63,7 @@ if (res.ok) {
   showToast("Producto actualizado", "success");
 
   setTimeout(() => {
-    window.location.href = "/dashboard";
+    window.location.href = `/product/${productId}`;
   }, 1500);
 
 } else {
