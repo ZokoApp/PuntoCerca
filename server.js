@@ -1266,6 +1266,51 @@ app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
   try {
 
+    
+// 🔥 obtener store_id del producto
+const productData = await pool.query(
+  `SELECT store_id FROM products WHERE id = $1`,
+  [req.params.id]
+);
+
+const storeId = productData.rows[0]?.store_id;
+
+// 🔥 buscar última oferta de ESA TIENDA
+const lastOffer = await pool.query(
+  `SELECT offer_expires_at 
+   FROM products 
+   WHERE store_id = $1
+   AND is_offer = true
+   ORDER BY offer_expires_at DESC
+   LIMIT 1`,
+  [storeId]
+);
+
+const lastExpires = lastOffer.rows[0]?.offer_expires_at;
+
+const now = new Date();
+
+if (parsedIsOffer && lastExpires) {
+
+  const expiresDate = new Date(lastExpires);
+
+  // 🚫 oferta activa
+  if (expiresDate > now) {
+    return res.status(400).json({
+      error: "Tu tienda ya tiene una oferta activa"
+    });
+  }
+
+  // 🚫 cooldown 24h después
+  const cooldownEnd = new Date(expiresDate.getTime() + (24 * 60 * 60 * 1000));
+
+  if (now < cooldownEnd) {
+    return res.status(400).json({
+      error: "Debes esperar 24h para crear otra oferta en tu tienda"
+    });
+  }
+}
+
     const { 
       name, 
       price, 
