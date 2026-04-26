@@ -18,7 +18,7 @@ async function loadOffers() {
 
 function renderProducts(products) {
 
-  const grid = document.getElementById("dailyOffers");
+  const grid = document.getElementById("offersGrid");
   grid.innerHTML = "";
 
   if (!products.length) {
@@ -30,13 +30,7 @@ function renderProducts(products) {
 
     const card = document.createElement("div");
 
- card.className = `
-  min-w-[160px] 
-  max-w-[160px]
-  flex-shrink-0
-  bg-white rounded-xl shadow hover:shadow-lg 
-  overflow-hidden transition cursor-pointer
-`;
+ const grid = document.getElementById("offersGrid");
 
     card.innerHTML = `
       <div class="relative">
