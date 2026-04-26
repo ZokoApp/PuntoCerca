@@ -1674,31 +1674,7 @@ app.post("/api/reset-password", async (req, res) => {
 
 });
 
-app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
 
-  const { content } = req.body;
-  const storeId = req.params.id;
-  const userId = req.user.id;
-
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ error: "Comentario vacío" });
-  }
-
-  try {
-
-    await pool.query(
-      `INSERT INTO store_comments (store_id, user_id, content)
-       VALUES ($1,$2,$3)`,
-      [storeId, userId, content]
-    );
-
-    res.json({ message: "Comentario agregado" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error comentando tienda" });
-  }
-});
 app.get('/api/stores/:id/comments', async (req, res) => {
   try {
 
