@@ -2429,23 +2429,26 @@ app.get('/api/daily-offers', async (req, res) => {
 
     const result = await pool.query(`
       SELECT 
-  p.id AS product_id,
-  p.slug,
-  p.name AS product_name,
-  p.price,
-  p.old_price, -- 🔥 AGREGÁ ESTO
-  p.image_url,
-  p.store_id,
-  s.name AS store_name,
-  AVG(r.rating) AS rating_avg,
-  COUNT(r.rating) AS rating_count
-FROM products p
-JOIN stores s ON s.id = p.store_id
-LEFT JOIN product_ratings r ON r.product_id = p.id
-WHERE p.is_offer = true
-GROUP BY p.id, s.name
-ORDER BY RANDOM()
-LIMIT 8
+        p.id AS product_id,
+        p.slug,
+        p.name AS product_name,
+        p.price,
+        p.old_price,
+        p.image_url,
+        p.store_id,
+        p.offer_created_at,
+        s.name AS store_name,
+        AVG(r.rating) AS rating_avg,
+        COUNT(r.rating) AS rating_count
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
+      LEFT JOIN product_ratings r ON r.product_id = p.id
+      WHERE p.is_offer = true
+      AND p.offer_created_at IS NOT NULL
+      AND p.offer_created_at > NOW() - INTERVAL '24 hours'
+      GROUP BY p.id, s.name
+      ORDER BY p.offer_created_at DESC
+      LIMIT 8
     `);
 
     res.json(result.rows);
