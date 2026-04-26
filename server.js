@@ -1079,10 +1079,13 @@ const parsedStock = stock && stock !== "" && !isNaN(stock)
 
     const mainImage = images[0] || null;
 
-    const result = await pool.query(
+    const parsedIsOffer = is_offer === "true" || is_offer === true;
+const offerCreatedAt = parsedIsOffer ? new Date() : null;
+
+const result = await pool.query(
   `INSERT INTO products
-  (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, slug)
-  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+  (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, slug)
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
   RETURNING *`,
   [
     name,
@@ -1097,8 +1100,9 @@ const parsedStock = stock && stock !== "" && !isNaN(stock)
     extra || null,
     colors || "[]",
     category || null,
-    subcategory_id || null, // 🔥 CLAVE
-    is_offer === "true" || is_offer === true,
+    subcategory_id || null,
+    parsedIsOffer,
+    offerCreatedAt,
     slug
   ]
 );
@@ -1110,31 +1114,7 @@ const parsedStock = stock && stock !== "" && !isNaN(stock)
   }
 });
 
-app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
 
-  const { content } = req.body;
-  const productId = req.params.id;
-  const userId = req.user.id;
-
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ error: "Comentario vacío" });
-  }
-
-  try {
-
-    await pool.query(
-      `INSERT INTO comments (product_id, user_id, content)
-       VALUES ($1,$2,$3)`,
-      [productId, userId, content]
-    );
-
-    res.json({ message: "Comentario agregado" });
-
-  } catch (error) {
-    console.error("ERROR COMMENT:", error);
-    res.status(500).json({ error: "Error al comentar" });
-  }
-});
 
 app.delete('/api/comments/:id', authMiddleware, async (req, res) => {
   try {
@@ -1273,40 +1253,6 @@ app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/users/me', authMiddleware, async (req, res) => {
-  try {
-    const { name, password } = req.body;
-
-    let passwordHash = null;
-
-    if (password && password.trim() !== "") {
-      passwordHash = await bcrypt.hash(password, 10);
-    }
-
-    const result = await pool.query(
-      `UPDATE users
-       SET
-         name = COALESCE($1, name),
-         password_hash = COALESCE($2, password_hash)
-       WHERE id = $3
-       RETURNING id, name, email, role`,
-      [name || null, passwordHash, req.user.id]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    res.json({
-      message: "Perfil actualizado correctamente",
-      user: result.rows[0]
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error actualizando perfil" });
-  }
-});
 
 
 app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
@@ -1645,42 +1591,6 @@ app.post("/api/reset-password", async (req, res) => {
 
 });
 
-app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
-  const storeId = req.params.id;
-  const userId = req.user.id;
-  const { rating } = req.body;
-
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating inválido" });
-  }
-
-  try {
-
-    await pool.query(`
-      INSERT INTO store_ratings (user_id, store_id, rating)
-      VALUES ($1,$2,$3)
-      ON CONFLICT (user_id, store_id)
-      DO UPDATE SET rating = EXCLUDED.rating
-    `, [userId, storeId, rating]);
-
-    const result = await pool.query(`
-      SELECT 
-        AVG(rating)::numeric(10,2) as avg,
-        COUNT(*) as count
-      FROM store_ratings
-      WHERE store_id = $1
-    `, [storeId]);
-
-    res.json({
-      avg: result.rows[0].avg,
-      count: result.rows[0].count
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error rating tienda" });
-  }
-});
 app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
 
   const { content } = req.body;
@@ -1728,24 +1638,7 @@ app.get('/api/stores/:id/comments', async (req, res) => {
     res.status(500).json({ error: "Error obteniendo comentarios" });
   }
 });
-app.get('/api/stores/:id/rating', async (req, res) => {
-  try {
 
-    const result = await pool.query(`
-      SELECT 
-        AVG(rating)::numeric(10,2) as avg,
-        COUNT(*) as count
-      FROM store_ratings
-      WHERE store_id = $1
-    `, [req.params.id]);
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error obteniendo rating" });
-  }
-});
 
 app.post('/api/product-favorite', authMiddleware, async (req, res) => {
   try {
