@@ -560,7 +560,6 @@ async function sendStoreComment() {
   if (!input) return;
 
   const content = input.value.trim();
-
   if (!content) return;
 
   try {
@@ -574,12 +573,14 @@ async function sendStoreComment() {
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("❌ BACKEND ERROR:", data);
-      alert(data.detail || data.error);
+      alert(data.error);
       return;
     }
 
     input.value = "";
+
+    // 🔥 recargar usuario + comentarios
+    await loadUser();
     loadStoreComments(storeData.id);
 
   } catch (err) {
