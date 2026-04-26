@@ -284,6 +284,7 @@ handleUIByRole(store);
 loadStoreRating(store.id);
 
 //  CARGAR COMENTARIOS
+await loadUser();
 loadStoreComments(store.id);
 
 // mostrar caja de comentario
@@ -610,48 +611,54 @@ if (countEl) {
       return;
     }
 
-    comments.forEach(c => {
-      const div = document.createElement("div");
+   comments.forEach(c => {
 
-     div.innerHTML = `
-  <div style="
-    display:flex;
-    gap:10px;
-    margin-bottom:15px;
-    padding:10px;
-    border-radius:10px;
-    background:#f9fafb;
-  ">
-    <img 
-      src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
-      style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
-    />
+  const isMine = currentUser && String(currentUser.id) === String(c.user_id);
 
-    <div style="flex:1;">
-      <strong>${c.name}</strong>
-      <div style="font-size:12px;color:#888;">
-        ${new Date(c.created_at).toLocaleDateString()}
-      </div>
+  const div = document.createElement("div");
 
-      <p style="margin:5px 0;" id="comment-text-${c.id}">
-        ${c.content}
-      </p>
+  div.innerHTML = `
+    <div style="
+      display:flex;
+      gap:10px;
+      margin-bottom:15px;
+      padding:10px;
+      border-radius:10px;
+      background:#f9fafb;
+    ">
+      <img 
+        src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+        style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+      />
 
-      ${
-        isMine
-        ? `
-        <div style="display:flex; gap:10px; margin-top:5px;">
-          <button onclick="deleteComment(${c.id})" style="color:red;">Eliminar</button>
+      <div style="flex:1;">
+        <strong>${c.name}</strong>
+        <div style="font-size:12px;color:#888;">
+          ${new Date(c.created_at).toLocaleDateString()}
         </div>
-        `
-        : ""
-      }
 
+        <p style="margin:5px 0;">
+          ${c.content}
+        </p>
+
+        ${
+          isMine
+          ? `
+          <div style="display:flex; gap:10px; margin-top:5px;">
+            <button onclick="deleteComment(${c.id})" style="color:red;">
+              Eliminar
+            </button>
+          </div>
+          `
+          : ""
+        }
+
+      </div>
     </div>
-  </div>
-`;
-      container.appendChild(div);
-    });
+  `;
+
+  container.appendChild(div);
+});
 
   } catch (err) {
     console.error("Error cargando comentarios:", err);
