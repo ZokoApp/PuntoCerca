@@ -19,6 +19,8 @@ async function loadOffers() {
 function renderProducts(products) {
 
   const grid = document.getElementById("offersGrid");
+  if (!grid) return;
+
   grid.innerHTML = "";
 
   if (!products.length) {
@@ -29,39 +31,35 @@ function renderProducts(products) {
   products.forEach(p => {
 
     const card = document.createElement("div");
-
- const grid = document.getElementById("offersGrid");
+    card.className = "card";
 
     card.innerHTML = `
-      <div class="relative">
-        <img src="${p.image_url}" 
-             class="w-full h-40 object-cover">
-
-        <div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-md">
-          🔥 Oferta
-        </div>
+      <div class="img-box">
+        <img src="${p.image_url || '/img/default.png'}" />
       </div>
 
-      <div class="p-3">
+      <div class="card-body">
 
-        <h3 class="text-sm font-semibold line-clamp-2">
-          ${p.product_name}
-        </h3>
+        <div class="product-name">
+          🔥 ${p.product_name}
+        </div>
 
-        <p class="text-xs text-gray-500 mt-1">
+        <div class="store">
           ${p.store_name}
-        </p>
+        </div>
 
-        <div class="mt-2">
+        <div class="price-row">
+
           ${p.old_price ? `
-            <span class="text-gray-400 line-through text-xs mr-1">
+            <span class="old-price">
               $${parseFloat(p.old_price).toLocaleString()}
             </span>
           ` : ""}
 
-          <span class="text-orange-600 font-bold">
-            ${window.renderPriceHTML(p)}
+          <span class="price">
+            $${parseFloat(p.price).toLocaleString()}
           </span>
+
         </div>
 
       </div>
@@ -83,9 +81,13 @@ function applyFilters() {
 
   let filtered = [...allProducts];
 
-  const search = document.getElementById("searchInput").value.toLowerCase();
-  const store = document.getElementById("storeFilter").value;
-  const sort = document.getElementById("sortPrice").value;
+  const searchEl = document.getElementById("searchInput");
+  const storeEl = document.getElementById("storeFilter");
+  const sortEl = document.getElementById("sortPrice");
+
+  const search = searchEl ? searchEl.value.toLowerCase() : "";
+  const store = storeEl ? storeEl.value : "";
+  const sort = sortEl ? sortEl.value : "";
 
   // 🔍 BUSCADOR
   if (search) {
@@ -118,6 +120,7 @@ function applyFilters() {
 function loadStoreFilter(products) {
 
   const select = document.getElementById("storeFilter");
+  if (!select) return;
 
   const stores = [...new Set(products.map(p => p.store_name))];
 
@@ -137,13 +140,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadOffers();
 
-  document.getElementById("searchInput")
-    .addEventListener("input", applyFilters);
+  const search = document.getElementById("searchInput");
+  const store = document.getElementById("storeFilter");
+  const sort = document.getElementById("sortPrice");
 
-  document.getElementById("storeFilter")
-    .addEventListener("change", applyFilters);
-
-  document.getElementById("sortPrice")
-    .addEventListener("change", applyFilters);
+  if (search) search.addEventListener("input", applyFilters);
+  if (store) store.addEventListener("change", applyFilters);
+  if (sort) sort.addEventListener("change", applyFilters);
 
 });
