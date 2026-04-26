@@ -280,10 +280,11 @@ async function loadStore(){
 setupMap(store);
 handleUIByRole(store);
 
-    // ⭐ REVIEWS
+    //  REVIEWS
 loadStoreRating(store.id);
 
-
+//  CARGAR COMENTARIOS
+loadStoreComments(store.id);
 
 // mostrar caja de comentario
 const loginMsg = document.getElementById("storeLoginMessage");
