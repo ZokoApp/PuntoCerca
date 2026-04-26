@@ -22,11 +22,20 @@ export const CATEGORIES = {
   ],
 
   "Comercio": [
-    { id: 6, name: "Ropa" },
-    { id: 7, name: "Electrónica" },
-    { id: 8, name: "Ferretería" },
-    { id: 9, name: "Librería" }
-  ],
+  { id: 6, name: "Ropa" },
+
+  
+  { id: 7, name: "Electrónica general" },
+  { id: 62, name: "Celulares" },
+  { id: 63, name: "Accesorios para celulares" },
+  { id: 64, name: "Computación" },
+  { id: 65, name: "TV y Smart TV" },
+  { id: 66, name: "Audio" },
+  { id: 67, name: "Gaming" },
+
+  { id: 8, name: "Ferretería" },
+  { id: 9, name: "Librería" }
+],
 
   "Belleza": [
     { id: 10, name: "Peluquería" },
