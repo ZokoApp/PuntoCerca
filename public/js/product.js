@@ -1,4 +1,5 @@
-  const param = window.location.pathname.split("/").pop();
+import { SUBCATEGORY_MAP } from "/js/data/categories.js";
+const param = window.location.pathname.split("/").pop();
 
 function safeJSON(value, fallback) {
   try {
@@ -106,7 +107,13 @@ if (!param) {
   addSpec("SKU", extraData.sku);
   addSpec("Material", extraData.material);
   addSpec("Talles", product.size);
+  const subName = SUBCATEGORY_MAP[product.subcategory_id];
+
+if (subName) {
+  addSpec("Categoría", `${product.category} • ${subName}`);
+} else {
   addSpec("Categoría", product.category);
+}
 
   let colors = [];
 
