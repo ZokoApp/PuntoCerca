@@ -72,9 +72,9 @@ searchInput?.addEventListener("input", (e) => {
         <div 
           class="p-3 hover:bg-gray-100 cursor-pointer flex gap-3 items-center"
           onclick="${item.type === 'store' 
-            ? `window.location.href='/${item.slug || item.id}'`
-            : `window.location.href='/product/${item.id}'`
-          }"
+  ? `window.location.href='/store/${item.slug || item.id}'`
+  : `window.location.href='/product/${item.slug || item.id}'`
+}"
         >
           <img src="${item.image || '/img/default.png'}"
                style="width:40px;height:40px;border-radius:8px;object-fit:cover;">
