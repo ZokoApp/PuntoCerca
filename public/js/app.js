@@ -42,60 +42,59 @@ initSliders();
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 
-searchInput?.addEventListener("input", async (e) => {
+let searchTimeout;
 
-  const query = e.target.value.trim();
+searchInput?.addEventListener("input", (e) => {
 
-  const resultsBox = document.getElementById("searchResults");
+  clearTimeout(searchTimeout);
 
-  if (!query) {
-    resultsBox.classList.add("hidden");
-    return;
-  }
+  searchTimeout = setTimeout(async () => {
 
-  try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
+    const query = e.target.value.trim();
+    const resultsBox = document.getElementById("searchResults");
 
-    if (!data.length) {
-      resultsBox.innerHTML = `<div style="padding:10px;">Sin resultados</div>`;
-      resultsBox.classList.remove("hidden");
+    if (!query) {
+      resultsBox.classList.add("hidden");
       return;
     }
 
-    resultsBox.innerHTML = data.map(item => `
-      <div 
-        class="p-3 hover:bg-gray-100 cursor-pointer flex gap-3 items-center"
-        onclick="${item.type === 'store' 
-          ? `window.location.href='/${item.slug || item.id}'`
-          : `window.location.href='/product/${item.id}'`
-        }"
-      >
-        <img src="${item.image || '/img/default.png'}"
-             style="width:40px;height:40px;border-radius:8px;object-fit:cover;">
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
 
-        <div>
-          <div style="font-weight:600">${item.name}</div>
-          <div style="font-size:12px;color:#666;">
-            ${item.type === 'store' ? 'Tienda' : 'Producto'}
+      if (!data.length) {
+        resultsBox.innerHTML = `<div style="padding:10px;">Sin resultados</div>`;
+        resultsBox.classList.remove("hidden");
+        return;
+      }
+
+      resultsBox.innerHTML = data.map(item => `
+        <div 
+          class="p-3 hover:bg-gray-100 cursor-pointer flex gap-3 items-center"
+          onclick="${item.type === 'store' 
+            ? `window.location.href='/${item.slug || item.id}'`
+            : `window.location.href='/product/${item.id}'`
+          }"
+        >
+          <img src="${item.image || '/img/default.png'}"
+               style="width:40px;height:40px;border-radius:8px;object-fit:cover;">
+
+          <div>
+            <div style="font-weight:600">${item.name}</div>
+            <div style="font-size:12px;color:#666;">
+              ${item.type === 'store' ? 'Tienda' : 'Producto'}
+            </div>
           </div>
         </div>
-      </div>
-    `).join("");
+      `).join("");
 
-    resultsBox.classList.remove("hidden");
+      resultsBox.classList.remove("hidden");
 
-  } catch (err) {
-    console.error(err);
-  }
+    } catch (err) {
+      console.error(err);
+    }
 
-});
-searchBtn?.addEventListener("click", goToSearch);
-
-searchInput?.addEventListener("keydown", (e) => {
-  if(e.key === "Enter"){
-    goToSearch();
-  }
+  }, 300);
 });
 
 // =============================
