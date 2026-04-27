@@ -2547,12 +2547,13 @@ const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
 
 
 let query = `
-  SELECT 
-    id,
-    name,
-    logo_url AS image,
-    'store' AS type
-  FROM stores
+ SELECT 
+  id,
+  slug,
+  name,
+  logo_url AS image,
+  'store' AS type
+FROM stores
   WHERE LOWER(name) LIKE $1
      OR LOWER(category) LIKE $1
 `;
@@ -2572,21 +2573,20 @@ const storesResult = await pool.query(query, params);
     // 🔍 BUSCAR PRODUCTOS
    const productsResult = await pool.query(
   `SELECT 
-    p.id,
-    p.name,
-    COALESCE(p.price, 0) AS price,
-    p.image_url AS image,
-    p.size,
-    p.brand,
-    p.colors,
-    s.name AS store_name,
-    s.rating_avg,
-    s.rating_count,
-    p.store_id,
-    'product' AS type
-  FROM products p
-  LEFT JOIN stores s ON s.id = p.store_id
-  WHERE LOWER(p.name) LIKE $1`,
+  p.id,
+  p.slug,
+  p.name,
+  COALESCE(p.price, 0) AS price,
+  p.image_url AS image,
+  p.size,
+  p.brand,
+  p.colors,
+  s.name AS store_name,
+  p.store_id,
+  'product' AS type
+FROM products p
+LEFT JOIN stores s ON s.id = p.store_id
+WHERE LOWER(p.name) LIKE $1`,
   [search]
 );
     //  UNIR RESULTADOS
