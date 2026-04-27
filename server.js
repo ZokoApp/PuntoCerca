@@ -2250,16 +2250,11 @@ app.get('/sitemap.xml', (req, res) => {
   `);
 });
 
-app.get('/:slug', (req, res) => {
+app.get('/:slug', async (req, res) => {
 
   const slug = req.params.slug;
 
-  // 🚫 ignorar archivos (JS, CSS, imágenes, etc)
- if (slug.includes(".")) {
-  return res.status(404).end();
-}
-
-  // 🚫 rutas del sistema
+  // bloquear rutas del sistema
   const blocked = [
     "api",
     "login",
@@ -2267,16 +2262,30 @@ app.get('/:slug', (req, res) => {
     "products",
     "offers",
     "dashboard",
-    "profile"
+    "profile",
+    "product"
   ];
 
-  if (blocked.includes(slug)) {
-    return;
+  if (blocked.includes(slug)) return;
+
+  try {
+
+    const result = await pool.query(
+      `SELECT id FROM stores WHERE slug = $1`,
+      [slug]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).send("No encontrado");
+    }
+
+    res.sendFile(path.join(__dirname, 'public/store.html'));
+
+  } catch (err) {
+    res.status(500).send("Error");
   }
 
-  res.sendFile(path.join(__dirname, 'public/store.html'));
 });
-
 app.get('/stores', (req, res) => {
   res.sendFile(__dirname + '/public/stores.html');
 });
