@@ -281,9 +281,12 @@ card.innerHTML = `
   const mapBtn = card.querySelector(".btn-map");
 
   viewBtn.addEventListener("click", () => {
-     window.location.href = store.slug 
-  ? `/${store.slug}` 
-  : `/store/${store.id}`;
+     if (!store.slug) {
+  console.error("Store sin slug:", store);
+  return;
+}
+
+window.location.href = `/${store.slug}`;`;
   });
 
   mapBtn.addEventListener("click", () => {
