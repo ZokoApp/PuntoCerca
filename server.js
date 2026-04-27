@@ -2528,12 +2528,14 @@
       67: ["gaming"]
     };
 
-    const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
-      .filter(([id, names]) =>
-        names.some(name => normalize(name) === normalizedQuery)
-      )
-      .map(([id]) => Number(id));
-
+   const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
+  .filter(([id, names]) =>
+    names.some(name =>
+      normalize(name).includes(normalizedQuery) ||
+      normalizedQuery.includes(normalize(name))
+    )
+  )
+  .map(([id]) => Number(id));
     let storesResult;
 
     if (matchedSubIds.length > 0) {
