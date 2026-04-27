@@ -187,12 +187,14 @@ function isStoreOpen(store) {
 const pathParts = window.location.pathname.split("/");
 
 
+let storeId = null;
 let storeSlug = null;
 
-if (pathParts[1] && isNaN(pathParts[1])) {
+if (pathParts[1] === "store") {
+  storeId = pathParts[2]?.split("?")[0];
+} else if (pathParts[1] && isNaN(pathParts[1])) {
   storeSlug = pathParts[1].split("?")[0];
 }
-
 /* ================================
    INIT
 ================================ */
@@ -246,12 +248,16 @@ async function loadStore(){
 
   try {
 
-    if (!storeSlug) {
-      console.error("Slug inválido");
-      return;
-    }
+    let storeRes;
 
-    const storeRes = await fetch(`/api/stores/slug/${storeSlug}`);
+if (storeId) {
+  storeRes = await fetch(`/api/stores/${storeId}`);
+} else if (storeSlug) {
+  storeRes = await fetch(`/api/stores/slug/${storeSlug}`);
+} else {
+  console.error("Ruta inválida");
+  return;
+}
     const store = await storeRes.json();
 
     if (!store || store.error) {
