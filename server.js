@@ -2568,7 +2568,7 @@ let query = `
   'store' AS type
 FROM stores s
 LEFT JOIN store_ratings r ON r.store_id = s.id
-WHERE LOWER(unaccent(name)) LIKE LOWER(unaccent($1))
+WHERE LOWER(public.unaccent(name)) LIKE LOWER(unaccent($1))
    OR LOWER(unaccent(category)) LIKE LOWER(unaccent($1))
 `;
 
