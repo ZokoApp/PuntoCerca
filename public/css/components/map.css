@@ -130,3 +130,31 @@
 .close-preview:hover {
   background: rgba(0,0,0,0.8);
 } 
+
+/* ===============================
+   📍 USER LOCATION (AZUL PRO)
+================================ */
+
+@keyframes userPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37,99,235,0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(37,99,235,0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37,99,235,0);
+  }
+}
+
+.user-location-dot {
+  width: 18px;
+  height: 18px;
+  background: #2563eb;
+  border-radius: 50%;
+  border: 3px solid white;
+
+  animation: userPulse 2s infinite;
+
+  box-shadow: 0 0 10px rgba(37,99,235,0.8);
+}
