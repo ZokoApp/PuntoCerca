@@ -2557,14 +2557,19 @@ const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
 
 let query = `
  SELECT 
-  id,
-  slug,
-  name,
-  logo_url AS image,
+  s.id,
+  s.slug,
+  s.name,
+  s.logo_url AS image,
+  s.street,
+  s.is_open,
+  COALESCE(AVG(r.rating),0)::numeric(10,2) as rating_avg,
+  COUNT(r.rating) as rating_count,
   'store' AS type
-FROM stores
-  WHERE LOWER(name) LIKE $1
-     OR LOWER(category) LIKE $1
+FROM stores s
+LEFT JOIN store_ratings r ON r.store_id = s.id
+WHERE LOWER(unaccent(name)) LIKE LOWER(unaccent($1))
+   OR LOWER(unaccent(category)) LIKE LOWER(unaccent($1))
 `;
 
 let params = [search];
@@ -2573,8 +2578,9 @@ let params = [search];
 if (matchedSubIds.length > 0) {
   const subMatches = matchedSubIds.map(id => `%${id}%`);
 
-  query += ` OR subcategory_ids::text LIKE ANY($2)`;
+  query += ` OOR s.subcategory_ids @> $2::jsonb`;
   params.push(subMatches);
+  params.push(JSON.stringify([matchedSubIds[0]]));
 }
 
 const storesResult = await pool.query(query, params);
