@@ -94,10 +94,14 @@ function renderStores(stores){
       </div>
     `;
 
-    card.onclick = () => {
-      window.location.href = `/store/${store.id}`;
-    };
+   card.onclick = () => {
+  if (!store.slug) {
+    console.error("Store sin slug:", store);
+    return;
+  }
 
+  window.location.href = `/${store.slug}`;
+};
     container.appendChild(card);
   });
 }
