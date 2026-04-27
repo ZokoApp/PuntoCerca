@@ -2555,44 +2555,38 @@
     .map(([id]) => Number(id));
   
   
-  const params = [search];
-  
-  let query = `
-  SELECT 
-    s.id,
-    s.slug,
-    s.name,
-    s.logo_url AS image,
-    s.street,
-    s.is_open,
-    COALESCE(AVG(r.rating),0)::numeric(10,2) as rating_avg,
-    COUNT(r.rating) as rating_count,
-    'store' AS type
-  FROM stores s
-  LEFT JOIN store_ratings r ON r.store_id = s.id
-  WHERE (
-    LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
-    OR LOWER(public.unaccent(s.category)) LIKE LOWER(public.unaccent($1))
-  )
-  `;
-  
-    if (matchedSubIds.length > 0) {
-    params.push(JSON.stringify([matchedSubIds[0]]));
-  
-    query += `
-    OR s.subcategory_ids @> $2::jsonb
-    `;
-  }
   let params = [search];
-  
-  // 🔥 SI ENCUENTRA SUBCATEGORÍAS → AGREGAR
-  if (matchedSubIds.length > 0) {
-    const subMatches = matchedSubIds.map(id => `%${id}%`);
-  
-    query += ` OR s.subcategory_ids @> $2::jsonb`;
-    params.push(subMatches);
-    params.push(JSON.stringify([matchedSubIds[0]]));
-  }
+
+let query = `
+SELECT 
+  s.id,
+  s.slug,
+  s.name,
+  s.logo_url AS image,
+  s.street,
+  s.is_open,
+  COALESCE(AVG(r.rating),0)::numeric(10,2) as rating_avg,
+  COUNT(r.rating) as rating_count,
+  'store' AS type
+FROM stores s
+LEFT JOIN store_ratings r ON r.store_id = s.id
+WHERE (
+  LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
+  OR LOWER(public.unaccent(s.category)) LIKE LOWER(public.unaccent($1))
+)
+`;
+
+if (matchedSubIds.length > 0) {
+  params.push(JSON.stringify([matchedSubIds[0]]));
+
+  query += `
+  OR s.subcategory_ids @> $${params.length}::jsonb
+  `;
+}
+
+query += `
+GROUP BY s.id
+`;
   
   const storesResult = await pool.query(query, params);
    
