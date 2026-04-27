@@ -14,88 +14,76 @@
 <body class="bg-gray-50 text-gray-800">
 
 <!-- =========================
-NAVBAR PRO
+NAV (ESTILO REAL DE TU WEB)
 ========================= -->
-<nav class="bg-white shadow-sm border-b">
-  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+<nav class="bg-white shadow-sm px-4 py-3 flex justify-between items-center">
 
-    <!-- LOGO -->
-    <a href="/" class="flex items-center gap-2">
-      <img src="/img/logo.png" class="h-8 w-auto">
-      <span class="font-bold text-orange-600 text-lg">PuntoCerca</span>
-    </a>
+  <a href="/" class="flex items-center gap-2">
+    <img src="/img/logo.png" class="h-7">
+  </a>
 
-    <!-- BUSCADOR -->
-    <div class="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 w-80">
-      <input 
-        type="text" 
-        placeholder="Buscar productos o tiendas..."
-        class="bg-transparent outline-none w-full text-sm"
-        onkeydown="if(event.key==='Enter'){window.location.href='/search.html?q='+this.value}"
-      >
-    </div>
+  <a href="/" class="text-orange-600 font-semibold text-sm">
+    Inicio
+  </a>
 
-  </div>
 </nav>
 
 <!-- =========================
 CONTENIDO
 ========================= -->
-<main class="max-w-6xl mx-auto px-6 py-10">
+<main class="px-4 py-6">
 
   <!-- TITLE -->
-  <h1 id="searchTitle" class="text-2xl md:text-3xl font-bold mb-8"></h1>
+  <h1 id="searchTitle" class="text-xl font-bold mb-6"></h1>
 
   <!-- =========================
   PRODUCTOS
   ========================= -->
-  <div class="mb-12">
+  <section class="mb-10">
 
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">🛒 Productos</h2>
-    </div>
+    <h2 class="text-lg font-semibold mb-3">
+      🛒 Productos
+    </h2>
 
-    <div id="productsResults" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    <div id="productsResults" class="grid grid-cols-2 gap-4"></div>
 
-  </div>
+  </section>
 
   <!-- =========================
   TIENDAS
   ========================= -->
-  <div>
+  <section>
 
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">🏪 Tiendas</h2>
-    </div>
+    <h2 class="text-lg font-semibold mb-3">
+      🏪 Tiendas
+    </h2>
 
-    <div id="storesResults" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    <div id="storesResults" class="grid grid-cols-2 gap-4"></div>
 
-  </div>
+  </section>
 
 </main>
 
 <!-- =========================
-TEMPLATE CARD TIENDA (ESTILO GLOBAL)
+ESTILOS CARDS (MEJORADOS)
 ========================= -->
 <style>
 
 .store-card {
   background: white;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: 0.3s;
   cursor: pointer;
-  border: 1px solid #eee;
+  transition: 0.2s;
 }
 
-.store-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+.store-card:active {
+  transform: scale(0.98);
 }
 
 .store-image {
   position: relative;
-  height: 180px;
+  height: 140px;
 }
 
 .store-image img {
@@ -106,11 +94,11 @@ TEMPLATE CARD TIENDA (ESTILO GLOBAL)
 
 .store-status {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 5px 10px;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: white;
 }
@@ -124,31 +112,27 @@ TEMPLATE CARD TIENDA (ESTILO GLOBAL)
 }
 
 .store-content {
-  padding: 14px;
+  padding: 10px;
 }
 
 .store-name {
+  font-size: 14px;
   font-weight: 600;
-  font-size: 16px;
 }
 
 .store-meta {
-  font-size: 13px;
-  color: #666;
-  margin-top: 4px;
+  font-size: 12px;
+  color: #777;
 }
 
 .store-rating {
-  font-size: 13px;
+  font-size: 12px;
   color: #f59e0b;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 </style>
 
-<!-- =========================
-SCRIPT
-========================= -->
 <script src="/js/search.js"></script>
 
 </body>
