@@ -2466,174 +2466,153 @@
   ================================ */
   
   app.get('/api/search', async (req, res) => {
-    try {
-  
-      const { q } = req.query;
-  
-      if (!q) {
-        return res.json([]);
-      }
-  
-      const search = `%${q.toLowerCase()}%`;
-  
-      // 🔍 BUSCAR TIENDAS
-      function normalize(text) {
-    return text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-  }
-  
-  const normalizedQuery = normalize(q);
-  
-  // 🔥 MAPA SUBCATEGORÍAS
-  const SUBCATEGORY_MAP = {
-    1: ["Restaurante", "comida", "almuerzo", "cena"],
-    2: ["Pizzería", "pizza", "pizzas"],
-    3: ["Bar", "tragos", "bebidas", "cerveza"],
-    4: ["Cafetería", "cafe", "desayuno", "merienda"],
-    5: ["Heladería", "helado", "helados"],
-  
-    6: ["Ropa", "indumentaria", "vestimenta"],
-    7: ["Electrónica", "electronica", "tecnologia", "gadgets"],
-    8: ["Ferretería", "herramientas", "materiales", "construccion"],
-    9: ["Librería", "libros", "papeleria", "utiles"],
-  
-    18: ["Electricista", "electricidad", "electricista domicilio"],
-    19: ["Plomería", "plomero", "agua", "caños"],
-    20: ["Gasista", "gas", "instalacion gas"],
-    21: ["Técnico PC", "computadora", "pc", "reparacion pc"],
-    22: ["Reparaciones", "arreglos", "service", "tecnico", "servicio tecnico", "instalador de aire", "aires acondicionado"],
-  
-    23: ["Taller mecánico", "mecanico", "auto", "reparacion auto"],
-    24: ["Lavadero", "lavado autos", "car wash"],
-    25: ["Gomería", "neumaticos", "cubiertas", "ruedas"],
-    26: ["Repuestos", "autopartes", "partes auto"],
-  
-    46: ["Verdulería", "verduras", "frutas"],
-    47: ["Almacén", "almacen", "despensa"],
-    48: ["Kiosco", "kiosko", "snacks"],
-    49: ["Supermercado", "super", "mercado"],
-    50: ["Carnicería", "carne", "carnes"],
-    51: ["Panadería", "panaderia", "pan", "facturas"],
-    52: ["Fiambrería", "fiambres", "quesos"],
-    53: ["Dietética", "dietetica", "saludable"],
-    54: ["Bebidas", "bebida", "alcohol", "refrescos"],
-    55: ["Mayorista", "mayor", "por mayor"],
-  
-    61: ["Cerrajería", "cerrajeria", "cerrajero", "llaves", "cerraduras"],
-  
-    // 🔥 NUEVAS (BELLEZA / SERVICIOS)
-    70: ["Peluquería", "peluqueria", "corte de pelo", "cabello", "hair salon"],
-    71: ["Barbería", "barberia", "barbero", "barba", "fade"],
-    72: ["Uñas", "manicure", "manicura", "pedicure", "pedicura", "nails"],
-    73: ["Estética", "estetica", "belleza", "tratamientos faciales", "cosmetologia"],
-    74: ["Spa", "relajacion", "masajes", "spa day"],
-    75: ["Masajes", "masajista", "relajante", "terapeutico"],
-    76: ["Depilación", "depilacion", "laser", "cera"],
-    77: ["Cejas y pestañas", "lifting", "pestañas", "cejas"],
-    78: ["Maquillaje", "makeup", "maquilladora", "make up"],
-    79: ["Tatuajes", "tatuaje", "tattoo", "tattoo studio"],
-    80: ["Piercing", "piercings", "perforaciones"],
-  
-    // 🔥 EXTRAS PRO (te van a servir MUCHO)
-    81: ["Gimnasio", "gym", "fitness", "entrenamiento"],
-    82: ["Yoga", "pilates", "bienestar"],
-    83: ["Farmacia", "medicamentos", "remedios"],
-    84: ["Veterinaria", "mascotas", "animales"],
-    85: ["Pet shop", "tienda mascotas", "alimento mascotas"]
-  };
-  
-  
-  // 🔍 encontrar subcategorías que coinciden
-  const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
-    .filter(([id, names]) =>
-      names.some(name =>
-        normalize(name).includes(normalizedQuery)
-      )
-    )
-    .map(([id]) => Number(id));
-  
-  
-  let params = [search];
+  try {
+    const { q } = req.query;
 
-let query = `
-SELECT 
-  s.id,
-  s.slug,
-  s.name,
-  s.logo_url AS image,
-  s.street,
-  s.is_open,
-  COALESCE(AVG(r.rating),0)::numeric(10,2) as rating_avg,
-  COUNT(r.rating) as rating_count,
-  'store' AS type
-FROM stores s
-LEFT JOIN store_ratings r ON r.store_id = s.id
-WHERE (
-  LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
-  OR LOWER(public.unaccent(s.category)) LIKE LOWER(public.unaccent($1))
-)
-`;
-
-if (matchedSubIds.length > 0) {
-  const subConditions = [];
-
-matchedSubIds.forEach((id, i) => {
-  params.push(JSON.stringify([id]));
-
-  subConditions.push(
-    `s.subcategory_ids @> $${params.length}::jsonb`
-  );
-});
-
-if (subConditions.length > 0) {
-  query += ` OR (${subConditions.join(" OR ")})`;
-}
-
-  query += `
-  OR s.subcategory_ids @> $${params.length}::jsonb
-  `;
-}
-
-query += `
-GROUP BY s.id
-`;
-  
-  const storesResult = await pool.query(query, params);
-   
-      // 🔍 BUSCAR PRODUCTOS
-     const productsResult = await pool.query(
-    `SELECT 
-    p.id,
-    p.slug,
-    p.name,
-    COALESCE(p.price, 0) AS price,
-    p.image_url AS image,
-    p.size,
-    p.brand,
-    p.colors,
-    s.name AS store_name,
-    p.store_id,
-    'product' AS type
-  FROM products p
-  LEFT JOIN stores s ON s.id = p.store_id
-  WHERE LOWER(p.name) LIKE $1`,
-    [search]
-  );
-      //  UNIR RESULTADOS
-      const results = [
-        ...storesResult.rows,
-        ...productsResult.rows
-      ];
-  
-      res.json(results);
-  
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error en búsqueda" });
+    if (!q || !q.trim()) {
+      return res.json([]);
     }
-  });
+
+    const rawQuery = q.trim();
+
+    function normalize(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    const normalizedQuery = normalize(rawQuery);
+    const search = `%${normalizedQuery}%`;
+
+    const SUBCATEGORY_MAP = {
+      1: ["restaurante"],
+      2: ["pizzeria", "pizza", "pizzas"],
+      3: ["bar"],
+      4: ["cafeteria", "cafe"],
+      5: ["heladeria", "helado"],
+
+      10: ["peluqueria"],
+      11: ["barberia"],
+      12: ["estetica"],
+      13: ["spa"],
+
+      18: ["electricista"],
+      19: ["plomeria", "plomero"],
+      20: ["gasista"],
+      21: ["tecnico pc"],
+      22: ["reparaciones"],
+
+      23: ["taller mecanico"],
+      24: ["lavadero"],
+      25: ["gomeria"],
+      26: ["repuestos"],
+
+      46: ["verduleria"],
+      47: ["almacen"],
+      48: ["kiosco", "kiosko"],
+      49: ["supermercado"],
+      50: ["carniceria"],
+      51: ["panaderia"],
+      52: ["fiambreria"],
+      53: ["dietetica"],
+      54: ["bebidas"],
+      55: ["mayorista"],
+
+      61: ["cerrajeria"],
+      62: ["celulares"],
+      63: ["accesorios para celulares"],
+      64: ["computacion"],
+      65: ["tv", "smart tv"],
+      66: ["audio"],
+      67: ["gaming"]
+    };
+
+    const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
+      .filter(([id, names]) =>
+        names.some(name => normalize(name) === normalizedQuery)
+      )
+      .map(([id]) => Number(id));
+
+    let storesResult;
+
+    if (matchedSubIds.length > 0) {
+      const subConditions = [];
+      const params = [];
+
+      matchedSubIds.forEach((id) => {
+        params.push(JSON.stringify([id]));
+        subConditions.push(`s.subcategory_ids @> $${params.length}::jsonb`);
+      });
+
+      storesResult = await pool.query(`
+        SELECT 
+          s.id,
+          s.slug,
+          s.name,
+          s.logo_url AS image,
+          s.street,
+          s.is_open,
+          COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
+          COUNT(r.rating) AS rating_count,
+          'store' AS type
+        FROM stores s
+        LEFT JOIN store_ratings r ON r.store_id = s.id
+        WHERE ${subConditions.join(" OR ")}
+        GROUP BY s.id
+        ORDER BY s.is_open DESC, rating_avg DESC
+      `, params);
+
+    } else {
+      storesResult = await pool.query(`
+        SELECT 
+          s.id,
+          s.slug,
+          s.name,
+          s.logo_url AS image,
+          s.street,
+          s.is_open,
+          COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
+          COUNT(r.rating) AS rating_count,
+          'store' AS type
+        FROM stores s
+        LEFT JOIN store_ratings r ON r.store_id = s.id
+        WHERE LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
+        GROUP BY s.id
+        ORDER BY s.is_open DESC, rating_avg DESC
+      `, [search]);
+    }
+
+    const productsResult = await pool.query(`
+      SELECT 
+        p.id,
+        p.slug,
+        p.name,
+        COALESCE(p.price, 0) AS price,
+        p.image_url AS image,
+        p.size,
+        p.brand,
+        p.colors,
+        s.name AS store_name,
+        p.store_id,
+        'product' AS type
+      FROM products p
+      LEFT JOIN stores s ON s.id = p.store_id
+      WHERE LOWER(public.unaccent(p.name)) LIKE LOWER(public.unaccent($1))
+      ORDER BY p.id DESC
+      LIMIT 20
+    `, [search]);
+
+    res.json([
+      ...storesResult.rows,
+      ...productsResult.rows
+    ]);
+
+  } catch (error) {
+    console.error("ERROR /api/search:", error);
+    res.status(500).json({ error: "Error en búsqueda" });
+  }
+});
   
   
   
