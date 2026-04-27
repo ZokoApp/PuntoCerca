@@ -11,19 +11,57 @@ const storesContainer = document.getElementById("storesResults");
 title.textContent = `Resultados para: "${query}"`;
 
 // ==========================
-// NAV HELPERS 
+// NAV HELPERS
 // ==========================
 function goToStore(item){
   if (item.slug) {
     window.location.href = `/${item.slug}`;
   } else {
-    console.warn("⚠️ Store sin slug, fallback a ID:", item);
+    console.warn("⚠️ Store sin slug:", item);
     window.location.href = `/store/${item.id}`;
   }
 }
 
 function goToProduct(item){
   window.location.href = `/product/${item.slug || item.id}`;
+}
+
+// ==========================
+// STORE STATUS (🔥 CLAVE)
+// ==========================
+function isStoreOpen(store){
+
+  if (!store.is_open) return false;
+
+  if (!store.opening_hours) return store.is_open;
+
+  let hours = store.opening_hours;
+
+  if (typeof hours === "string") {
+    try {
+      hours = JSON.parse(hours);
+    } catch {
+      return store.is_open;
+    }
+  }
+
+  if (hours.always_open) return true;
+
+  const now = new Date();
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const today = hours[daysMap[now.getDay()]];
+
+  if (!today || today.closed) return false;
+
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const [oh, om] = (today.open || "0:0").split(":").map(Number);
+  const [ch, cm] = (today.close || "0:0").split(":").map(Number);
+
+  const openTime = oh * 60 + om;
+  const closeTime = ch * 60 + cm;
+
+  return current >= openTime && current <= closeTime;
 }
 
 // ==========================
@@ -48,12 +86,13 @@ async function search(){
     data.forEach(item => {
 
       const card = document.createElement("div");
-      card.className = "bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden cursor-pointer flex flex-col";
 
       // ==========================
       // PRODUCTOS
       // ==========================
       if(item.type === "product"){
+
+        card.className = "bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden cursor-pointer flex flex-col";
 
         card.innerHTML = `
           <div class="h-56 bg-gray-100 flex items-center justify-center">
@@ -76,7 +115,7 @@ async function search(){
             <p class="text-xs text-yellow-600">
               ${
                 item.rating_avg
-                  ? `⭐ ${Number(item.rating_avg).toFixed(1)}${item.rating_count ? ` (${item.rating_count})` : ''}`
+                  ? `⭐ ${Number(item.rating_avg).toFixed(1)} (${item.rating_count || 0})`
                   : 'Sin valoraciones'
               }
             </p>
@@ -104,49 +143,73 @@ async function search(){
           </div>
         `;
 
-        card.addEventListener("click", () => {
-          goToProduct(item);
-        });
-
+        card.onclick = () => goToProduct(item);
         productsContainer.appendChild(card);
+      }
 
-      } 
-      
       // ==========================
-      // TIENDAS
+      // TIENDAS (🔥 PRO)
       // ==========================
       else {
 
+        const open = isStoreOpen(item);
+
+        let hours = item.opening_hours;
+
+        if (typeof hours === "string") {
+          try { hours = JSON.parse(hours); } catch {}
+        }
+
+        const is24 = hours?.always_open;
+
+        card.className = "store-card";
+
         card.innerHTML = `
-          <div class="h-56 bg-gray-100 flex items-center justify-center">
-            <img 
-              src="${item.image || 'https://source.unsplash.com/300x200/?store'}" 
-              class="w-full h-full object-cover"
-            >
+          <div class="store-image">
+
+            <img src="${item.image || 'https://source.unsplash.com/300x200/?store'}">
+
+            <div class="store-status ${open ? 'open' : 'closed'}">
+              ${
+                is24
+                  ? 'Abierto 24hs'
+                  : (open ? 'Abierto' : 'Cerrado')
+              }
+            </div>
+
           </div>
 
-          <div class="p-4 flex flex-col gap-1 min-h-[120px]">
-            <h3 class="font-semibold text-lg leading-tight min-h-[56px]">
-              ${item.name}
-            </h3>
+          <div class="store-content">
 
-            <p class="text-sm text-gray-500">
-              Tienda
+            <h3 class="store-name">${item.name}</h3>
+
+            <p class="store-meta">
+              📍 ${item.address || item.street || 'Sin dirección'}
             </p>
+
+            <p class="store-meta">
+              ${item.category || 'Tienda'}
+            </p>
+
+            <div class="store-rating">
+              ${
+                item.rating_avg
+                  ? `⭐ ${Number(item.rating_avg).toFixed(1)} (${item.rating_count || 0})`
+                  : 'Sin valoraciones'
+              }
+            </div>
+
           </div>
         `;
 
-        card.addEventListener("click", () => {
-          goToStore(item);
-        });
-
+        card.onclick = () => goToStore(item);
         storesContainer.appendChild(card);
       }
 
     });
 
   }catch(error){
-    console.error(error);
+    console.error("💥 Error en búsqueda:", error);
   }
 
 }
