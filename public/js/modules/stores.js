@@ -286,7 +286,7 @@ card.innerHTML = `
   return;
 }
 
-window.location.href = `/${store.slug}`;`;
+window.location.href = `/${store.slug}`;
   });
 
   mapBtn.addEventListener("click", () => {
