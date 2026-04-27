@@ -1,11 +1,7 @@
-
-
 window.isOwner = false;
 window.allProducts = [];
 
 window.initStoreProducts = async function(store) {
-
-
 
   const storeId = store?.id;
 
@@ -14,6 +10,7 @@ window.initStoreProducts = async function(store) {
     return;
   }
 
+  // 🔐 detectar dueño
   try {
     const resUser = await fetch('/api/me', { credentials: 'include' });
 
@@ -26,6 +23,7 @@ window.initStoreProducts = async function(store) {
     }
   } catch {}
 
+  // 📦 cargar productos
   try {
     const res = await fetch(`/api/stores/${storeId}/products`);
     const data = await res.json();
@@ -50,50 +48,72 @@ function renderProducts(products) {
 
   container.innerHTML = "";
 
+  if (!products.length) {
+    container.innerHTML = `<p style="color:#888;">Esta tienda todavía no tiene productos</p>`;
+    return;
+  }
+
   products.forEach(p => {
 
     const card = document.createElement("div");
     card.className = "product-card";
 
     card.innerHTML = `
-      <div style="position:relative">
+      <div class="card-image">
+
+        ${p.is_offer ? `<span class="badge-offer">OFERTA</span>` : ""}
+
+        <img src="${p.image_url}" />
+
         ${
           window.isOwner
             ? `
-            <div style="position:absolute;top:5px;right:5px;display:flex;gap:5px;">
+            <div class="card-actions">
               <button class="edit-btn">✏️</button>
               <button class="delete-btn">🗑️</button>
             </div>
           `
             : ""
         }
-        <img src="${p.image_url}" />
+
       </div>
 
-      <h3>${p.name}</h3>
+      <div class="card-body">
 
-      <p class="text-orange-600 font-bold">
-        $${parseFloat(p.price || 0).toLocaleString()}
-      </p>
+        <h3 class="card-title">${p.name}</h3>
 
-      <p class="text-yellow-600 text-sm mt-1">
-        ${
-          p.rating_avg
-            ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
-            : "Sin valoraciones"
-        }
-      </p>
+        <div class="card-price">
+          ${
+            p.old_price
+              ? `<span class="old-price">$${parseFloat(p.old_price).toLocaleString()}</span>`
+              : ""
+          }
+          <span class="new-price">$${parseFloat(p.price || 0).toLocaleString()}</span>
+        </div>
+
+        <div class="card-rating">
+          ${
+            p.rating_avg
+              ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
+              : "Sin valoraciones"
+          }
+        </div>
+
+      </div>
     `;
 
+    // 👉 click card
     card.onclick = () => {
       window.location.href = `/product/${p.slug || p.id}`;
     };
 
+    // ✏️ editar
     card.querySelector(".edit-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       window.location.href = `/edit-product/${p.id}`;
     });
 
+    // 🗑️ eliminar
     card.querySelector(".delete-btn")?.addEventListener("click", async (e) => {
       e.stopPropagation();
 
