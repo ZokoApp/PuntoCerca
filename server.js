@@ -2143,23 +2143,28 @@ WHERE id = $17 AND user_id = $18
 
 
 app.get('/api/stores/:id/products', async (req, res) => {
+  try {
 
-    try {
+    const result = await pool.query(`
+      SELECT 
+        p.*,
+        s.name AS store_name,
+        AVG(r.rating)::numeric(10,2) AS rating_avg,
+        COUNT(r.rating) AS rating_count
+      FROM products p
+      LEFT JOIN stores s ON s.id = p.store_id
+      LEFT JOIN product_ratings r ON r.product_id = p.id
+      WHERE p.store_id = $1
+      GROUP BY p.id, s.name
+      ORDER BY p.id DESC
+    `, [req.params.id]);
 
-        const result = await pool.query(
-            `SELECT * FROM products WHERE store_id = $1 ORDER BY id DESC`,
-            [req.params.id]
-        );
+    res.json(result.rows);
 
-        res.json(result.rows);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Error obteniendo productos"
-        });
-    }
-
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo productos" });
+  }
 });
 
 /* ================================
