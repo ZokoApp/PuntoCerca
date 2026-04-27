@@ -187,7 +187,11 @@ function isStoreOpen(store) {
 const pathParts = window.location.pathname.split("/");
 
 
-const storeSlug = pathParts[1]?.split("?")[0];
+let storeSlug = null;
+
+if (pathParts[1] && isNaN(pathParts[1])) {
+  storeSlug = pathParts[1].split("?")[0];
+}
 
 /* ================================
    INIT
@@ -242,21 +246,18 @@ async function loadStore(){
 
   try {
 
-    let res;
-
     if (!storeSlug) {
-  console.error("Slug inválido");
-  return;
-}
+      console.error("Slug inválido");
+      return;
+    }
 
-const res = await fetch(`/api/stores/slug/${storeSlug}`);
+    const storeRes = await fetch(`/api/stores/slug/${storeSlug}`);
+    const store = await storeRes.json();
 
-    const store = await res.json();
-
-     if (!store || store.error) {
-  console.error("Error cargando tienda:", store);
-  return;
-}
+    if (!store || store.error) {
+      console.error("Error cargando tienda:", store);
+      return;
+    }
 
     storeData = store;
 
@@ -265,34 +266,34 @@ const res = await fetch(`/api/stores/slug/${storeSlug}`);
     }
 
     renderStore(store);
-setupMap(store);
-handleUIByRole(store);
+    setupMap(store);
+    handleUIByRole(store);
 
-    //  REVIEWS
-loadStoreRating(store.id);
+    // REVIEWS
+    loadStoreRating(store.id);
 
-//  CARGAR COMENTARIOS
-await loadUser();
-loadStoreComments(store.id);
+    // COMENTARIOS
+    await loadUser();
+    loadStoreComments(store.id);
 
-// mostrar caja de comentario
-const loginMsg = document.getElementById("storeLoginMessage");
-const commentBox = document.getElementById("storeCommentBox");
+    // UI comentario
+    const loginMsg = document.getElementById("storeLoginMessage");
+    const commentBox = document.getElementById("storeCommentBox");
 
-if (currentUser) {
-  if (commentBox) commentBox.classList.remove("hidden");
-} else {
-  if (loginMsg) loginMsg.classList.remove("hidden");
-}
+    if (currentUser) {
+      if (commentBox) commentBox.classList.remove("hidden");
+    } else {
+      if (loginMsg) loginMsg.classList.remove("hidden");
+    }
 
-// 🔥 asegurar carga de productos
-setTimeout(() => {
-  if (window.initStoreProducts) {
-    window.initStoreProducts(store);
-  } else {
-    console.error("initStoreProducts no está disponible");
-  }
-}, 100);
+    // PRODUCTOS
+    setTimeout(() => {
+      if (window.initStoreProducts) {
+        window.initStoreProducts(store);
+      } else {
+        console.error("initStoreProducts no está disponible");
+      }
+    }, 100);
 
     if(currentUser && !isOwner){
       checkFollowing(store.id);
@@ -302,7 +303,6 @@ setTimeout(() => {
     console.error("Error cargando tienda", err);
   }
 }
-
 /* ================================
    UI POR ROL
 ================================ */
