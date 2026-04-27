@@ -255,3 +255,14 @@ window.resetFilters = function(){
 
   subContainer.classList.add("hidden");
 };
+
+document.addEventListener("click", (e) => {
+  const results = document.getElementById("searchResults");
+  const input = document.getElementById("searchInput");
+
+  if (!results || !input) return;
+
+  if (!results.contains(e.target) && e.target !== input) {
+    results.classList.add("hidden");
+  }
+});
