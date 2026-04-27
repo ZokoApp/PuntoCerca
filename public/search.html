@@ -3,35 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resultados de búsqueda</title>
+
+<title>Resultados - PuntoCerca</title>
 
 <link rel="stylesheet" href="/css/output.css">
-   <link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="icon" type="image/png" href="/img/favicon.png">
 
 </head>
 
 <body class="bg-gray-50 text-gray-800">
 
-<!-- NAV -->
-<nav class="bg-white shadow p-4 flex justify-between">
-  <a href="/" class="font-bold text-orange-600">PuntoCerca</a>
+<!-- =========================
+NAVBAR PRO
+========================= -->
+<nav class="bg-white shadow-sm border-b">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+
+    <!-- LOGO -->
+    <a href="/" class="flex items-center gap-2">
+      <img src="/img/logo.png" class="h-8 w-auto">
+      <span class="font-bold text-orange-600 text-lg">PuntoCerca</span>
+    </a>
+
+    <!-- BUSCADOR -->
+    <div class="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 w-80">
+      <input 
+        type="text" 
+        placeholder="Buscar productos o tiendas..."
+        class="bg-transparent outline-none w-full text-sm"
+        onkeydown="if(event.key==='Enter'){window.location.href='/search.html?q='+this.value}"
+      >
+    </div>
+
+  </div>
 </nav>
 
-<!-- CONTENIDO -->
+<!-- =========================
+CONTENIDO
+========================= -->
 <main class="max-w-6xl mx-auto px-6 py-10">
 
-  <h1 id="searchTitle" class="text-2xl font-bold mb-6">
-    Resultados
-  </h1>
+  <!-- TITLE -->
+  <h1 id="searchTitle" class="text-2xl md:text-3xl font-bold mb-8"></h1>
 
- <h2 class="text-xl font-semibold mb-4">🛒 Productos</h2>
-<div id="productsResults" class="grid md:grid-cols-3 gap-6 mb-10"></div>
+  <!-- =========================
+  PRODUCTOS
+  ========================= -->
+  <div class="mb-12">
 
-<h2 class="text-xl font-semibold mb-4">🏪 Tiendas</h2>
-<div id="storesResults" class="grid md:grid-cols-3 gap-6"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">🛒 Productos</h2>
+    </div>
+
+    <div id="productsResults" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+
+  </div>
+
+  <!-- =========================
+  TIENDAS
+  ========================= -->
+  <div>
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">🏪 Tiendas</h2>
+    </div>
+
+    <div id="storesResults" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+
+  </div>
 
 </main>
 
+<!-- =========================
+TEMPLATE CARD TIENDA (ESTILO GLOBAL)
+========================= -->
+<style>
+
+.store-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: 0.3s;
+  cursor: pointer;
+  border: 1px solid #eee;
+}
+
+.store-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.store-image {
+  position: relative;
+  height: 180px;
+}
+
+.store-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.store-status.open {
+  background: #16a34a;
+}
+
+.store-status.closed {
+  background: #dc2626;
+}
+
+.store-content {
+  padding: 14px;
+}
+
+.store-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.store-meta {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.store-rating {
+  font-size: 13px;
+  color: #f59e0b;
+  margin-top: 6px;
+}
+
+</style>
+
+<!-- =========================
+SCRIPT
+========================= -->
 <script src="/js/search.js"></script>
 
 </body>
