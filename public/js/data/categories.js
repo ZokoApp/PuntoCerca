@@ -64,7 +64,8 @@ export const CATEGORIES = {
   { id: 57, name: "Aire acondicionado" },
   { id: 58, name: "Instalaciones" },
   { id: 59, name: "Mantenimiento" },
-  { id: 60, name: "Service técnico" }
+  { id: 60, name: "Service técnico" },
+  { id: 68, name: "Lavandería" }  
 ],
 
   "Automotor": [
