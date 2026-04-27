@@ -186,18 +186,8 @@ function isStoreOpen(store) {
 
 const pathParts = window.location.pathname.split("/");
 
-let storeId = null;
-let storeSlug = null;
 
-if (pathParts[1] === "store") {
-  storeId = pathParts[2]?.split("?")[0]; // 🔥 FIX
-} else {
-  const possibleSlug = pathParts[1];
-
-  if (possibleSlug && isNaN(possibleSlug)) {
-    storeSlug = possibleSlug;
-  }
-}
+const storeSlug = pathParts[1]?.split("?")[0];
 
 /* ================================
    INIT
@@ -254,14 +244,12 @@ async function loadStore(){
 
     let res;
 
-    if (storeId) {
-  res = await fetch(`/api/stores/${storeId}`);
-} else if (storeSlug && isNaN(storeSlug)) {
-  res = await fetch(`/api/stores/slug/${storeSlug}`);
-} else {
-  console.error("ID/Slug inválido");
+    if (!storeSlug) {
+  console.error("Slug inválido");
   return;
 }
+
+const res = await fetch(`/api/stores/slug/${storeSlug}`);
 
     const store = await res.json();
 
