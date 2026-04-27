@@ -14,15 +14,17 @@
 <body class="bg-gray-50 text-gray-800">
 
 <!-- =========================
-NAV (ESTILO REAL DE TU WEB)
+HEADER COMPACTO (FIX REAL)
 ========================= -->
-<nav class="bg-white shadow-sm px-4 py-3 flex justify-between items-center">
+<nav class="bg-white border-b px-4 py-2 flex items-center justify-between">
 
   <a href="/" class="flex items-center gap-2">
-    <img src="/img/logo.png" class="h-7">
+    <!-- ICONO SOLO (no texto gigante) -->
+    <img src="/img/favicon.png" class="h-6 w-6">
+    <span class="text-orange-600 font-semibold text-sm">PuntoCerca</span>
   </a>
 
-  <a href="/" class="text-orange-600 font-semibold text-sm">
+  <a href="/" class="text-xs text-gray-600">
     Inicio
   </a>
 
@@ -31,21 +33,22 @@ NAV (ESTILO REAL DE TU WEB)
 <!-- =========================
 CONTENIDO
 ========================= -->
-<main class="px-4 py-6">
+<main class="px-4 py-4 max-w-5xl mx-auto">
 
   <!-- TITLE -->
-  <h1 id="searchTitle" class="text-xl font-bold mb-6"></h1>
+  <h1 id="searchTitle" class="text-lg font-semibold mb-4"></h1>
 
   <!-- =========================
   PRODUCTOS
   ========================= -->
-  <section class="mb-10">
+  <section class="mb-8">
 
-    <h2 class="text-lg font-semibold mb-3">
+    <h2 class="text-sm font-semibold mb-3 text-gray-700">
       🛒 Productos
     </h2>
 
-    <div id="productsResults" class="grid grid-cols-2 gap-4"></div>
+    <!-- 🔥 GRID MÁS PROFESIONAL -->
+    <div id="productsResults" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
 
   </section>
 
@@ -54,36 +57,37 @@ CONTENIDO
   ========================= -->
   <section>
 
-    <h2 class="text-lg font-semibold mb-3">
+    <h2 class="text-sm font-semibold mb-3 text-gray-700">
       🏪 Tiendas
     </h2>
 
-    <div id="storesResults" class="grid grid-cols-2 gap-4"></div>
+    <div id="storesResults" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
 
   </section>
 
 </main>
 
 <!-- =========================
-ESTILOS CARDS (MEJORADOS)
+CARDS AJUSTADAS (🔥 CLAVE)
 ========================= -->
 <style>
 
 .store-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
+  border: 1px solid #eee;
   transition: 0.2s;
 }
 
-.store-card:active {
-  transform: scale(0.98);
+.store-card:hover {
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
 .store-image {
   position: relative;
-  height: 140px;
+  height: 110px; /* 🔥 más chica */
 }
 
 .store-image img {
@@ -94,11 +98,11 @@ ESTILOS CARDS (MEJORADOS)
 
 .store-status {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 4px 8px;
+  top: 6px;
+  left: 6px;
+  padding: 3px 6px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: white;
 }
@@ -112,23 +116,24 @@ ESTILOS CARDS (MEJORADOS)
 }
 
 .store-content {
-  padding: 10px;
+  padding: 8px;
 }
 
 .store-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .store-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: #777;
 }
 
 .store-rating {
-  font-size: 12px;
+  font-size: 11px;
   color: #f59e0b;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 </style>
