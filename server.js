@@ -2555,8 +2555,10 @@ const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
   .map(([id]) => Number(id));
 
 
+const params = [search];
+
 let query = `
- SELECT 
+SELECT 
   s.id,
   s.slug,
   s.name,
@@ -2568,17 +2570,26 @@ let query = `
   'store' AS type
 FROM stores s
 LEFT JOIN store_ratings r ON r.store_id = s.id
-WHERE LOWER(public.unaccent(name)) LIKE LOWER(unaccent($1))
-   OR LOWER(unaccent(category)) LIKE LOWER(unaccent($1))
+WHERE (
+  LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
+  OR LOWER(public.unaccent(s.category)) LIKE LOWER(public.unaccent($1))
+)
 `;
 
+    if (matchedSubIds.length > 0) {
+  params.push(JSON.stringify([matchedSubIds[0]]));
+
+  query += `
+  OR s.subcategory_ids @> $2::jsonb
+  `;
+}
 let params = [search];
 
 // 🔥 SI ENCUENTRA SUBCATEGORÍAS → AGREGAR
 if (matchedSubIds.length > 0) {
   const subMatches = matchedSubIds.map(id => `%${id}%`);
 
-  query += ` OOR s.subcategory_ids @> $2::jsonb`;
+  query += ` OR s.subcategory_ids @> $2::jsonb`;
   params.push(subMatches);
   params.push(JSON.stringify([matchedSubIds[0]]));
 }
