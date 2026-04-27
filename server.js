@@ -2577,7 +2577,19 @@ WHERE (
 `;
 
 if (matchedSubIds.length > 0) {
-  params.push(JSON.stringify([matchedSubIds[0]]));
+  const subConditions = [];
+
+matchedSubIds.forEach((id, i) => {
+  params.push(JSON.stringify([id]));
+
+  subConditions.push(
+    `s.subcategory_ids @> $${params.length}::jsonb`
+  );
+});
+
+if (subConditions.length > 0) {
+  query += ` OR (${subConditions.join(" OR ")})`;
+}
 
   query += `
   OR s.subcategory_ids @> $${params.length}::jsonb
