@@ -16,12 +16,12 @@ let currentSubcategory = null;
 
 window.loadStores = loadStores;
 
-window.viewStore = function(id){
-  window.location.href = `/store/${id}`;
+window.viewStore = function(slug){
+  window.location.href = `/${slug}`;
 };
 
 window.goToProduct = (product) => {
-  window.location.href = `/product/${product.slug || product.id}`;
+  window.location.href = `/product/${product.slug}`;
 };
 
 window.focusStore = focusStore;
@@ -29,7 +29,7 @@ window.focusStore = focusStore;
 // 👉 NUEVO: navegación centralizada (IMPORTANTE)
 window.handleSearchClick = function(type, value){
   if(type === "store"){
-    window.location.href = `/store/${value}`;
+    window.location.href = `/${value}`;
   } else {
     window.location.href = `/product/${value}`;
   }
@@ -82,7 +82,7 @@ if (searchInput && resultsBox) {
         resultsBox.innerHTML = data.map(item => `
           <div 
             class="p-3 hover:bg-gray-100 cursor-pointer flex gap-3 items-center"
-            onclick="handleSearchClick('${item.type}', '${item.slug || item.id}')"
+            onclick="handleSearchClick('${item.type}', '${item.slug}')"
           >
             <img src="${item.image || '/img/default.png'}"
                  class="w-10 h-10 rounded-lg object-cover">
