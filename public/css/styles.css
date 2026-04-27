@@ -310,3 +310,8 @@ nav a{
   font-weight: 500;
   font-size: 14px;
 }
+
+#searchResults {
+  max-height: 300px;
+  overflow-y: auto;
+}
