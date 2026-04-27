@@ -42,17 +42,54 @@ initSliders();
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 
-function goToSearch(){
-  const query = searchInput?.value.trim();
+searchInput?.addEventListener("input", async (e) => {
 
-  if(!query){
-    showToast("Escribe algo para buscar", "warning");
+  const query = e.target.value.trim();
+
+  const resultsBox = document.getElementById("searchResults");
+
+  if (!query) {
+    resultsBox.classList.add("hidden");
     return;
   }
 
-  window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
-}
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
 
+    if (!data.length) {
+      resultsBox.innerHTML = `<div style="padding:10px;">Sin resultados</div>`;
+      resultsBox.classList.remove("hidden");
+      return;
+    }
+
+    resultsBox.innerHTML = data.map(item => `
+      <div 
+        class="p-3 hover:bg-gray-100 cursor-pointer flex gap-3 items-center"
+        onclick="${item.type === 'store' 
+          ? `window.location.href='/${item.slug || item.id}'`
+          : `window.location.href='/product/${item.id}'`
+        }"
+      >
+        <img src="${item.image || '/img/default.png'}"
+             style="width:40px;height:40px;border-radius:8px;object-fit:cover;">
+
+        <div>
+          <div style="font-weight:600">${item.name}</div>
+          <div style="font-size:12px;color:#666;">
+            ${item.type === 'store' ? 'Tienda' : 'Producto'}
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    resultsBox.classList.remove("hidden");
+
+  } catch (err) {
+    console.error(err);
+  }
+
+});
 searchBtn?.addEventListener("click", goToSearch);
 
 searchInput?.addEventListener("keydown", (e) => {
