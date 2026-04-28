@@ -246,13 +246,22 @@ function renderSubcategories(cat){
       Ver todo
     </button>
   ` + subs.map(sub => `
-    <button
-      onclick="selectSubcategory('${cat}', ${sub.id})"
-      class="px-4 py-2 bg-white border rounded-full text-sm hover:bg-orange-600 hover:text-white transition whitespace-nowrap">
-      ${sub.name}
-    </button>
+    <button 
+  data-cat="${cat}" 
+  data-sub="${sub.id}"
+  class="sub-btn px-4 py-2 bg-white border rounded-full text-sm hover:bg-orange-600 hover:text-white transition whitespace-nowrap">
+  ${sub.name}
+</button>
   `).join("");
 }
+document.addEventListener("click", (e) => {
+  if(e.target.classList.contains("sub-btn")){
+    const cat = e.target.dataset.cat;
+    const sub = e.target.dataset.sub;
+
+    selectSubcategory(cat, sub);
+  }
+});
 
 // =============================
 // RESET
