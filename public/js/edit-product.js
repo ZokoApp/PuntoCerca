@@ -179,8 +179,8 @@
       formData.append("name", document.getElementById("name").value);
   
       // 🔥 PRECIO
-    if (checkbox.checked) {
-  formData.append("price", "");
+   if (checkbox.checked) {
+  formData.append("price", "null"); // 🔥 clave
 } else {
   const priceValue = parseFloat(priceInput.value);
 
