@@ -120,8 +120,8 @@ function renderProducts(products) {
         </div>
 
         <button class="card-btn">
-          Consultar
-        </button>
+  ${p.price && p.price > 0 ? "Ver producto" : "Consultar"}
+</button>
 
       </div>
     `;
