@@ -1,13 +1,21 @@
 window.renderPriceHTML = function(product){
 
-  // 👉 CASO CONSULTAR
-  if (product.price === null || product.price === "" || product.price === undefined) {
+  // 👉 NORMALIZAR
+  const rawPrice = product.price;
+
+  // 👉 CASOS "CONSULTAR"
+  if (
+    rawPrice === null ||
+    rawPrice === undefined ||
+    rawPrice === "" ||
+    rawPrice === "null" ||   // 🔥 ESTE ES EL QUE TE FALTABA
+    isNaN(rawPrice)
+  ) {
     return `<strong style="color:#666;">Consultar</strong>`;
   }
 
-  const price = parseFloat(product.price);
+  const price = parseFloat(rawPrice);
 
-  // 👉 SI NO HAY PRECIO ANTERIOR
   if(!product.old_price){
     return `<strong>$${price.toLocaleString()}</strong>`;
   }
