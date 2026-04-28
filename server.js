@@ -2540,7 +2540,7 @@ let whereParts = [];
 // 🔹 subcategorías
 if (matchedSubIds.length > 0) {
   matchedSubIds.forEach((id) => {
-    params.push(JSON.stringify([id]));
+   params.push(JSON.stringify([String(id)]));
     whereParts.push(`s.subcategory_ids @> $${params.length}::jsonb`);
   });
 }
