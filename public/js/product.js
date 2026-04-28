@@ -295,7 +295,9 @@ if (subName) {
     const mensaje = `Hola! Quiero consultar por este producto:
 
 ${product.name}
-$${parseFloat(product.price).toLocaleString()}
+const precioTexto = product.price
+  ? `$${parseFloat(product.price).toLocaleString()}`
+  : "Consultar";
 
 ¿Está disponible?
 
