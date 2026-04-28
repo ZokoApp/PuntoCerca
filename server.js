@@ -1409,7 +1409,7 @@ if (stock !== undefined && stock !== null && stock !== "") {
          SET 
            name = COALESCE($1, name),
            price = $2,
-           old_price = COALESCE($3, old_price),
+           old_price = $3,
            brand = COALESCE($4, brand),
            size = COALESCE($5, size),
            stock = COALESCE($6, stock),
