@@ -74,26 +74,23 @@ export function initSliders(){
 window.renderPriceHTML = function(product){
 
   const price = parseFloat(product.price);
-  const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
+  const oldPrice = product.old_price !== null && product.old_price !== undefined
+    ? parseFloat(product.old_price)
+    : null;
 
-  // si no hay precio
-  if(!price){
-    return "";
+  const format = (n) => "$" + n.toLocaleString("es-AR");
+
+  // 👉 SIN PRECIO → CONSULTAR
+  if (price === null || isNaN(price)) {
+    return `<span style="font-weight:600;">Consultar</span>`;
   }
 
-  // 💰 formato ARS
-  const format = (n) => {
-    return "$" + n.toLocaleString("es-AR");
-  };
-
-  // 🟢 SIN DESCUENTO
-  if(!oldPrice || oldPrice <= price){
-    return `
-      <span style="font-weight:600;">${format(price)}</span>
-    `;
+  // 👉 SIN DESCUENTO
+  if (oldPrice === null || oldPrice <= price) {
+    return `<span style="font-weight:600;">${format(price)}</span>`;
   }
 
-  // 🔥 CON DESCUENTO
+  // 👉 CON DESCUENTO
   const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
 
   return `
