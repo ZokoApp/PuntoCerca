@@ -8,7 +8,7 @@ if (!param || param === "null") {
   throw new Error("ID inválido");
 }
 
-// 🔥 detectar ID o SLUG (PRO)
+// 🔥 detectar ID o SLUG
 const isId = !isNaN(param);
 
 const GET_URL = isId
@@ -17,14 +17,20 @@ const GET_URL = isId
 
 const UPDATE_URL = isId
   ? `/api/products/${param}`
-  : `/api/products/${param}`; // ⚠️ backend solo soporta ID en PUT
+  : `/api/products/${param}`;
+
+// ============================
+// ELEMENTOS (IMPORTANTE ARRIBA)
+// ============================
+
+const priceInput = document.getElementById("price");
+const checkbox = document.getElementById("priceOnRequest");
 
 // ============================
 // CATEGORÍAS DINÁMICAS
 // ============================
 
 function loadCategories(selectedCategory, selectedSub = null) {
-
   const catSelect = document.getElementById("category");
   const subSelect = document.getElementById("subcategory");
   const subContainer = document.getElementById("subcategoriesContainer");
@@ -44,7 +50,6 @@ function loadCategories(selectedCategory, selectedSub = null) {
   });
 
   if (selectedCategory && CATEGORIES[selectedCategory]) {
-
     subContainer.classList.remove("hidden");
 
     subSelect.innerHTML = `<option value="">Subcategoría</option>`;
@@ -58,7 +63,6 @@ function loadCategories(selectedCategory, selectedSub = null) {
 
       subSelect.appendChild(option);
     });
-
   } else {
     subContainer.classList.add("hidden");
   }
@@ -74,7 +78,6 @@ function loadCategories(selectedCategory, selectedSub = null) {
 
 async function loadProduct() {
   try {
-
     const res = await fetch(GET_URL);
 
     if (!res.ok) {
@@ -84,27 +87,32 @@ async function loadProduct() {
 
     const product = await res.json();
 
-    // 🔥 preview nombre
+    // título preview
     const titlePreview = document.getElementById("productTitlePreview");
     if (titlePreview) {
       titlePreview.innerText = product.name;
     }
 
     document.getElementById("name").value = product.name || "";
+
+    // 🔥 PRECIO / CONSULTAR
     if (!product.price) {
-  checkbox.checked = true;
-  priceInput.disabled = true;
-  priceInput.value = "";
-} else {
-  priceInput.value = product.price;
-}
+      checkbox.checked = true;
+      priceInput.disabled = true;
+      priceInput.value = "";
+    } else {
+      checkbox.checked = false;
+      priceInput.disabled = false;
+      priceInput.value = product.price;
+    }
+
     document.getElementById("old_price").value = product.old_price || "";
     document.getElementById("brand").value = product.brand || "";
     document.getElementById("size").value = product.size || "";
     document.getElementById("stock").value = product.stock || "";
     document.getElementById("isOffer").checked = product.is_offer;
 
-    // 🔥 DESCRIPCIÓN LIMPIA (clave)
+    // descripción
     let description = "";
 
     try {
@@ -119,10 +127,10 @@ async function loadProduct() {
 
     document.getElementById("extra").value = description;
 
-    // 🔥 categorías dinámicas
+    // categorías
     loadCategories(product.category, product.subcategory_id);
 
-    // 🔥 botón ver producto
+    // botón ver producto
     const viewBtn = document.getElementById("viewProductBtn");
     if (viewBtn) {
       viewBtn.href = `/product/${product.slug || product.id}`;
@@ -134,7 +142,10 @@ async function loadProduct() {
   }
 }
 
-loadProduct();
+// ============================
+// CHECKBOX COMPORTAMIENTO
+// ============================
+
 checkbox.addEventListener("change", () => {
   if (checkbox.checked) {
     priceInput.value = "";
@@ -143,11 +154,10 @@ checkbox.addEventListener("change", () => {
     priceInput.disabled = false;
   }
 });
+
 // ============================
 // SUBMIT
 // ============================
-const priceInput = document.getElementById("price");
-const checkbox = document.getElementById("priceOnRequest"); 
 
 document.getElementById("editProductForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -156,24 +166,25 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
   const overlay = document.getElementById("loadingOverlay");
 
   try {
-
     saveBtn.disabled = true;
     overlay?.classList.remove("hidden");
 
     const formData = new FormData();
 
     formData.append("name", document.getElementById("name").value);
+
+    // 🔥 PRECIO
     if (checkbox.checked) {
-  formData.append("price", ""); // backend lo interpreta como null
-} else {
-  formData.append("price", priceInput.value);
-}
+      formData.append("price", "");
+    } else {
+      formData.append("price", priceInput.value);
+    }
+
     formData.append("old_price", document.getElementById("old_price").value);
     formData.append("brand", document.getElementById("brand").value);
     formData.append("size", document.getElementById("size").value);
     formData.append("stock", document.getElementById("stock").value);
 
-    // 🔥 guardar como JSON limpio
     formData.append("extra", JSON.stringify({
       description: document.getElementById("extra").value
     }));
@@ -216,4 +227,8 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
   }
 });
 
+// ============================
+// INIT
+// ============================
 
+loadProduct();
