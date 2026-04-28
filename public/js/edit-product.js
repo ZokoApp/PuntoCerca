@@ -96,15 +96,20 @@
       document.getElementById("name").value = product.name || "";
   
       // 🔥 PRECIO / CONSULTAR
-      if (product.price === null || product.price === undefined) {
-        checkbox.checked = true;
-        priceInput.disabled = true;
-        priceInput.value = "";
-      } else {
-        checkbox.checked = false;
-        priceInput.disabled = false;
-        priceInput.value = product.price;
-      }
+      if (
+  product.price === null ||
+  product.price === undefined ||
+  product.price === "" ||
+  isNaN(product.price)
+) {
+  checkbox.checked = true;
+  priceInput.disabled = true;
+  priceInput.value = "";
+} else {
+  checkbox.checked = false;
+  priceInput.disabled = false;
+  priceInput.value = Number(product.price);
+}
   
       document.getElementById("old_price").value = product.old_price || "";
       document.getElementById("brand").value = product.brand || "";
@@ -175,9 +180,16 @@
   
       // 🔥 PRECIO
     if (checkbox.checked) {
-  formData.append("price", ""); 
+  formData.append("price", "");
 } else {
-  formData.append("price", priceInput.value || "");
+  const priceValue = parseFloat(priceInput.value);
+
+  if (isNaN(priceValue)) {
+    showToast("Precio inválido", "error");
+    return;
+  }
+
+  formData.append("price", priceValue);
 }
   
       formData.append("old_price", document.getElementById("old_price").value);
