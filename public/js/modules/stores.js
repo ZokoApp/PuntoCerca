@@ -336,11 +336,7 @@ const res = await fetch(`/api/stores/${store.id}/products`);
     
   }).join('')
   : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
-        </div>
-      </div>
-    `;
-  }).join('')
-  : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
+        
 
     preview.innerHTML = `
     <button class="close-preview">✕</button>
