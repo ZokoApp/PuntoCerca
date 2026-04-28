@@ -403,3 +403,17 @@ nav a{
   }
 
 }
+
+#subcategoriesList{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding:10px 16px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x; /* 🔥 CLAVE */
+}
+
+#subcategoriesList button{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
