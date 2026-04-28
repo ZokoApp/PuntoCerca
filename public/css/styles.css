@@ -350,16 +350,15 @@ nav a{
 }
 
 
-/* BUSCADOR MOBILE FIX */
 @media (max-width:768px){
 
   #searchInput{
-    width:100% !important;
-    height:44px;
-    border-radius:12px;
-    padding:0 15px;
+    height:48px;
+    border-radius:999px; /* 🔥 ovalado real */
     font-size:16px;
   }
+
+}
 
   #searchResults{
     width:100%;
@@ -389,4 +388,18 @@ nav a{
 
 #subcategoriesList button{
   flex:0 0 auto;
+}
+
+@media (max-width:768px){
+
+  #subcategoriesContainer{
+    padding-left:0 !important;
+    padding-right:0 !important;
+  }
+
+  #subcategoriesList{
+    padding-left:16px;
+    padding-right:16px;
+  }
+
 }
