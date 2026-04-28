@@ -318,7 +318,7 @@ const res = await fetch(`/api/stores/${store.id}/products`);
 
 
   const productsHTML = products.length
-  ? products.slice(0,3).map(p => {
+  ? products.slice(0,2).map(p => {
 
     const priceHTML = window.renderPriceHTML
       ? window.renderPriceHTML(p)
