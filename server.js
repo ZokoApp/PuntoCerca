@@ -1300,12 +1300,8 @@
       const wasOffer = productData.rows[0].is_offer;
   
       // 🔥 PARSEOS
-      let parsedPrice = null;
-
-if (price !== undefined && price !== null && price !== "") {
-  const num = parseFloat(price);
-  parsedPrice = isNaN(num) ? null : num;
-}
+     ALTER TABLE products
+ALTER COLUMN price DROP NOT NULL;
     let parsedOldPrice = null;
 
 if (old_price !== undefined && old_price !== null && old_price !== "") {
@@ -1377,7 +1373,12 @@ if (stock !== undefined && stock !== null && stock !== "") {
       }
   
       // 🔥 AUTO DESCUENTO
-      if (parsedPrice && currentPrice && parsedPrice < currentPrice && !parsedOldPrice) {
+      if (
+  parsedPrice !== null &&
+  currentPrice !== null &&
+  parsedPrice < currentPrice &&
+  !parsedOldPrice
+){
         parsedOldPrice = currentPrice;
       }
   
