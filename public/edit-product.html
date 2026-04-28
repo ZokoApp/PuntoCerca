@@ -43,14 +43,24 @@
 
     <!-- PRECIOS -->
     <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="text-sm font-medium text-gray-700">Precio actual</label>
-        <input id="price" type="number"
-          class="w-full border p-3 rounded-lg"
-          required />
-      </div>
 
-      <!-- PRECIO A CONSULTAR -->
+  <!-- PRECIO ACTUAL -->
+  <div>
+    <label class="text-sm font-medium text-gray-700">Precio actual</label>
+    <input id="price" type="number"
+      class="w-full border p-3 rounded-lg" />
+  </div>
+
+  <!-- PRECIO ANTERIOR -->
+  <div>
+    <label class="text-sm font-medium text-gray-700">Precio anterior</label>
+    <input id="old_price" type="number"
+      class="w-full border p-3 rounded-lg" />
+  </div>
+
+</div>
+
+<!-- CHECKBOX AFUERA DEL GRID -->
 <div class="flex items-center gap-2 mt-2">
   <input type="checkbox" id="priceOnRequest"
     class="w-4 h-4 accent-orange-600" />
