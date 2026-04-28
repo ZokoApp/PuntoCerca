@@ -175,7 +175,7 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
 
     // 🔥 PRECIO
     if (checkbox.checked) {
-      formData.append("price", "");
+      formData.append("price", null);
     } else {
       formData.append("price", priceInput.value);
     }
