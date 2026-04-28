@@ -2535,17 +2535,22 @@
     if (matchedSubIds.length > 0) {
       const subConditions = [];
 const params = [];
+let whereParts = [];
 
-matchedSubIds.forEach((id) => {
-   params.push(JSON.stringify([id]));
-  subConditions.push(`s.subcategory_ids @> $${params.length}::jsonb`);
-});
+// 🔹 subcategorías
+if (matchedSubIds.length > 0) {
+  matchedSubIds.forEach((id) => {
+    params.push(JSON.stringify([id]));
+    whereParts.push(`s.subcategory_ids @> $${params.length}::jsonb`);
+  });
+}
 
-// agregamos búsqueda por nombre SIEMPRE
+// 🔹 búsqueda por nombre (SIEMPRE)
 params.push(search);
+whereParts.push(`LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($${params.length}))`);
 
 const storesResult = await pool.query(`
-  SELECT 
+  SELECT
     s.id,
     s.slug,
     s.name,
@@ -2557,10 +2562,7 @@ const storesResult = await pool.query(`
     'store' AS type
   FROM stores s
   LEFT JOIN store_ratings r ON r.store_id = s.id
-  WHERE (
-    ${subConditions.length ? subConditions.join(" OR ") : "FALSE"}
-    OR LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($${params.length}))
-  )
+  WHERE (${whereParts.join(" OR ")})
   GROUP BY s.id
   ORDER BY s.is_open DESC, rating_avg DESC
 `, params);
