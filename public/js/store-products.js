@@ -1,7 +1,7 @@
 window.isOwner = false;
 window.allProducts = [];
 
-window.initStoreProducts = async function(store) {
+window.initStoreProducts = async function (store) {
 
   const storeId = store?.id;
 
@@ -49,7 +49,9 @@ function renderProducts(products) {
   container.innerHTML = "";
 
   if (!products.length) {
-    container.innerHTML = `<p style="color:#888;">Esta tienda todavía no tiene productos</p>`;
+    container.innerHTML = `
+      <p style="color:#888;">Esta tienda todavía no tiene productos</p>
+    `;
     return;
   }
 
@@ -63,7 +65,7 @@ function renderProducts(products) {
 
         ${p.is_offer ? `<span class="badge-offer">OFERTA</span>` : ""}
 
-        <img src="${p.image_url}" />
+        <img src="${p.image_url || '/img/no-image.png'}" alt="${p.name}" />
 
         ${
           window.isOwner
@@ -83,12 +85,7 @@ function renderProducts(products) {
         <h3 class="card-title">${p.name}</h3>
 
         <div class="card-price">
-          ${
-            p.old_price
-              ? `<span class="old-price">$${parseFloat(p.old_price).toLocaleString()}</span>`
-              : ""
-          }
-          <span class="new-price">$${parseFloat(p.price || 0).toLocaleString()}</span>
+          ${window.renderPriceHTML ? window.renderPriceHTML(p) : `$${parseFloat(p.price || 0).toLocaleString()}`}
         </div>
 
         <div class="card-rating">
@@ -99,41 +96,60 @@ function renderProducts(products) {
           }
         </div>
 
+        <button class="card-btn">
+          Consultar
+        </button>
+
       </div>
     `;
 
-    // 👉 click card
+    // 👉 click en toda la card
     card.onclick = () => {
       window.location.href = `/product/${p.slug || p.id}`;
     };
 
+    // 🔥 botón consultar (evita conflicto click padre)
+    const btn = card.querySelector(".card-btn");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `/product/${p.slug || p.id}`;
+      });
+    }
+
     // ✏️ editar
-    card.querySelector(".edit-btn")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.location.href = `/edit-product/${p.id}`;
-    });
+    const editBtn = card.querySelector(".edit-btn");
+    if (editBtn) {
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `/edit-product/${p.id}`;
+      });
+    }
 
     // 🗑️ eliminar
-    card.querySelector(".delete-btn")?.addEventListener("click", async (e) => {
-      e.stopPropagation();
+    const deleteBtn = card.querySelector(".delete-btn");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
 
-      if (!confirm("¿Eliminar producto?")) return;
+        if (!confirm("¿Eliminar producto?")) return;
 
-      try {
-        const res = await fetch(`/api/products/${p.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
+        try {
+          const res = await fetch(`/api/products/${p.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
 
-        if (!res.ok) throw new Error();
+          if (!res.ok) throw new Error();
 
-        window.allProducts = window.allProducts.filter(prod => prod.id !== p.id);
-        renderProducts(window.allProducts);
+          window.allProducts = window.allProducts.filter(prod => prod.id !== p.id);
+          renderProducts(window.allProducts);
 
-      } catch {
-        alert("Error eliminando");
-      }
-    });
+        } catch {
+          alert("Error eliminando");
+        }
+      });
+    }
 
     container.appendChild(card);
   });
