@@ -2534,30 +2534,36 @@
 
     if (matchedSubIds.length > 0) {
       const subConditions = [];
-      const params = [];
+const params = [];
 
-      matchedSubIds.forEach((id) => {
-        params.push(JSON.stringify([id]));
-        subConditions.push(`s.subcategory_ids @> $${params.length}::jsonb`);
-      });
+matchedSubIds.forEach((id) => {
+  params.push([id]);
+  subConditions.push(`s.subcategory_ids @> $${params.length}::jsonb`);
+});
 
-      storesResult = await pool.query(`
-        SELECT 
-          s.id,
-          s.slug,
-          s.name,
-          s.logo_url AS image,
-          s.street,
-          s.is_open,
-          COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
-          COUNT(r.rating) AS rating_count,
-          'store' AS type
-        FROM stores s
-        LEFT JOIN store_ratings r ON r.store_id = s.id
-        WHERE ${subConditions.join(" OR ")}
-        GROUP BY s.id
-        ORDER BY s.is_open DESC, rating_avg DESC
-      `, params);
+// agregamos búsqueda por nombre SIEMPRE
+params.push(search);
+
+const storesResult = await pool.query(`
+  SELECT 
+    s.id,
+    s.slug,
+    s.name,
+    s.logo_url AS image,
+    s.street,
+    s.is_open,
+    COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
+    COUNT(r.rating) AS rating_count,
+    'store' AS type
+  FROM stores s
+  LEFT JOIN store_ratings r ON r.store_id = s.id
+  WHERE (
+    ${subConditions.length ? subConditions.join(" OR ") : "FALSE"}
+    OR LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($${params.length}))
+  )
+  GROUP BY s.id
+  ORDER BY s.is_open DESC, rating_avg DESC
+`, params);
 
     } else {
       storesResult = await pool.query(`
