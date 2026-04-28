@@ -2537,7 +2537,7 @@
 const params = [];
 
 matchedSubIds.forEach((id) => {
-  params.push([id]);
+   params.push(JSON.stringify([id]));
   subConditions.push(`s.subcategory_ids @> $${params.length}::jsonb`);
 });
 
