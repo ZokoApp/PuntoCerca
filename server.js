@@ -2549,7 +2549,7 @@ if (matchedSubIds.length > 0) {
 params.push(search);
 whereParts.push(`LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($${params.length}))`);
 
-const storesResult = await pool.query(`
+storesResult = await pool.query(`
   SELECT
     s.id,
     s.slug,
