@@ -292,12 +292,14 @@ if (subName) {
 
     const telefono = product.store_phone.replace(/\D/g, "");
 
-    const mensaje = `Hola! Quiero consultar por este producto:
-
-${product.name}
-const precioTexto = product.price
+   const precioTexto = product.price
   ? `$${parseFloat(product.price).toLocaleString()}`
   : "Consultar";
+
+const mensaje = `Hola! Quiero consultar por este producto:
+
+${product.name}
+Precio: ${precioTexto}
 
 ¿Está disponible?
 
@@ -615,7 +617,9 @@ ${window.location.href}`;
   
         <div class="p-3">
           <h3 class="text-sm font-semibold">${p.name}</h3>
-          <p class="text-orange-600 font-bold">$${parseFloat(p.price).toLocaleString()}</p>
+          <p class="text-orange-600 font-bold">
+  ${p.price ? `$${parseFloat(p.price).toLocaleString()}` : "Consultar"}
+</p>
         </div>
       `;
   
