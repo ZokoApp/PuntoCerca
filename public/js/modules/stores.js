@@ -327,18 +327,14 @@ const res = await fetch(`/api/stores/${store.id}/products`);
     return `
       <div class="mini-product" onclick='goToProduct(${JSON.stringify(p)})'>
         <img src="${p.image_url || "/img/default.png"}" />
-
-        <div class="mini-product-info">
-          <const productsHTML = products.length
-  ? products.slice(0,3).map(p => `
-    <div class="mini-product" onclick='goToProduct(${JSON.stringify(p)})'>
-      <img src="${p.image_url || "/img/default.png"}" />
-      
-      <div class="mini-price">
-        ${window.renderPriceHTML(p)}
+        
+        <div class="mini-price">
+          ${priceHTML}
+        </div>
       </div>
-    </div>
-  `).join('')
+    `;
+    
+  }).join('')
   : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
         </div>
       </div>
