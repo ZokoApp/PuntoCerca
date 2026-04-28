@@ -16,12 +16,6 @@
   const multer = require("multer");
   const path = require("path");
   
-  
-  
-  
-  
-  
-  
   const app = express();
   app.set('trust proxy', 1);
   const PORT = process.env.PORT || 3000;
@@ -433,7 +427,7 @@
   
   if (subcategory_ids) {
     try {
-      subcategoriesToSave = JSON.parse(subcategory_ids);
+      subcategoriesToSave = JSON.parse(subcategory_ids).map(Number);
     } catch {
       subcategoriesToSave = null;
     }
@@ -2616,8 +2610,6 @@
   }
 });
   
-  
-  
   /* ================================
      START
   ================================ */
@@ -2628,6 +2620,3 @@
       console.log("http://localhost:" + PORT);
       console.log("=====================================");
   });
-  
-  
-  
