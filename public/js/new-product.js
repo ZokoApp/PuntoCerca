@@ -78,7 +78,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ⚠️ VALIDACIONES IMPORTANTES
     if (!name) return alert("Ingresá el nombre");
-    if (!price) return alert("Ingresá el precio");
+    const priceOnRequest = document.getElementById("priceOnRequest")?.checked;
+
+if (!price && !priceOnRequest) {
+  return alert("Ingresá el precio o marcá 'Consultar'");
+}
     if (!category) return alert("Seleccioná una categoría");
     if (!subcategory) return alert("Seleccioná una subcategoría");
 
@@ -104,7 +108,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =============================
 
     formData.append("name", name);
-    formData.append("price", price);
+    const finalPrice = priceOnRequest ? "" : price;
+
+formData.append("price", finalPrice);
     formData.append("brand", brand);
     formData.append("category", category);
     formData.append("subcategory_id", subcategory); // 🔥 CLAVE
@@ -156,6 +162,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
 });
+
+const priceInput = document.getElementById("price");
+const priceCheckbox = document.getElementById("priceOnRequest");
+
+if (priceInput && priceCheckbox) {
+  priceCheckbox.addEventListener("change", () => {
+    if (priceCheckbox.checked) {
+      priceInput.value = "";
+      priceInput.disabled = true;
+    } else {
+      priceInput.disabled = false;
+    }
+  });
+}
 
 
 // =============================
