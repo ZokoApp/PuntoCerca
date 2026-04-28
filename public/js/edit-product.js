@@ -91,7 +91,13 @@ async function loadProduct() {
     }
 
     document.getElementById("name").value = product.name || "";
-    document.getElementById("price").value = product.price || "";
+    if (!product.price) {
+  checkbox.checked = true;
+  priceInput.disabled = true;
+  priceInput.value = "";
+} else {
+  priceInput.value = product.price;
+}
     document.getElementById("old_price").value = product.old_price || "";
     document.getElementById("brand").value = product.brand || "";
     document.getElementById("size").value = product.size || "";
@@ -129,10 +135,19 @@ async function loadProduct() {
 }
 
 loadProduct();
-
+checkbox.addEventListener("change", () => {
+  if (checkbox.checked) {
+    priceInput.value = "";
+    priceInput.disabled = true;
+  } else {
+    priceInput.disabled = false;
+  }
+});
 // ============================
 // SUBMIT
 // ============================
+const priceInput = document.getElementById("price");
+const checkbox = document.getElementById("priceOnRequest"); 
 
 document.getElementById("editProductForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -148,7 +163,11 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
     const formData = new FormData();
 
     formData.append("name", document.getElementById("name").value);
-    formData.append("price", document.getElementById("price").value);
+    if (checkbox.checked) {
+  formData.append("price", ""); // backend lo interpreta como null
+} else {
+  formData.append("price", priceInput.value);
+}
     formData.append("old_price", document.getElementById("old_price").value);
     formData.append("brand", document.getElementById("brand").value);
     formData.append("size", document.getElementById("size").value);
@@ -196,3 +215,5 @@ document.getElementById("editProductForm").addEventListener("submit", async (e) 
     overlay?.classList.add("hidden");
   }
 });
+
+
