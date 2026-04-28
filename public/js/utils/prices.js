@@ -1,10 +1,10 @@
 window.renderPriceHTML = function(product){
 
-  // 🚨 CASO CONSULTAR
-  if (product.price === null || product.price === undefined) {
-    return `<strong style="color:#555;">Consultar</strong>`;
-  }
+ const price = parseFloat(product.price);
 
+if (!product.price || isNaN(price)) {
+  return `<strong style="color:#555;">Consultar</strong>`;
+}
   const price = parseFloat(product.price);
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
 
