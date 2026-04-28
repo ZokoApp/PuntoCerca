@@ -1,6 +1,29 @@
 window.isOwner = false;
 window.allProducts = [];
 
+window.isOwner = false;
+window.allProducts = [];
+
+// 👇 PEGAR ACÁ
+function renderPriceSafe(p){
+
+  const price = parseFloat(p.price);
+  const oldPrice = p.old_price ? parseFloat(p.old_price) : null;
+
+  if (!price || price <= 0) {
+    return `<span class="consultar">Consultar</span>`;
+  }
+
+  if (oldPrice && oldPrice > price) {
+    return `
+      <span class="old-price">$${oldPrice.toLocaleString("es-AR")}</span>
+      <span class="new-price">$${price.toLocaleString("es-AR")}</span>
+    `;
+  }
+
+  return `<span class="new-price">$${price.toLocaleString("es-AR")}</span>`;
+}
+
 window.initStoreProducts = async function (store) {
 
   const storeId = store?.id;
@@ -85,7 +108,7 @@ function renderProducts(products) {
         <h3 class="card-title">${p.name}</h3>
 
         <div class="card-price">
-          ${window.renderPriceHTML ? window.renderPriceHTML(p) : `$${parseFloat(p.price || 0).toLocaleString()}`}
+          ${renderPriceSafe(p)}
         </div>
 
         <div class="card-rating">
