@@ -1300,8 +1300,7 @@
       const wasOffer = productData.rows[0].is_offer;
   
       // 🔥 PARSEOS
-     ALTER TABLE products
-ALTER COLUMN price DROP NOT NULL;
+  
     let parsedOldPrice = null;
 
 if (old_price !== undefined && old_price !== null && old_price !== "") {
