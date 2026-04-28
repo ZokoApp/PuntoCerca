@@ -1379,14 +1379,19 @@ if (stock !== undefined && stock !== null && stock !== "") {
       }
   
       // 🔥 AUTO DESCUENTO
-      if (
-  parsedPrice !== null &&
-  currentPrice !== null &&
-  parsedPrice < currentPrice &&
-  !parsedOldPrice
-){
-        parsedOldPrice = currentPrice;
-      }
+      if (parsedPrice !== null && currentPrice !== null) {
+
+  // 👉 BAJA DE PRECIO → crear descuento automático
+  if (parsedPrice < currentPrice && !parsedOldPrice) {
+    parsedOldPrice = currentPrice;
+  }
+
+  // 👉 SUBE DE PRECIO → eliminar descuento
+  if (parsedPrice > currentPrice) {
+    parsedOldPrice = null;
+  }
+
+}
   
       // 🔥 IMÁGENES
       let images = [];
