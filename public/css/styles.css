@@ -315,3 +315,35 @@ nav a{
   max-height: 300px;
   overflow-y: auto;
 }
+
+
+.mini-product {
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+.mini-product img {
+  width:60px;
+  height:60px;
+  border-radius:8px;
+  object-fit:cover;
+}
+
+.mini-product-info {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.mini-product-name {
+  font-size:13px;
+  font-weight:600;
+}
+
+.mini-product-price {
+  font-size:13px;
+  color:#ff6a00;
+  font-weight:700;
+}
