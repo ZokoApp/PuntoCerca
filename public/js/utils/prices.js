@@ -1,16 +1,18 @@
 window.renderPriceHTML = function(product){
 
- const price = parseFloat(product.price);
+  // 👉 CASO CONSULTAR
+  if (product.price === null || product.price === "" || product.price === undefined) {
+    return `<strong style="color:#666;">Consultar</strong>`;
+  }
 
-if (!product.price || isNaN(price)) {
-  return `<strong style="color:#555;">Consultar</strong>`;
-}
   const price = parseFloat(product.price);
-  const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
 
-  if(!oldPrice){
+  // 👉 SI NO HAY PRECIO ANTERIOR
+  if(!product.old_price){
     return `<strong>$${price.toLocaleString()}</strong>`;
   }
+
+  const oldPrice = parseFloat(product.old_price);
 
   const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
 
