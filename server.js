@@ -1300,7 +1300,13 @@
       const wasOffer = productData.rows[0].is_offer;
   
       // 🔥 PARSEOS
-      const parsedPrice = price ? parseFloat(price) : null;
+      let parsedPrice;
+
+if (price === null || price === "null" || price === "") {
+  parsedPrice = null;
+} else if (price !== undefined) {
+  parsedPrice = parseFloat(price);
+}
       let parsedOldPrice = old_price ? parseFloat(old_price) : null;
       const parsedStock = stock ? parseInt(stock) : null;
       const parsedIsOffer = is_offer === "true" || is_offer === true;
@@ -1380,7 +1386,7 @@
         `UPDATE products
          SET 
            name = COALESCE($1, name),
-           price = COALESCE($2, price),
+           price = $2,
            old_price = COALESCE($3, old_price),
            brand = COALESCE($4, brand),
            size = COALESCE($5, size),
