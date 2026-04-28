@@ -292,9 +292,11 @@ if (subName) {
 
     const telefono = product.store_phone.replace(/\D/g, "");
 
-   const precioTexto = product.price
-  ? `$${parseFloat(product.price).toLocaleString()}`
-  : "Consultar";
+  const priceNumber = parseFloat(product.price);
+
+const precioTexto = (!product.price || isNaN(priceNumber))
+  ? "Consultar"
+  : `$${priceNumber.toLocaleString()}`;
 
 const mensaje = `Hola! Quiero consultar por este producto:
 
@@ -618,7 +620,9 @@ ${window.location.href}`;
         <div class="p-3">
           <h3 class="text-sm font-semibold">${p.name}</h3>
           <p class="text-orange-600 font-bold">
-  ${p.price ? `$${parseFloat(p.price).toLocaleString()}` : "Consultar"}
+${(!p.price || isNaN(parseFloat(p.price)))
+  ? "Consultar"
+  : `$${parseFloat(p.price).toLocaleString()}`}
 </p>
         </div>
       `;
