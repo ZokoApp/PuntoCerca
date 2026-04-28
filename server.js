@@ -1298,6 +1298,13 @@
       const storeId = productData.rows[0].store_id;
       const currentPrice = productData.rows[0].price;
       const wasOffer = productData.rows[0].is_offer;
+
+      let parsedPrice = null;
+
+if (price !== undefined && price !== null && price !== "") {
+  const num = parseFloat(price);
+  parsedPrice = isNaN(num) ? null : num;
+}
   
       // 🔥 PARSEOS
   
