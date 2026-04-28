@@ -1300,15 +1300,25 @@
       const wasOffer = productData.rows[0].is_offer;
   
       // 🔥 PARSEOS
-      let parsedPrice;
+      let parsedPrice = null;
 
-if (price === null || price === "null" || price === "") {
-  parsedPrice = null;
-} else if (price !== undefined) {
-  parsedPrice = parseFloat(price);
+if (price !== undefined && price !== null && price !== "") {
+  const num = parseFloat(price);
+  parsedPrice = isNaN(num) ? null : num;
 }
-      let parsedOldPrice = old_price ? parseFloat(old_price) : null;
-      const parsedStock = stock ? parseInt(stock) : null;
+    let parsedOldPrice = null;
+
+if (old_price !== undefined && old_price !== null && old_price !== "") {
+  const num = parseFloat(old_price);
+  parsedOldPrice = isNaN(num) ? null : num;
+}
+
+let parsedStock = null;
+
+if (stock !== undefined && stock !== null && stock !== "") {
+  const num = parseInt(stock);
+  parsedStock = isNaN(num) ? null : num;
+}
       const parsedIsOffer = is_offer === "true" || is_offer === true;
   
       let parsedColors = null;
