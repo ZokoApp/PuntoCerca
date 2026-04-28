@@ -1,18 +1,13 @@
 window.renderPriceHTML = function(product){
 
-  // 🔥 DETECTAR CONSULTAR BIEN
-  if (product.price === null || product.price === "" || product.price === undefined) {
-    return `
-      <strong style="color:#ff6a00;">
-        Consultar
-      </strong>
-    `;
+  // 🚨 CASO CONSULTAR
+  if (product.price === null || product.price === undefined) {
+    return `<strong style="color:#555;">Consultar</strong>`;
   }
 
   const price = parseFloat(product.price);
   const oldPrice = product.old_price ? parseFloat(product.old_price) : null;
 
-  // 🔥 SIN DESCUENTO
   if(!oldPrice){
     return `<strong>$${price.toLocaleString()}</strong>`;
   }
