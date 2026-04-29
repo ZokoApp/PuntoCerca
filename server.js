@@ -142,6 +142,21 @@
           next();
       };
   }
+
+/* ================================
+   NOTIFICATION HELPER
+================================ */
+
+async function createNotification(userId, type, title, message, link = null) {
+  try {
+    await pool.query(`
+      INSERT INTO notifications (user_id, type, title, message, link)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [userId, type, title, message, link]);
+  } catch (error) {
+    console.error("ERROR CREATE NOTIFICATION:", error);
+  }
+}
   
   /* ================================
      CSRF TOKEN ENDPOINT
@@ -1030,102 +1045,149 @@
   
   
   app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
-    try {
-      const {
-    name,
-    price,
-    old_price,
-    store_id,
-    brand,
-    size,
-    stock,
-    extra,
-    category,
-    colors,
-    is_offer,
-    subcategory_id 
-  } = req.body;
-  
-      const parsedPrice = price && price !== "" ? parseFloat(price) : null;
-  const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
-  const parsedStock = stock && stock !== "" && !isNaN(stock)
-    ? parseInt(stock)
-    : null;
-      
-  
-      let images = [];
-  
-      if (req.files && req.files.length > 0) {
-        images = req.files.map(file => file.path);
-      }
-  
-      const baseSlug = name
-        .toLowerCase()
-        .trim()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-  
-      let slug = baseSlug;
-      let counter = 1;
-  
-      while (true) {
-        const check = await pool.query(
-          `SELECT id FROM products WHERE slug = $1`,
-          [slug]
-        );
-  
-        if (check.rows.length === 0) break;
-  
-        slug = `${baseSlug}-${counter}`;
-        counter++;
-      }
-  
-      const mainImage = images[0] || null;
-  
-      let offerCreatedAt = null;
-  let offerExpiresAt = null;
-  
-  const parsedIsOffer = is_offer === "true" || is_offer === true;
-  
-  if (parsedIsOffer) {
-    offerCreatedAt = new Date();
-    offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  }
-  
-  const result = await pool.query(
-    `INSERT INTO products
-      (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-    RETURNING *`,
-    [
+  try {
+
+    const {
       name,
-      parsedPrice,
-      parsedOldPrice,
-      mainImage,
-      JSON.stringify(images),
+      price,
+      old_price,
       store_id,
-      brand || null,
-      size || null,
-      parsedStock,
-      extra || null,
-      colors || "[]",
-      category || null,
-      subcategory_id || null,
-      parsedIsOffer,
-      offerCreatedAt,
-      offerExpiresAt,
-      slug
-    ]
-  );
-      res.json(result.rows[0]);
-  
-    } catch (error) {
-      console.error("ERROR CREANDO PRODUCTO:", error);
-      res.status(500).json({ error: "Error creando producto" });
+      brand,
+      size,
+      stock,
+      extra,
+      category,
+      colors,
+      is_offer,
+      subcategory_id 
+    } = req.body;
+
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    const parsedStock = stock && stock !== "" && !isNaN(stock)
+      ? parseInt(stock)
+      : null;
+
+    let images = [];
+
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => file.path);
     }
-  });
+
+    const baseSlug = name
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM products WHERE slug = $1`,
+        [slug]
+      );
+
+      if (check.rows.length === 0) break;
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    const mainImage = images[0] || null;
+
+    let offerCreatedAt = null;
+    let offerExpiresAt = null;
+
+    const parsedIsOffer = is_offer === "true" || is_offer === true;
+
+    if (parsedIsOffer) {
+      offerCreatedAt = new Date();
+      offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
+
+    const result = await pool.query(
+      `INSERT INTO products
+        (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+      RETURNING *`,
+      [
+        name,
+        parsedPrice,
+        parsedOldPrice,
+        mainImage,
+        JSON.stringify(images),
+        store_id,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        colors || "[]",
+        category || null,
+        subcategory_id || null,
+        parsedIsOffer,
+        offerCreatedAt,
+        offerExpiresAt,
+        slug
+      ]
+    );
+
+    // 🔔 NOTIFICAR A SEGUIDORES (CORREGIDO)
+    try {
+
+      // obtener tienda correctamente por ID
+      const storeRes = await pool.query(`
+        SELECT id, name, slug
+        FROM stores
+        WHERE id = $1
+      `, [store_id]);
+
+      const store = storeRes.rows[0];
+
+      if (store) {
+
+        const followersRes = await pool.query(`
+          SELECT user_id
+          FROM follows
+          WHERE store_id = $1
+        `, [store.id]);
+
+        const followers = followersRes.rows;
+
+        if (followers.length) {
+
+          for (const f of followers) {
+
+            if (f.user_id === req.user.id) continue;
+
+            await createNotification(
+              f.user_id,
+              "new_product",
+              "Nuevo producto",
+              `${store.name} publicó un nuevo producto`,
+              store.slug ? `/${store.slug}` : `/store/${store.id}`
+            );
+          }
+
+        }
+
+      }
+
+    } catch (err) {
+      console.error("ERROR NOTIFICANDO PRODUCTO:", err);
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error("ERROR CREANDO PRODUCTO:", error);
+    res.status(500).json({ error: "Error creando producto" });
+  }
+});
+
   
   
   
@@ -1193,6 +1255,30 @@
          RETURNING *`,
         [storeId, userId, content]
       );
+
+      // 🔔 NOTIFICAR AL DUEÑO DE LA TIENDA
+try {
+  const storeRes = await pool.query(`
+    SELECT user_id, name, slug
+    FROM stores
+    WHERE id = $1
+  `, [storeId]);
+
+  const store = storeRes.rows[0];
+
+  if (store && store.user_id !== userId) {
+    await createNotification(
+      store.user_id,
+      "store_comment",
+      "Nuevo comentario en tu tienda",
+      `${req.user.name || "Un usuario"} comentó en ${store.name}`,
+      store.slug ? `/${store.slug}` : `/store/${storeId}`
+    );
+  }
+
+} catch (err) {
+  console.error("ERROR NOTIFICACIÓN STORE COMMENT:", err);
+}
   
       console.log("🟢 COMENTARIO OK:", result.rows[0]);
   
@@ -1491,26 +1577,47 @@ if (stock !== undefined && stock !== null && stock !== "") {
   });
   
   app.post('/api/follow', authMiddleware, async (req, res) => {
-  
-    const { store_id } = req.body;
-  
-    try {
-  
-      await pool.query(
-        `INSERT INTO follows (user_id, store_id)
-         VALUES ($1,$2)
-         ON CONFLICT DO NOTHING`,
-        [req.user.id, store_id]
+
+  const { store_id } = req.body;
+
+  try {
+
+    await pool.query(
+      `INSERT INTO follows (user_id, store_id)
+       VALUES ($1,$2)
+       ON CONFLICT DO NOTHING`,
+      [req.user.id, store_id]
+    );
+
+    // 🔔 NOTIFICAR AL DUEÑO DE LA TIENDA
+    const storeRes = await pool.query(`
+      SELECT user_id, name
+      FROM stores
+      WHERE id = $1
+    `, [store_id]);
+
+    const store = storeRes.rows[0];
+
+    if (store && store.user_id !== req.user.id) {
+
+      await createNotification(
+        store.user_id,
+        "new_follower",
+        "Nuevo seguidor",
+        `${req.user.name || "Un usuario"} comenzó a seguir tu tienda`,
+        `/store/${store_id}` // 👈 mejor que solo /id
       );
-  
-      res.json({ message: "Siguiendo tienda" });
-  
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error siguiendo tienda" });
+
     }
-  
-  });
+
+    res.json({ message: "Siguiendo tienda" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error siguiendo tienda" });
+  }
+
+});
   
   app.post("/api/forgot-password", async (req, res) => {
   
