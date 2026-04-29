@@ -24,7 +24,12 @@ export const CATEGORIES = {
   "Comercio": [
   { id: 6, name: "Ropa" },
 
-  
+  { id: 80, name: "Bazar" },
+
+     { id: 81, name: "Deco" },
+    { id: 82, name: "Minorista" },
+    { id: 83, name: "Mayorista" },
+    
   { id: 7, name: "Electrónica general" },
   { id: 62, name: "Celulares" },
   { id: 63, name: "Accesorios para celulares" },
