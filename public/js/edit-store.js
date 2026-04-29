@@ -113,6 +113,9 @@ categorySelect.addEventListener("change", () => {
 // HORARIOS UI
 // =============================
 
+/*
+
+
 function createHoursUI(existing = {}) {
 
 const container = document.getElementById("hoursContainer");
@@ -164,7 +167,7 @@ const container = document.getElementById("hoursContainer");
 
     container.appendChild(row);
   });
-}
+}*/
   
  // =============================
 // CARGAR DATOS
@@ -228,6 +231,61 @@ if (store) {
   // HORARIOS (LOAD)
 let parsedHours = {};
 
+  const days = ["mon","tue","wed","thu","fri","sat","sun"];
+
+days.forEach(day => {
+
+  const dayBlock = document.querySelector(`[data-day="${day}"]`);
+  if (!dayBlock) return;
+
+  const rangesContainer = dayBlock.querySelector(".ranges");
+
+  // limpiar lo que viene por defecto
+  rangesContainer.innerHTML = "";
+
+  const dayData = parsedHours[day];
+
+  // ❌ día cerrado
+  if (dayData?.closed) {
+    return;
+  }
+
+  // 🔥 si es array (nuevo sistema)
+  if (Array.isArray(dayData)) {
+
+    dayData.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "range";
+
+      div.innerHTML = `
+        <input type="time" class="open" value="${r.open}">
+        <input type="time" class="close" value="${r.close}">
+        <button type="button" class="remove-range">✕</button>
+      `;
+
+      div.querySelector(".remove-range").onclick = () => div.remove();
+
+      rangesContainer.appendChild(div);
+    });
+
+  } else {
+    // ⚠️ compatibilidad con formato viejo
+    const div = document.createElement("div");
+    div.className = "range";
+
+    div.innerHTML = `
+      <input type="time" class="open" value="${dayData?.open || ""}">
+      <input type="time" class="close" value="${dayData?.close || ""}">
+      <button type="button" class="remove-range">✕</button>
+    `;
+
+    div.querySelector(".remove-range").onclick = () => div.remove();
+
+    rangesContainer.appendChild(div);
+  }
+
+});
+
 if (store.opening_hours) {
   try {
     parsedHours = typeof store.opening_hours === "string"
@@ -238,7 +296,7 @@ if (store.opening_hours) {
   }
 }
 
-createHoursUI(parsedHours);
+
 
   const alwaysOpenCheckbox = document.getElementById("alwaysOpen");
 
