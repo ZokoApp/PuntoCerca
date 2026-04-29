@@ -211,6 +211,14 @@ if (openModalBtn && modal) {
     modal.classList.remove("hidden");
   };
 }
+  // 🔔 AUTO ABRIR MODAL DESDE NOTIFICACIÓN
+  if (window.location.hash === "#comments") {
+    setTimeout(() => {
+      if (openModalBtn) {
+        openModalBtn.click();
+      }
+    }, 400);
+  }
 
 if (closeModalBtn && modal) {
   closeModalBtn.onclick = () => {
