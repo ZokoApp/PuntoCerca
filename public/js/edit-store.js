@@ -5,7 +5,32 @@ let store = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+document.querySelectorAll(".add-range").forEach(btn => {
 
+  btn.addEventListener("click", () => {
+
+    const dayBlock = btn.closest(".day-block");
+    const rangesContainer = dayBlock.querySelector(".ranges");
+
+    const newRange = document.createElement("div");
+    newRange.className = "range";
+
+    newRange.innerHTML = `
+      <input type="time" class="open">
+      <input type="time" class="close">
+      <button type="button" class="remove-range">✕</button>
+    `;
+
+    rangesContainer.appendChild(newRange);
+
+    // eliminar horario
+    newRange.querySelector(".remove-range").onclick = () => {
+      newRange.remove();
+    };
+
+  });
+
+});
 
 
   // =============================
