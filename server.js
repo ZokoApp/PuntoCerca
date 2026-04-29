@@ -1837,7 +1837,81 @@ if (stock !== undefined && stock !== null && stock !== "") {
     }
   
   });
-  
+
+/* ================================
+   NOTIFICATIONS
+================================ */
+
+// LISTAR MIS NOTIFICACIONES
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM notifications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 30
+    `, [req.user.id]);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error("ERROR GET NOTIFICATIONS:", error);
+    res.status(500).json({ error: "Error obteniendo notificaciones" });
+  }
+});
+
+// CONTADOR NO LEÍDAS
+app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*)::int AS count
+      FROM notifications
+      WHERE user_id = $1 AND is_read = false
+    `, [req.user.id]);
+
+    res.json({ count: result.rows[0].count });
+
+  } catch (error) {
+    console.error("ERROR NOTIFICATIONS COUNT:", error);
+    res.status(500).json({ error: "Error obteniendo contador" });
+  }
+});
+
+// MARCAR UNA COMO LEÍDA
+app.put('/api/notifications/:id/read', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE notifications
+      SET is_read = true
+      WHERE id = $1 AND user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    res.json({ message: "Notificación marcada como leída" });
+
+  } catch (error) {
+    console.error("ERROR READ NOTIFICATION:", error);
+    res.status(500).json({ error: "Error marcando notificación" });
+  }
+});
+
+// MARCAR TODAS COMO LEÍDAS
+app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE notifications
+      SET is_read = true
+      WHERE user_id = $1
+    `, [req.user.id]);
+
+    res.json({ message: "Notificaciones marcadas como leídas" });
+
+  } catch (error) {
+    console.error("ERROR READ ALL NOTIFICATIONS:", error);
+    res.status(500).json({ error: "Error marcando notificaciones" });
+  }
+});
+
   /* ================================
      GET STORES
   ================================ */
