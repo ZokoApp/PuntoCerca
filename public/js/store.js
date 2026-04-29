@@ -73,7 +73,11 @@ function isStoreOpen(store) {
 
   const today = hours[todayKey];
 
+  // ❌ no hay datos
   if (!today) return false;
+
+  // 🔴 DÍA CERRADO (CLAVE)
+  if (today.closed) return false;
 
   const current = now.getHours() * 60 + now.getMinutes();
 
