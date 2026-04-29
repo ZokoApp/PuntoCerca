@@ -64,6 +64,32 @@
     Registrate
   </a>
 
+ <!-- 🔔 NOTIFICACIONES -->
+<div id="notifWrapper" class="relative">
+
+  <button id="notifBtn" class="relative text-xl">
+    🔔
+    <span id="notifCount"
+      class="absolute -top-1 -right-2 bg-red-500 text-white text-xs px-1.5 rounded-full hidden">
+      0
+    </span>
+  </button>
+
+  <div id="notifDropdown"
+    class="absolute right-0 mt-2 w-80 bg-white border rounded-xl shadow-lg hidden z-50 max-h-96 overflow-y-auto">
+    
+    <div class="p-3 font-semibold border-b">
+      Notificaciones
+    </div>
+
+    <div id="notifList" class="divide-y text-sm">
+      <!-- dinámico -->
+    </div>
+
+  </div>
+
+</div>
+
   <!-- USER MENU (oculto por defecto) -->
   <div id="userMenu" class="relative hidden">
 
