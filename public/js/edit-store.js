@@ -231,6 +231,16 @@ if (store) {
   // HORARIOS (LOAD)
 let parsedHours = {};
 
+if (store.opening_hours) {
+  try {
+    parsedHours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    parsedHours = {};
+  }
+}
+
   const days = ["mon","tue","wed","thu","fri","sat","sun"];
 
 days.forEach(day => {
@@ -240,49 +250,32 @@ days.forEach(day => {
 
   const rangesContainer = dayBlock.querySelector(".ranges");
 
-  // limpiar lo que viene por defecto
   rangesContainer.innerHTML = "";
 
   const dayData = parsedHours[day];
 
-  // ❌ día cerrado
+  // 🔴 día cerrado
   if (dayData?.closed) {
     return;
   }
 
-  // 🔥 si es array (nuevo sistema)
-  if (Array.isArray(dayData)) {
+  const ranges = Array.isArray(dayData) ? dayData : [dayData];
 
-    dayData.forEach(r => {
-      const div = document.createElement("div");
-      div.className = "range";
+  ranges.forEach(range => {
 
-      div.innerHTML = `
-        <input type="time" class="open" value="${r.open}">
-        <input type="time" class="close" value="${r.close}">
-        <button type="button" class="remove-range">✕</button>
-      `;
-
-      div.querySelector(".remove-range").onclick = () => div.remove();
-
-      rangesContainer.appendChild(div);
-    });
-
-  } else {
-    // ⚠️ compatibilidad con formato viejo
     const div = document.createElement("div");
     div.className = "range";
 
     div.innerHTML = `
-      <input type="time" class="open" value="${dayData?.open || ""}">
-      <input type="time" class="close" value="${dayData?.close || ""}">
+      <input type="time" class="open" value="${range?.open || ""}">
+      <input type="time" class="close" value="${range?.close || ""}">
       <button type="button" class="remove-range">✕</button>
     `;
 
     div.querySelector(".remove-range").onclick = () => div.remove();
 
     rangesContainer.appendChild(div);
-  }
+  });
 
 });
 
