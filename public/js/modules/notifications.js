@@ -1,5 +1,6 @@
 let notifications = [];
 let isOpen = false;
+let isLogged = false;
 
 const btn = document.getElementById("notifBtn");
 const dropdown = document.getElementById("notifDropdown");
@@ -13,6 +14,24 @@ const countEl = document.getElementById("notifCount");
 export async function initNotifications(){
 
   if (!btn) return;
+
+// 🔐 verificar sesión
+try {
+  const res = await fetch("/api/me", {
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    btn.parentElement.style.display = "none";
+    return;
+  }
+
+  isLogged = true;
+
+} catch {
+  btn.parentElement.style.display = "none";
+  return;
+}
 
   await loadNotifications();
   await loadUnreadCount();
