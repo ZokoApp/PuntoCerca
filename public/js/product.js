@@ -126,16 +126,36 @@ if (subName) {
   }
 
   if (colors.length > 0) {
-    const colorsHTML = colors.map(c => `
-      <span style="
-        display:inline-block;
-        width:14px;
-        height:14px;
-        border-radius:50%;
-        background:${c.toLowerCase()};
-        margin-right:5px;
-      "></span>
-    `).join("");
+    const colorMap = {
+  negro: "#000000",
+  blanco: "#ffffff",
+  rojo: "#ef4444",
+  azul: "#3b82f6",
+  verde: "#22c55e",
+  rosa: "#ec4899",
+  gris: "#6b7280",
+  amarillo: "#eab308",
+  marron: "#92400e",
+  beige: "#f5f5dc"
+};
+
+const colorsHTML = colors.map(c => {
+
+  const key = c.toLowerCase().trim();
+  const bg = colorMap[key] || "#ccc"; // fallback
+
+  return `
+    <span title="${c}" style="
+      display:inline-block;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:${bg};
+      border:1px solid #ddd;
+      margin-right:6px;
+    "></span>
+  `;
+}).join("");
 
     specsHTML += `
       <div>
