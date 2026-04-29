@@ -65,7 +65,6 @@ function isStoreOpen(store) {
     return store.is_open;
   }
 
-  // 🔥 24HS
   if (hours.always_open) return true;
 
   const now = new Date();
@@ -74,19 +73,29 @@ function isStoreOpen(store) {
 
   const today = hours[todayKey];
 
-  if (!today || today.closed) return false;
-
-  if (!today.open || !today.close) return false;
+  if (!today) return false;
 
   const current = now.getHours() * 60 + now.getMinutes();
 
-  const [oh, om] = today.open.split(":").map(Number);
-  const [ch, cm] = today.close.split(":").map(Number);
+  // 🔥 soporta uno o varios horarios
+  const ranges = Array.isArray(today) ? today : [today];
 
-  const openTime = oh * 60 + om;
-  const closeTime = ch * 60 + cm;
+  for (const range of ranges) {
 
-  return current >= openTime && current <= closeTime;
+    if (!range.open || !range.close) continue;
+
+    const [oh, om] = range.open.split(":").map(Number);
+    const [ch, cm] = range.close.split(":").map(Number);
+
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
+
+    if (current >= openTime && current <= closeTime) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
  function updateStoreStatus(store) {
