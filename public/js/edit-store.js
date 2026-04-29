@@ -671,15 +671,30 @@ function getHoursData() {
   }
 
   days.forEach(day => {
-    const open = document.querySelector(`[name="${day}_open"]`)?.value;
-    const close = document.querySelector(`[name="${day}_close"]`)?.value;
-    const closed = document.querySelector(`[name="${day}_closed"]`)?.checked;
 
-    data[day] = {
-      closed: closed || false,
-      open: open || "",
-      close: close || ""
-    };
+    const dayBlock = document.querySelector(`[data-day="${day}"]`);
+    if (!dayBlock) return;
+
+    const closed = dayBlock.querySelector(".closed")?.checked;
+
+    if (closed) {
+      data[day] = { closed: true };
+      return;
+    }
+
+    const ranges = dayBlock.querySelectorAll(".range");
+
+    data[day] = [];
+
+    ranges.forEach(range => {
+      const open = range.querySelector(".open")?.value;
+      const close = range.querySelector(".close")?.value;
+
+      if (open && close) {
+        data[day].push({ open, close });
+      }
+    });
+
   });
 
   return data;
