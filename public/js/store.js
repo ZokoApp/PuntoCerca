@@ -102,7 +102,7 @@ function isStoreOpen(store) {
   return false;
 }
 
- function updateStoreStatus(store) {
+function updateStoreStatus(store) {
 
   let hours;
 
@@ -114,25 +114,13 @@ function isStoreOpen(store) {
     hours = null;
   }
 
+  if (!hours) return;
+
   // 🔥 24HS
-  if (hours?.always_open) {
+  if (hours.always_open) {
     document.getElementById("storeStatus").innerHTML = `
-      <div style="
-        display:flex;
-        align-items:center;
-        gap:6px;
-        margin-top:6px;
-        font-weight:500;
-        font-size:14px;
-        color:#16a34a;
-      ">
-        <span style="
-          width:8px;
-          height:8px;
-          border-radius:50%;
-          background:#16a34a;
-          display:inline-block;
-        "></span>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:500;font-size:14px;color:#16a34a;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#16a34a;"></span>
         Abierto 24hs
       </div>
     `;
@@ -142,56 +130,57 @@ function isStoreOpen(store) {
   const now = new Date();
   const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
   const todayKey = daysMap[now.getDay()];
+  const today = hours[todayKey];
 
-  const today = hours?.[todayKey];
-
-  let text = "Sin horarios";
-  let color = "#6b7280";
+  let text = "Cerrado";
+  let color = "#dc2626";
 
   if (today && !today.closed) {
 
     const current = now.getHours() * 60 + now.getMinutes();
 
-    const [oh, om] = today.open.split(":").map(Number);
-    const [ch, cm] = today.close.split(":").map(Number);
+    const ranges = Array.isArray(today) ? today : [today];
 
-    const openTime = oh * 60 + om;
-    const closeTime = ch * 60 + cm;
+    let isOpen = false;
+    let nextClose = null;
+    let nextOpen = null;
 
-    if (current >= openTime && current <= closeTime) {
-      text = `Abierto ahora · Cierra ${today.close}`;
-      color = "#16a34a";
-    } else {
-      text = `Cerrado · Abre ${today.open}`;
-      color = "#dc2626";
+    for (const range of ranges) {
+
+      if (!range.open || !range.close) continue;
+
+      const [oh, om] = range.open.split(":").map(Number);
+      const [ch, cm] = range.close.split(":").map(Number);
+
+      const openTime = oh * 60 + om;
+      const closeTime = ch * 60 + cm;
+
+      if (current >= openTime && current <= closeTime) {
+        isOpen = true;
+        nextClose = range.close;
+        break;
+      }
+
+      if (current < openTime && !nextOpen) {
+        nextOpen = range.open;
+      }
     }
 
-  } else {
-    text = "Cerrado";
-    color = "#dc2626";
+    if (isOpen) {
+      text = `Abierto ahora · Cierra ${nextClose}`;
+      color = "#16a34a";
+    } else if (nextOpen) {
+      text = `Cerrado · Abre ${nextOpen}`;
+      color = "#dc2626";
+    }
   }
-  const statusHTML = `
-    <div style="
-      display:flex;
-      align-items:center;
-      gap:6px;
-      margin-top:6px;
-      font-weight:500;
-      font-size:14px;
-      color:${color};
-    ">
-      <span style="
-        width:8px;
-        height:8px;
-        border-radius:50%;
-        background:${color};
-        display:inline-block;
-      "></span>
+
+  document.getElementById("storeStatus").innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:500;font-size:14px;color:${color};">
+      <span style="width:8px;height:8px;border-radius:50%;background:${color};"></span>
       ${text}
     </div>
   `;
-
-  document.getElementById("storeStatus").innerHTML = statusHTML;
 }
 /* ================================
    DETECTAR ID / SLUG
