@@ -44,41 +44,34 @@
     <!-- PRECIOS -->
     <div class="grid grid-cols-2 gap-4">
 
-  <!-- PRECIO ACTUAL -->
-  <div>
-    <label class="text-sm font-medium text-gray-700">Precio actual</label>
-    <input id="price" type="number"
-      class="w-full border p-3 rounded-lg" />
-  </div>
+      <!-- PRECIO ACTUAL -->
+      <div>
+        <label class="text-sm font-medium text-gray-700">Precio actual</label>
+        <input id="price" type="number"
+          class="w-full border p-3 rounded-lg" />
+      </div>
 
-  <!-- PRECIO ANTERIOR -->
-  <div>
-    <label class="text-sm font-medium text-gray-700">Precio anterior</label>
-    <input id="old_price" type="number"
-      class="w-full border p-3 rounded-lg" />
-  </div>
-
-</div>
-
-<!-- CHECKBOX AFUERA DEL GRID -->
-<div class="flex items-center gap-2 mt-2">
-  <input type="checkbox" id="priceOnRequest"
-    class="w-4 h-4 accent-orange-600" />
-
-  <label for="priceOnRequest" class="text-sm text-gray-700">
-    Precio a consultar
-  </label>
-</div>
-
+      <!-- PRECIO ANTERIOR -->
       <div>
         <label class="text-sm font-medium text-gray-700">Precio anterior</label>
         <input id="old_price" type="number"
           class="w-full border p-3 rounded-lg" />
       </div>
+
+    </div>
+
+    <!-- CHECKBOX -->
+    <div class="flex items-center gap-2 mt-2">
+      <input type="checkbox" id="priceOnRequest"
+        class="w-4 h-4 accent-orange-600" />
+
+      <label for="priceOnRequest" class="text-sm text-gray-700">
+        Precio a consultar
+      </label>
     </div>
 
     <!-- DETALLES -->
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 mt-4">
       <input id="brand" placeholder="Marca"
         class="border p-3 rounded-lg" />
 
@@ -87,17 +80,18 @@
     </div>
 
     <input id="stock" type="number" placeholder="Stock disponible"
-      class="w-full border p-3 rounded-lg" />
+      class="w-full border p-3 rounded-lg mt-4" />
 
     <!-- CATEGORIA -->
     <div>
       <label class="text-sm font-medium text-gray-700">Categoría</label>
       
-    <select id="category" class="w-full border p-3 rounded-lg"></select>
+      <select id="category" class="w-full border p-3 rounded-lg"></select>
 
-<div id="subcategoriesContainer" class="mt-2 hidden">
-  <select id="subcategory" class="w-full border p-3 rounded-lg"></select>
-</div>
+      <div id="subcategoriesContainer" class="mt-2 hidden">
+        <select id="subcategory" class="w-full border p-3 rounded-lg"></select>
+      </div>
+    </div>
 
     <!-- OFERTA -->
     <div class="flex items-center justify-between bg-orange-50 p-3 rounded-lg">
@@ -148,7 +142,7 @@
 
 </div>
 
-<!-- LOADING OVERLAY -->
+<!-- LOADING -->
 <div id="loadingOverlay"
   class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
   <div class="bg-white px-6 py-4 rounded-lg shadow">
