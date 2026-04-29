@@ -45,6 +45,45 @@ const CATEGORY_MAP = {
   ]
 };
 
+function showToast(message, type = "success") {
+
+  const toast = document.createElement("div");
+
+  toast.innerText = message;
+
+  toast.style.position = "fixed";
+  toast.style.bottom = "20px";
+  toast.style.right = "20px";
+  toast.style.padding = "12px 18px";
+  toast.style.borderRadius = "10px";
+  toast.style.color = "#fff";
+  toast.style.fontWeight = "500";
+  toast.style.zIndex = "9999";
+  toast.style.boxShadow = "0 5px 15px rgba(0,0,0,0.2)";
+  toast.style.opacity = "0";
+  toast.style.transform = "translateY(20px)";
+  toast.style.transition = "0.3s";
+
+  if (type === "error") {
+    toast.style.background = "#dc2626";
+  } else {
+    toast.style.background = "#16a34a";
+  }
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+  }, 50);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(20px)";
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 /* ================================
    STATUS
 ================================ */
