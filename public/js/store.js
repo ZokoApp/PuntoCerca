@@ -212,13 +212,48 @@ if (openModalBtn && modal) {
   };
 }
   // 🔔 AUTO ABRIR MODAL DESDE NOTIFICACIÓN
-  if (window.location.hash === "#comments") {
-    setTimeout(() => {
-      if (openModalBtn) {
-        openModalBtn.click();
-      }
-    }, 400);
-  }
+ const hash = window.location.hash;
+
+if (hash.startsWith("#comment-")) {
+
+  const commentId = hash.replace("#comment-", "");
+
+  const tryOpen = () => {
+    if (openModalBtn && modal) {
+
+      modal.classList.remove("hidden");
+
+      setTimeout(() => {
+
+        const commentEl = document.getElementById(`comment-${commentId}`);
+
+        if (commentEl) {
+
+          // 🔥 scroll
+          commentEl.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          // 🔥 highlight
+          commentEl.style.background = "#fff3cd";
+          commentEl.style.transition = "0.3s";
+
+          setTimeout(() => {
+            commentEl.style.background = "";
+          }, 2000);
+
+        }
+
+      }, 400);
+
+    } else {
+      setTimeout(tryOpen, 100);
+    }
+  };
+
+  tryOpen();
+}
 
 if (closeModalBtn && modal) {
   closeModalBtn.onclick = () => {
@@ -617,7 +652,8 @@ if (countEl) {
 
   const isMine = currentUser && String(currentUser.id) === String(c.user_id);
 
-  const div = document.createElement("div");
+ const div = document.createElement("div");
+div.id = `comment-${c.id}`;
 
   div.innerHTML = `
     <div style="
