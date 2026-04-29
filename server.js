@@ -1267,14 +1267,14 @@ try {
   const store = storeRes.rows[0];
 
   if (store && store.user_id !== userId) {
-    await createNotification(
+   await createNotification(
   store.user_id,
   "store_comment",
   "Nuevo comentario en tu tienda",
   `${req.user.name || "Un usuario"} comentó en ${store.name}`,
-  store.slug 
-    ? `/${store.slug}#comments` 
-    : `/store/${storeId}#comments`
+  store.slug
+    ? `/${store.slug}#comment-${result.rows[0].id}`
+    : `/store/${storeId}#comment-${result.rows[0].id}`
 );
   }
 
