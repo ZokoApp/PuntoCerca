@@ -344,38 +344,42 @@ if (storeId) {
 }
     const store = await storeRes.json();
 
-    // =============================
-// SEO DINÁMICO (VERSIÓN CORRECTA)
+ // =============================
+// SEO + LOCATION (PEGAR AQUÍ)
 // =============================
 
-if (store && !store.error) {
+// helper
+const getProvinceFromStreet = (street) => {
+  if (!street) return null;
 
-  // detectar ubicación
-  const location =
-    store.city ||
-    store.province ||
-    store.street ||
-    "Argentina";
+  const parts = street.split(",");
+  return parts.length >= 2 ? parts[parts.length - 2].trim() : null;
+};
 
-  // TITLE
-  document.title = `${store.name} en ${location} | PuntoCerca`;
+// location real
+const province = store.province || getProvinceFromStreet(store.street);
 
-  // DESCRIPTION
-  let metaDesc = document.querySelector("meta[name='description']");
-  
-  if (!metaDesc) {
-    metaDesc = document.createElement("meta");
-    metaDesc.name = "description";
-    document.head.appendChild(metaDesc);
-  }
+const location =
+  store.city && province
+    ? `${store.city}, ${province}`
+    : store.city || province || "Argentina";
 
-  metaDesc.content = `
-    ${store.name} en ${location}.
-    ${store.description || "Negocio local con contacto directo por WhatsApp"}.
-    ${store.street ? `Dirección: ${store.street}.` : ""}
-  `;
+// TITLE
+document.title = `${store.name} en ${location} | PuntoCerca`;
 
+// DESCRIPTION
+let metaDesc = document.querySelector("meta[name='description']");
+if (!metaDesc) {
+  metaDesc = document.createElement("meta");
+  metaDesc.name = "description";
+  document.head.appendChild(metaDesc);
 }
+
+metaDesc.content = `
+  ${store.name} en ${location}.
+  ${store.description || "Negocio local con contacto directo por WhatsApp"}.
+  ${store.street ? `Dirección: ${store.street}.` : ""}
+`;
 
     if (!store || store.error) {
       console.error("Error cargando tienda:", store);
