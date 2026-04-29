@@ -46,8 +46,28 @@ export const CATEGORIES = {
     { id: 10, name: "Peluquería" },
     { id: 11, name: "Barbería" },
     { id: 12, name: "Estética" },
+    { id: 83, name: "Cosmeticos" },
     { id: 13, name: "Spa" }
   ],
+
+  "Indumentarias": [
+    { id: 89, name: "Zapatillas" },
+     { id: 90, name: "Remeras" },
+     { id: 91, name: "Camisetas de Futbol" },
+    { id: 92, name: "Camperas" },
+    { id: 93, name: "Buzos" },
+    { id: 94, name: "Ropa Interior" },
+    { id: 95, name: "Ropa Deportiva" },
+    { id: 96, name: "Gorras" }
+  ],
+
+  "Marroquineria": [
+    { id: 85, name: "Bolsos" },
+    { id: 86, name: "Billeteras" },
+    { id: 87, name: "Mochilas" },
+    { id: 88, name: "Neceser" }
+  ],
+  
 
   "Salud": [
     { id: 14, name: "Clínica" },
@@ -101,6 +121,7 @@ export const CATEGORIES = {
   "Hogar": [
     { id: 36, name: "Mueblería" },
     { id: 37, name: "Decoración" },
+    { id: 84, name: "Accesorios de Baño" },
     { id: 38, name: "Construcción" }
   ],
 
