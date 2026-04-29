@@ -2,6 +2,7 @@ import { loadStores, focusStore } from './modules/stores.js';
 import { initSliders } from './modules/ui.js';
 import { loadProducts, loadOffers } from './modules/offers.js';
 import { CATEGORIES } from './data/categories.js';
+import { initNotifications } from './modules/notifications.js';
 
 // =============================
 // ESTADO
@@ -43,7 +44,7 @@ loadStores();
 loadProducts();
 loadOffers();
 initSliders();
-
+initNotifications();
 // =============================
 // BUSCADOR
 // =============================
