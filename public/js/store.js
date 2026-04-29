@@ -344,6 +344,39 @@ if (storeId) {
 }
     const store = await storeRes.json();
 
+    // =============================
+// SEO DINÁMICO (VERSIÓN CORRECTA)
+// =============================
+
+if (store && !store.error) {
+
+  // detectar ubicación
+  const location =
+    store.city ||
+    store.province ||
+    store.street ||
+    "Argentina";
+
+  // TITLE
+  document.title = `${store.name} en ${location} | PuntoCerca`;
+
+  // DESCRIPTION
+  let metaDesc = document.querySelector("meta[name='description']");
+  
+  if (!metaDesc) {
+    metaDesc = document.createElement("meta");
+    metaDesc.name = "description";
+    document.head.appendChild(metaDesc);
+  }
+
+  metaDesc.content = `
+    ${store.name} en ${location}.
+    ${store.description || "Negocio local con contacto directo por WhatsApp"}.
+    ${store.street ? `Dirección: ${store.street}.` : ""}
+  `;
+
+}
+
     if (!store || store.error) {
       console.error("Error cargando tienda:", store);
       return;
