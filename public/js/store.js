@@ -805,10 +805,24 @@ document.getElementById("storeCategory").innerText =
   subNames.length > 0
     ? subNames.join(" • ")
     : "";
- const address = store.street?.trim();
+const addressParts = [];
+
+if (store.street) {
+  addressParts.push(store.street);
+}
+
+if (store.local) {
+  addressParts.push(`Local ${store.local}`);
+}
+
+if (store.apartment) {
+  addressParts.push(`Piso/Dpto ${store.apartment}`);
+}
+
+const fullAddress = addressParts.join(" · ");
 
 document.getElementById("storeAddress").innerText =
-  address || "Sin dirección";
+  fullAddress || "Sin dirección";
 
   document.getElementById("storeDescription").innerText =
     store.description || "";
