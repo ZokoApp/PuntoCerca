@@ -1168,7 +1168,7 @@ async function createNotification(userId, type, title, message, link = null) {
               "new_product",
               "Nuevo producto",
               `${store.name} publicó un nuevo producto`,
-              store.slug ? `/${store.slug}` : `/store/${store.id}`
+              `/product/${result.rows[0].slug || result.rows[0].id}`
             );
           }
 
@@ -1268,12 +1268,14 @@ try {
 
   if (store && store.user_id !== userId) {
     await createNotification(
-      store.user_id,
-      "store_comment",
-      "Nuevo comentario en tu tienda",
-      `${req.user.name || "Un usuario"} comentó en ${store.name}`,
-      store.slug ? `/${store.slug}` : `/store/${storeId}`
-    );
+  store.user_id,
+  "store_comment",
+  "Nuevo comentario en tu tienda",
+  `${req.user.name || "Un usuario"} comentó en ${store.name}`,
+  store.slug 
+    ? `/${store.slug}#comments` 
+    : `/store/${storeId}#comments`
+);
   }
 
 } catch (err) {
