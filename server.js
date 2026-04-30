@@ -2110,7 +2110,7 @@ app.get("/api/events/:id", async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(`
-      SELECT e.*, s.name as store_name, s.slug as store_slug
+      SELECT e.*, s.name AS store_name, s.slug AS store_slug
       FROM events e
       JOIN stores s ON e.store_id = s.id
       WHERE e.id = $1
@@ -2122,12 +2122,11 @@ app.get("/api/events/:id", async (req, res) => {
 
     res.json(result.rows[0]);
 
-  } catch (err){
+  } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error servidor" });
+    res.status(500).json({ error: "Error obteniendo evento" });
   }
 });
-  
   app.post('/api/product-view/:id', async (req, res) => {
   
     await pool.query(
