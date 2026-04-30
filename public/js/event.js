@@ -1,4 +1,5 @@
-const id = window.location.pathname.split("/")[2];
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
 async function loadEvent(){
   try {
