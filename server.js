@@ -2104,6 +2104,29 @@ if (stock !== undefined && stock !== null && stock !== "") {
     res.json({ count: result.rows[0].count });
   
   });
+
+app.get("/api/events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT e.*, s.name as store_name, s.slug as store_slug
+      FROM events e
+      JOIN stores s ON e.store_id = s.id
+      WHERE e.id = $1
+    `, [id]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Evento no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err){
+    console.error(err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+});
   
   app.post('/api/product-view/:id', async (req, res) => {
   
