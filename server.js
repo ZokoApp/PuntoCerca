@@ -15,6 +15,8 @@
   const csrf = require('csurf');
   const multer = require("multer");
   const path = require("path");
+  const fs = require("fs");
+
   
   const app = express();
   app.set('trust proxy', 1);
@@ -2456,41 +2458,74 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
   });
   
   app.get('/:slug', async (req, res) => {
-  
-    const slug = req.params.slug;
-  
-    // bloquear rutas del sistema
-    const blocked = [
-      "api",
-      "login",
-      "register",
-      "products",
-      "offers",
-      "dashboard",
-      "profile",
-      "product"
-    ];
-  
-    if (blocked.includes(slug)) return;
-  
-    try {
-  
-      const result = await pool.query(
-        `SELECT id FROM stores WHERE slug = $1`,
-        [slug]
-      );
-  
-      if (!result.rows.length) {
-        return res.status(404).send("No encontrado");
-      }
-  
-      res.sendFile(path.join(__dirname, 'public/store.html'));
-  
-    } catch (err) {
-      res.status(500).send("Error");
+
+  const slug = req.params.slug;
+
+  const blocked = [
+    "api",
+    "login",
+    "register",
+    "products",
+    "offers",
+    "dashboard",
+    "profile",
+    "product",
+    "stores",
+    "sitemap.xml"
+  ];
+
+  if (blocked.includes(slug)) return;
+
+  try {
+
+    const result = await pool.query(
+      `SELECT * FROM stores WHERE slug = $1`,
+      [slug]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).send("No encontrado");
     }
-  
-  });
+
+    const store = result.rows[0];
+
+    // 🔥 LEER HTML
+    let html = fs.readFileSync(
+      path.join(__dirname, 'public/store.html'),
+      'utf8'
+    );
+
+    // 🔥 LOCATION SIMPLE
+    const location = store.city || "Argentina";
+
+    // 🔥 SEO HTML REAL (CLAVE)
+    const seoBlock = `
+      <div style="padding:10px 0; font-size:14px; color:#555;">
+        <strong>${store.name}</strong> en ${location}. 
+        ${store.description || "Negocio local"} 
+        ${store.street ? `Ubicado en ${store.street}.` : ""}
+      </div>
+    `;
+
+    // 🔥 INYECTAR NOMBRE + CONTENIDO
+    html = html.replace(
+      `<h1 id="storeName" class="store-title"></h1>`,
+      `<h1 id="storeName" class="store-title">${store.name}</h1>${seoBlock}`
+    );
+
+    // 🔥 TITLE DINÁMICO
+    html = html.replace(
+      `<title>Perfil Tienda - PuntoCerca</title>`,
+      `<title>${store.name} en ${location} | PuntoCerca</title>`
+    );
+
+    res.send(html);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error");
+  }
+});
   app.get('/stores', (req, res) => {
     res.sendFile(__dirname + '/public/stores.html');
   });
