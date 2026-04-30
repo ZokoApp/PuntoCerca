@@ -45,6 +45,7 @@ loadProducts();
 loadOffers();
 initSliders();
 initNotifications();
+loadEvents();
 // =============================
 // BUSCADOR
 // =============================
@@ -289,3 +290,76 @@ document.addEventListener("click", (e) => {
     resultsBox.classList.add("hidden");
   }
 });
+
+async function loadEvents() {
+  try {
+
+    const res = await fetch("/api/events");
+    if (!res.ok) return;
+
+    const events = await res.json();
+
+    const container = document.getElementById("eventsContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    // 🚨 FILTRAR SOLO EVENTOS FUTUROS
+    const now = new Date();
+
+    const validEvents = events
+      .filter(e => new Date(e.start_date) > now)
+      .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+      .slice(0, 10); // 🔥 límite
+
+    if (!validEvents.length) {
+      container.innerHTML = `
+        <p style="color:#888;">No hay eventos próximos</p>
+      `;
+      return;
+    }
+
+    validEvents.forEach(event => {
+
+      const date = new Date(event.start_date);
+
+      const formattedDate = date.toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "short"
+      });
+
+      const card = document.createElement("div");
+      card.className = "card";
+
+      card.innerHTML = `
+        <img src="${event.image_url}" />
+
+        <div class="card-content">
+
+          <h3>${event.title}</h3>
+
+          <p style="color:#ff6a00;font-weight:600;">
+            📅 ${formattedDate}
+          </p>
+
+          <p style="font-size:13px;color:#666;">
+            ${event.description || ""}
+          </p>
+
+        </div>
+
+        <div class="card-buttons">
+          <button onclick="window.location.href='/${event.store_slug}'">
+            Ver tienda
+          </button>
+        </div>
+      `;
+
+      container.appendChild(card);
+
+    });
+
+  } catch (err) {
+    console.error("Error cargando eventos", err);
+  }
+}
