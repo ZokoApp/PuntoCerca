@@ -292,40 +292,62 @@ document.addEventListener("click", (e) => {
 });
 
 async function loadEvents() {
+  const container = document.getElementById("eventsContainer");
+  if (!container) return;
+
+  container.innerHTML = "";
+
   try {
-
     const res = await fetch("/api/events");
-    if (!res.ok) return;
 
-    const events = await res.json();
-
-    const container = document.getElementById("eventsContainer");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    // 🚨 FILTRAR SOLO EVENTOS FUTUROS
-    const now = new Date();
-
-    const validEvents = events
-      .filter(e => new Date(e.start_date) > now)
-      .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-      .slice(0, 10); // 🔥 límite
-
-    if (!validEvents.length) {
-      container.innerHTML = `
-        <p style="color:#888;">No hay eventos próximos</p>
-      `;
+    if (!res.ok) {
+      container.innerHTML = `<p style="color:#888;">No se pudieron cargar los eventos</p>`;
       return;
     }
 
-    validEvents.forEach(event => {
+    const events = await res.json();
 
-      const date = new Date(event.start_date);
+    const now = new Date();
 
-      const formattedDate = date.toLocaleDateString("es-AR", {
+    // 🔥 ORDEN + FILTRO REAL
+    const sortedEvents = events
+      .filter(e => new Date(e.end_at) > now)
+      .sort((a, b) => {
+        const aStart = new Date(a.start_at);
+        const bStart = new Date(b.start_at);
+
+        const aActive = now >= aStart && now <= new Date(a.end_at);
+        const bActive = now >= bStart && now <= new Date(b.end_at);
+
+        // activos primero
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
+
+        // luego por fecha
+        return aStart - bStart;
+      })
+      .slice(0, 10);
+
+    if (!sortedEvents.length) {
+      container.innerHTML = `<p style="color:#888;">No hay eventos próximos</p>`;
+      return;
+    }
+
+    sortedEvents.forEach(event => {
+
+      const start = new Date(event.start_at);
+      const end = new Date(event.end_at);
+
+      const isActive = now >= start && now <= end;
+
+      const statusText = isActive ? "En curso" : "Próximo";
+      const statusColor = isActive ? "#16a34a" : "#f59e0b";
+
+      const formattedDate = start.toLocaleString("es-AR", {
         day: "2-digit",
-        month: "short"
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
       });
 
       const card = document.createElement("div");
@@ -338,11 +360,19 @@ async function loadEvents() {
 
           <h3>${event.title}</h3>
 
-          <p style="color:#ff6a00;font-weight:600;">
+          <p style="color:${statusColor};font-weight:700;">
+            ${statusText}
+          </p>
+
+          <p style="font-size:13px;color:#666;">
             📅 ${formattedDate}
           </p>
 
           <p style="font-size:13px;color:#666;">
+            🏪 ${event.store_name}
+          </p>
+
+          <p style="font-size:13px;color:#777;">
             ${event.description || ""}
           </p>
 
@@ -356,10 +386,10 @@ async function loadEvents() {
       `;
 
       container.appendChild(card);
-
     });
 
   } catch (err) {
-    console.error("Error cargando eventos", err);
+    console.error("Error cargando eventos:", err);
+    container.innerHTML = `<p style="color:#888;">Error cargando eventos</p>`;
   }
 }
