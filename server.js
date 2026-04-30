@@ -2508,10 +2508,18 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
     `;
 
     // 🔥 INYECTAR NOMBRE + CONTENIDO
-    html = html.replace(
-      `<h1 id="storeName" class="store-title"></h1>`,
-      `<h1 id="storeName" class="store-title">${store.name}</h1>${seoBlock}`
-    );
+   html = html.replace(
+  `<h1 id="storeName" class="store-title">
+  Tienda en PuntoCerca
+</h1>`,
+  `<h1 id="storeName" class="store-title">${store.name}</h1>
+   <p style="font-size:14px;color:#555;">
+     ${store.name} en ${store.city || "Argentina"}.
+     ${store.description || "Negocio local"}.
+     ${store.street ? `Dirección: ${store.street}.` : ""}
+   </p>`
+);
+     
 
     // 🔥 TITLE DINÁMICO
     html = html.replace(
