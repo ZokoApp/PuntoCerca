@@ -380,9 +380,9 @@ card.innerHTML = `
   </div>
 
   <div class="card-buttons">
-    <button onclick="window.location.href='/${event.store_slug}'">
-      Ver tienda
-    </button>
+    <button onclick="window.location.href='/event/${event.id}'">
+  Ver evento
+</button>
   </div>
 `;
       container.appendChild(card);
