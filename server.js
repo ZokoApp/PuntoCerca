@@ -2474,7 +2474,9 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
     "sitemap.xml"
   ];
 
-  if (blocked.includes(slug)) return;
+ if (blocked.includes(slug)) {
+  return res.status(404).send("No encontrado");
+}
 
   try {
 
@@ -2497,6 +2499,13 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
 
     // 🔥 LOCATION SIMPLE
     const location = store.city || "Argentina";
+
+    const description = `
+${store.name} en ${location}.
+${store.description || "Negocio local con contacto directo por WhatsApp"}.
+${store.street ? `Ubicado en ${store.street}.` : ""}
+Encontrá productos, precios y opiniones reales en PuntoCerca.
+`.replace(/\s+/g, " ").trim();
 
     // 🔥 SEO HTML REAL (CLAVE)
     const seoBlock = `
@@ -2535,6 +2544,11 @@ html = html.replace(
       `<title>Perfil Tienda - PuntoCerca</title>`,
       `<title>${store.name} en ${location} | PuntoCerca</title>`
     );
+    // 🔥 META DESCRIPTION DINÁMICA
+html = html.replace(
+  "</head>",
+  `<meta name="description" content="${description}"></head>`
+);
 
     res.send(html);
 
