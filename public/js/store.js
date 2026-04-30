@@ -158,7 +158,7 @@ function isStoreOpen(store) {
   return false;
 }
 
-export function getStoreStatusInfo(store) {
+function getStoreStatusInfo(store) { {
 
   let hours;
 
