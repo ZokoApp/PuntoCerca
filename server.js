@@ -2500,9 +2500,19 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
     // 🔥 LOCATION SIMPLE
     const location = store.city || "Argentina";
 
-    const description = `
+    function cleanText(text = "") {
+  return text
+    .replace(/[\n\r]+/g, " ")
+    .replace(/💳|📦|📌|📱|✨|🌎|🕰|💻/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const cleanDescription = cleanText(store.description || "");
+
+const description = `
 ${store.name} en ${location}.
-${store.description || "Negocio local con contacto directo por WhatsApp"}.
+${cleanDescription || "Negocio local con contacto directo por WhatsApp"}.
 ${store.street ? `Ubicado en ${store.street}.` : ""}
 Encontrá productos, precios y opiniones reales en PuntoCerca.
 `.replace(/\s+/g, " ").trim();
