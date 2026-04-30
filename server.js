@@ -2446,16 +2446,52 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
     }
   
   });
-  app.get('/sitemap.xml', (req, res) => {
-    res.header('Content-Type', 'application/xml');
-    res.send(`
-      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-        <url>
-          <loc>https://puntocerca.com.ar/</loc>
-        </url>
-      </urlset>
+ app.get('/sitemap.xml', async (req, res) => {
+
+  try {
+
+    const result = await pool.query(`
+      SELECT slug, updated_at
+      FROM stores
+      WHERE slug IS NOT NULL
     `);
-  });
+
+    const baseUrl = "https://puntocerca.com.ar";
+
+    let urls = `
+      <url>
+        <loc>${baseUrl}/</loc>
+        <priority>1.0</priority>
+      </url>
+    `;
+
+    result.rows.forEach(store => {
+
+      urls += `
+        <url>
+          <loc>${baseUrl}/${store.slug}</loc>
+          <lastmod>${store.updated_at ? new Date(store.updated_at).toISOString() : new Date().toISOString()}</lastmod>
+          <changefreq>daily</changefreq>
+          <priority>0.8</priority>
+        </url>
+      `;
+    });
+
+    const sitemap = `
+      <?xml version="1.0" encoding="UTF-8"?>
+      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        ${urls}
+      </urlset>
+    `;
+
+    res.header("Content-Type", "application/xml");
+    res.send(sitemap);
+
+  } catch (err) {
+    console.error("SITEMAP ERROR:", err);
+    res.status(500).send("Error generando sitemap");
+  }
+});
   
   app.get('/:slug', async (req, res) => {
 
