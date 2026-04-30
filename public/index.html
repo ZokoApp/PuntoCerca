@@ -149,7 +149,7 @@
   </div>
 
 </header>
-
+<main>
 <!-- ================= HERO ================= -->
 <section class="relative min-h-[520px] flex items-center overflow-hidden">
 
@@ -227,6 +227,32 @@
       <div id="map" class="h-[500px] w-full"></div>
 
       <div id="storePreview" class="store-preview hidden"></div>
+    </div>
+  </div>
+</section>
+
+  <!-- ================= EVENTOS ================= -->
+<section id="eventos" class="py-16 bg-white">
+  <div class="max-w-7xl mx-auto px-6">
+
+    <h2 class="text-3xl font-bold mb-8 text-orange-600">
+      🎉 Eventos cerca tuyo
+    </h2>
+
+    <div class="relative">
+
+      <button id="prevEvents"
+        class="absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❮
+      </button>
+
+      <div id="eventsContainer" class="cards-scroll"></div>
+
+      <button id="nextEvents"
+        class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❯
+      </button>
+
     </div>
   </div>
 </section>
