@@ -1,35 +1,132 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Crear evento</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crear evento - PuntoCerca</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/img/favicon.png" />
 </head>
-<body>
 
-<h2>Crear evento</h2>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
 
-<form id="eventForm">
+  <!-- CONTENEDOR -->
+  <div class="max-w-2xl mx-auto p-6">
 
-  <input type="text" id="title" placeholder="Título" required />
+    <!-- HEADER -->
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">
+        Crear evento
+      </h1>
 
-  <textarea id="description" placeholder="Descripción"></textarea>
+      <a href="/dashboard" class="text-sm text-orange-600 hover:underline">
+        ← Volver
+      </a>
+    </div>
 
-  <label>Inicio</label>
-  <input type="datetime-local" id="start_at" required />
+    <!-- FORM -->
+    <form id="eventForm" class="bg-white p-6 rounded-2xl shadow space-y-5">
 
-  <label>Fin</label>
-  <input type="datetime-local" id="end_at" required />
+      <!-- TÍTULO -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Título</label>
+        <input 
+          type="text" 
+          id="title" 
+          class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+          placeholder="Ej: Happy Hour viernes"
+          required
+        />
+      </div>
 
-  <input type="file" id="image" accept="image/*" required />
+      <!-- DESCRIPCIÓN -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Descripción</label>
+        <textarea 
+          id="description" 
+          class="w-full border rounded-lg px-3 py-2"
+          rows="3"
+          placeholder="Contá de qué trata el evento..."
+        ></textarea>
+      </div>
 
-  <button type="submit">Crear evento</button>
+      <!-- FECHAS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-</form>
+        <div>
+          <label class="block text-sm font-medium mb-1">Inicio</label>
+          <input 
+            type="datetime-local" 
+            id="start_at" 
+            class="w-full border rounded-lg px-3 py-2"
+            required
+          />
+        </div>
 
-  <script type="module" src="/js/app.js"></script>
-  <script src="/js/new-event.js"></script>
+        <div>
+          <label class="block text-sm font-medium mb-1">Fin</label>
+          <input 
+            type="datetime-local" 
+            id="end_at" 
+            class="w-full border rounded-lg px-3 py-2"
+            required
+          />
+        </div>
 
-<script src="/js/new-event.js"></script>
+      </div>
+
+      <!-- IMAGEN -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Imagen del evento</label>
+
+        <input 
+          type="file" 
+          id="image" 
+          accept="image/*" 
+          class="w-full"
+          required
+        />
+
+        <!-- PREVIEW -->
+        <img 
+          id="preview"
+          class="mt-3 w-full h-48 object-cover rounded-lg hidden"
+        />
+      </div>
+
+      <!-- BOTÓN -->
+      <button 
+        type="submit"
+        class="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition"
+      >
+        Crear evento
+      </button>
+
+    </form>
+
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="/js/new-event.js"></script>
+
+  <!-- PREVIEW SCRIPT -->
+  <script>
+    const imageInput = document.getElementById("image");
+    const preview = document.getElementById("preview");
+
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove("hidden");
+      }
+    });
+  </script>
 
 </body>
 </html>
