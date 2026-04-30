@@ -380,7 +380,7 @@ card.innerHTML = `
   </div>
 
   <div class="card-buttons">
-    <button onclick="window.location.href='/event/${event.id}'">
+   <button onclick="window.location.href='/event.html?id=${event.id}'">
   Ver evento
 </button>
   </div>
