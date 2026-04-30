@@ -2451,10 +2451,10 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
   try {
 
     const result = await pool.query(`
-      SELECT slug, updated_at
-      FROM stores
-      WHERE slug IS NOT NULL
-    `);
+  SELECT slug
+  FROM stores
+  WHERE slug IS NOT NULL
+`);
 
     const baseUrl = "https://puntocerca.com.ar";
 
@@ -2470,7 +2470,7 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
       urls += `
         <url>
           <loc>${baseUrl}/${store.slug}</loc>
-          <lastmod>${store.updated_at ? new Date(store.updated_at).toISOString() : new Date().toISOString()}</lastmod>
+          <lastmod>${new Date().toISOString()}</lastmod>
           <changefreq>daily</changefreq>
           <priority>0.8</priority>
         </url>
