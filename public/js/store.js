@@ -91,7 +91,6 @@ function showToast(message, type = "success") {
 function isStoreOpen(store) {
 
   if (!store.is_open) return false;
-
   if (!store.opening_hours) return store.is_open;
 
   let hours;
@@ -107,45 +106,54 @@ function isStoreOpen(store) {
   if (hours.always_open) return true;
 
   const now = new Date();
-  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
-  const todayKey = daysMap[now.getDay()];
-
-  const today = hours[todayKey];
-
-  // ❌ no hay datos
-  if (!today) return false;
-
-  // 🔴 DÍA CERRADO (CLAVE)
-  if (today.closed) return false;
-
   const current = now.getHours() * 60 + now.getMinutes();
 
-  // 🔥 soporta uno o varios horarios
-  const ranges = Array.isArray(today) ? today : [today];
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
 
-  for (const range of ranges) {
+  const todayKey = daysMap[now.getDay()];
+  const yesterdayKey = daysMap[(now.getDay() + 6) % 7];
 
-    if (!range.open || !range.close) continue;
+  function checkRanges(dayData, checkPreviousDay = false) {
+    if (!dayData || dayData.closed) return false;
 
-    const [oh, om] = range.open.split(":").map(Number);
-    const [ch, cm] = range.close.split(":").map(Number);
+    const ranges = Array.isArray(dayData) ? dayData : [dayData];
 
-    const openTime = oh * 60 + om;
-    const closeTime = ch * 60 + cm;
+    for (const range of ranges) {
+      if (!range.open || !range.close) continue;
 
-   // 🔥 horario normal
-if (openTime <= closeTime) {
-  if (current >= openTime && current <= closeTime) {
-    return true;
+      const [oh, om] = range.open.split(":").map(Number);
+      const [ch, cm] = range.close.split(":").map(Number);
+
+      const openTime = oh * 60 + om;
+      const closeTime = ch * 60 + cm;
+
+      // horario normal: 09:00 -> 18:00
+      if (openTime <= closeTime) {
+        if (!checkPreviousDay && current >= openTime && current <= closeTime) {
+          return true;
+        }
+      }
+
+      // horario nocturno: 18:00 -> 03:00
+      if (openTime > closeTime) {
+        if (!checkPreviousDay && current >= openTime) {
+          return true;
+        }
+
+        if (checkPreviousDay && current <= closeTime) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
-} 
-// 🔥 horario nocturno (cruza medianoche)
-else {
-  if (current >= openTime || current <= closeTime) {
-    return true;
-  }
-}
-  }
+
+  // 1. revisar horario de hoy
+  if (checkRanges(hours[todayKey], false)) return true;
+
+  // 2. revisar si ayer abrió y cerraba hoy de madrugada
+  if (checkRanges(hours[yesterdayKey], true)) return true;
 
   return false;
 }
