@@ -8,6 +8,85 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
 
   const usedPositions = {};
 
+function getStoreStatusInfo(store) {
+
+  if (!store.opening_hours) {
+    return {
+      text: "Sin horarios",
+      color: "#6b7280"
+    };
+  }
+
+  let hours = store.opening_hours;
+
+  if (typeof hours === "string") {
+    try {
+      hours = JSON.parse(hours);
+    } catch {
+      return {
+        text: "Sin horarios",
+        color: "#6b7280"
+      };
+    }
+  }
+
+  if (hours.always_open) {
+    return {
+      text: "Abierto 24hs",
+      color: "#16a34a"
+    };
+  }
+
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
+  const today = hours[todayKey];
+
+  if (!today || today.closed) {
+    return {
+      text: "Cerrado",
+      color: "#ef4444"
+    };
+  }
+
+  const ranges = Array.isArray(today) ? today : [today];
+
+  for (const range of ranges) {
+
+    if (!range.open || !range.close) continue;
+
+    const [oh, om] = range.open.split(":").map(Number);
+    const [ch, cm] = range.close.split(":").map(Number);
+
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
+
+    // 🔥 CRUCE DE MEDIANOCHE (esto es lo que te estaba rompiendo TODO)
+    if (closeTime < openTime) {
+      if (current >= openTime || current <= closeTime) {
+        return {
+          text: `Abierto ahora`,
+          color: "#16a34a"
+        };
+      }
+    } else {
+      if (current >= openTime && current <= closeTime) {
+        return {
+          text: `Abierto ahora`,
+          color: "#16a34a"
+        };
+      }
+    }
+  }
+
+  return {
+    text: "Cerrado",
+    color: "#ef4444"
+  };
+}
+
 
 function getPositionKey(lat, lng) {
   return `${Number(lat).toFixed(5)}_${Number(lng).toFixed(5)}`;
