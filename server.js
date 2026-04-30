@@ -2477,12 +2477,10 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
       `;
     });
 
-    const sitemap = `
-      <?xml version="1.0" encoding="UTF-8"?>
-      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-        ${urls}
-      </urlset>
-    `;
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${urls}
+</urlset>`;
 
     res.header("Content-Type", "application/xml");
     res.send(sitemap);
