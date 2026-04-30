@@ -2512,12 +2512,21 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
   `<h1 id="storeName" class="store-title">
   Tienda en PuntoCerca
 </h1>`,
-  `<h1 id="storeName" class="store-title">${store.name}</h1>
-   <p style="font-size:14px;color:#555;">
-     ${store.name} en ${store.city || "Argentina"}.
-     ${store.description || "Negocio local"}.
-     ${store.street ? `Dirección: ${store.street}.` : ""}
-   </p>`
+  `<h1 id="storeName" class="store-title">${store.name}</h1>`
+);
+    const seoText = `
+${store.name} en ${store.city || "Argentina"}.
+Encontrá productos, precios y opiniones reales.
+Contacto directo por WhatsApp y ubicación en el mapa.
+`;
+
+html = html.replace(
+  `<p id="seoContent" style="font-size:14px; color:#666; margin-top:6px;">
+  Negocio local en Argentina. Ver productos, precios, opiniones y contacto directo.
+</p>`,
+  `<p id="seoContent" style="font-size:14px; color:#666; margin-top:6px;">
+    ${seoText}
+  </p>`
 );
      
 
