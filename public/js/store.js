@@ -1037,8 +1037,8 @@ const fullAddress = addressParts.join(" · ");
 document.getElementById("storeAddress").innerText =
   fullAddress || "Sin dirección";
 
-  document.getElementById("storeDescription").innerText =
-    store.description || "";
+ document.getElementById("storeDescription").innerText =
+  store.description || "";
 
   const stats = document.getElementById("storeStats");
 
