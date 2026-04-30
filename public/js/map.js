@@ -1,3 +1,4 @@
+import { isStoreOpen } from "/js/store.js";
 const map = L.map('mapFull').setView([-32.95, -60.66], 13); // Rosario default
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
@@ -16,7 +17,7 @@ async function loadMapStores() {
   if (!store.lat || !store.lng) return;
 
   // 🔥 ESTADO ABIERTO / CERRADO
-  const isOpen = store.is_open;
+  const isOpen = isStoreOpen(store);
   const borderColor = isOpen ? "#22c55e" : "#ef4444";
 
   // 🔥 ICONO PERSONALIZADO
@@ -55,7 +56,7 @@ function showPreview(store){
 
   const preview = document.getElementById("storePreview");
 
-  const isOpen = store.is_open;
+ const isOpen = isStoreOpen(store);
   const statusText = isOpen ? "🟢 Abierto ahora" : "🔴 Cerrado";
   const statusColor = isOpen ? "#22c55e" : "#ef4444";
 
