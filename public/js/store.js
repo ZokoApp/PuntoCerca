@@ -143,6 +143,9 @@ function isStoreOpen(store) {
 
 function updateStoreStatus(store) {
 
+  const statusEl = document.getElementById("storeStatus");
+  if (!statusEl) return;
+
   let hours;
 
   try {
@@ -153,70 +156,89 @@ function updateStoreStatus(store) {
     hours = null;
   }
 
-  if (!hours) return;
+  if (!hours) {
+    renderStoreStatus("Sin horarios", "#6b7280");
+    return;
+  }
 
-  // 🔥 24HS
   if (hours.always_open) {
-    document.getElementById("storeStatus").innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:500;font-size:14px;color:#16a34a;">
-        <span style="width:8px;height:8px;border-radius:50%;background:#16a34a;"></span>
-        Abierto 24hs
-      </div>
-    `;
+    renderStoreStatus("Abierto 24hs", "#16a34a");
     return;
   }
 
   const now = new Date();
-  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const daysMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   const todayKey = daysMap[now.getDay()];
   const today = hours[todayKey];
 
-  let text = "Cerrado";
-  let color = "#dc2626";
+  if (!today || today.closed) {
+    renderStoreStatus("Cerrado", "#dc2626");
+    return;
+  }
 
-  if (today && !today.closed) {
+  const ranges = Array.isArray(today) ? today : [today];
 
-    const current = now.getHours() * 60 + now.getMinutes();
+  let isOpenNow = false;
+  let nextClose = null;
+  let nextOpen = null;
 
-    const ranges = Array.isArray(today) ? today : [today];
+  for (const range of ranges) {
 
-    let isOpen = false;
-    let nextClose = null;
-    let nextOpen = null;
+    if (!range.open || !range.close) continue;
 
-    for (const range of ranges) {
+    const [oh, om] = range.open.split(":").map(Number);
+    const [ch, cm] = range.close.split(":").map(Number);
 
-      if (!range.open || !range.close) continue;
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
 
-      const [oh, om] = range.open.split(":").map(Number);
-      const [ch, cm] = range.close.split(":").map(Number);
-
-      const openTime = oh * 60 + om;
-      const closeTime = ch * 60 + cm;
-
-      if (current >= openTime && current <= closeTime) {
-        isOpen = true;
-        nextClose = range.close;
-        break;
-      }
-
-      if (current < openTime && !nextOpen) {
-        nextOpen = range.open;
-      }
+    if (current >= openTime && current <= closeTime) {
+      isOpenNow = true;
+      nextClose = range.close;
+      break;
     }
 
-    if (isOpen) {
-      text = `Abierto ahora · Cierra ${nextClose}`;
-      color = "#16a34a";
-    } else if (nextOpen) {
-      text = `Cerrado · Abre ${nextOpen}`;
-      color = "#dc2626";
+    if (current < openTime && !nextOpen) {
+      nextOpen = range.open;
     }
   }
 
-  document.getElementById("storeStatus").innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:500;font-size:14px;color:${color};">
-      <span style="width:8px;height:8px;border-radius:50%;background:${color};"></span>
+  if (isOpenNow) {
+    renderStoreStatus(`Abierto ahora · Cierra ${nextClose}`, "#16a34a");
+    return;
+  }
+
+  if (nextOpen) {
+    renderStoreStatus(`Cerrado · Abre ${nextOpen}`, "#dc2626");
+    return;
+  }
+
+  renderStoreStatus("Cerrado", "#dc2626");
+}
+
+function renderStoreStatus(text, color) {
+  const statusEl = document.getElementById("storeStatus");
+  if (!statusEl) return;
+
+  statusEl.innerHTML = `
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-top:6px;
+      font-weight:500;
+      font-size:14px;
+      color:${color};
+    ">
+      <span style="
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:${color};
+        display:inline-block;
+      "></span>
       ${text}
     </div>
   `;
