@@ -1,4 +1,5 @@
   import { map } from './map.js';
+import { getStoreStatusInfo } from "/js/store.js";
 
 import { SUBCATEGORY_MAP } from '../data/categories.js';
 
@@ -6,47 +7,7 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
   export let activeCard = null;
 
   const usedPositions = {};
-function isStoreOpen(store) {
 
-  if (!store.opening_hours) return false;
-
-  let hours = store.opening_hours;
-
-  // 🔥 parse seguro
-  if (typeof hours === "string") {
-    try {
-      hours = JSON.parse(hours);
-    } catch (e) {
-      console.error("Error parsing opening_hours", e);
-      return false;
-    }
-  }
-
-  // 🔥 24HS
-  if (hours.always_open) return true;
-
-  const now = new Date();
-
-  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
-  const todayKey = daysMap[now.getDay()];
-
-  const today = hours[todayKey];
-
-  if (!today) return false;
-  if (today.closed) return false;
-
-  if (!today.open || !today.close) return false;
-
-  const current = now.getHours() * 60 + now.getMinutes();
-
-  const [oh, om] = today.open.split(":").map(Number);
-  const [ch, cm] = today.close.split(":").map(Number);
-
-  const openTime = oh * 60 + om;
-  const closeTime = ch * 60 + cm;
-
-  return current >= openTime && current <= closeTime;
-}
 
 function getPositionKey(lat, lng) {
   return `${Number(lat).toFixed(5)}_${Number(lng).toFixed(5)}`;
@@ -215,7 +176,7 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-    const open = isStoreOpen(store);
+  const status = getStoreStatusInfo(store);
 
     let hours = store.opening_hours;
 
@@ -237,13 +198,9 @@ card.innerHTML = `
 
     <h3>${store.name}</h3>
 
-   <div class="status-badge ${open ? 'open' : 'closed'}">
+   <div class="status-badge ${status.color === '#16a34a' ? 'open' : 'closed'}">
   <span class="dot"></span>
-  ${
-    is24
-      ? 'Abierto 24hs'
-      : (open ? 'Abierto' : 'Cerrado')
-  }
+  ${status.text}
 </div>
     <p>${store.street || "Sin dirección"}</p>
 
@@ -337,26 +294,16 @@ const res = await fetch(`/api/stores/${store.id}/products`);
   }).join('')
   : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
         
-
+    const status = getStoreStatusInfo(store);
     preview.innerHTML = `
     <button class="close-preview">✕</button>
     <div class="preview-image-wrapper">
   <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
 
-  <div class="preview-status ${isStoreOpen(store) ? 'open' : 'closed'}">
-    <span class="dot"></span>
-   ${(() => {
-  let hours = store.opening_hours;
-
-  if (typeof hours === "string") {
-    try { hours = JSON.parse(hours); } catch {}
-  }
-
-  if (hours?.always_open) return 'Abierto 24hs';
-
-  return isStoreOpen(store) ? 'Abierto' : 'Cerrado';
-})()}
-  </div>
+  <div class="preview-status ${status.color === '#16a34a' ? 'open' : 'closed'}">
+  <span class="dot"></span>
+  ${status.text}
+</div>
 </div>
 
     
