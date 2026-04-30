@@ -351,40 +351,40 @@ async function loadEvents() {
       });
 
       const card = document.createElement("div");
-      card.className = "card";
+card.className = "card event-card";
 
-      card.innerHTML = `
-        <img src="${event.image_url}" />
+card.innerHTML = `
+  <div class="event-image">
+    <img src="${event.image_url}" />
 
-        <div class="card-content">
+    <div class="event-badge" style="background:${statusColor}">
+      ${statusText}
+    </div>
+  </div>
 
-          <h3>${event.title}</h3>
+  <div class="card-content">
 
-          <p style="color:${statusColor};font-weight:700;">
-            ${statusText}
-          </p>
+    <h3 class="event-title">
+      ${event.title}
+    </h3>
 
-          <p style="font-size:13px;color:#666;">
-            📅 ${formattedDate}
-          </p>
+    <div class="event-meta">
+      <span>📅 ${formattedDate}</span>
+      <span>🏪 ${event.store_name}</span>
+    </div>
 
-          <p style="font-size:13px;color:#666;">
-            🏪 ${event.store_name}
-          </p>
+    <p class="event-desc">
+      ${event.description || ""}
+    </p>
 
-          <p style="font-size:13px;color:#777;">
-            ${event.description || ""}
-          </p>
+  </div>
 
-        </div>
-
-        <div class="card-buttons">
-          <button onclick="window.location.href='/${event.store_slug}'">
-            Ver tienda
-          </button>
-        </div>
-      `;
-
+  <div class="card-buttons">
+    <button onclick="window.location.href='/${event.store_slug}'">
+      Ver tienda
+    </button>
+  </div>
+`;
       container.appendChild(card);
     });
 
