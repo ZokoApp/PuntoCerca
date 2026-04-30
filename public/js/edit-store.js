@@ -113,7 +113,7 @@ categorySelect.addEventListener("change", () => {
 // HORARIOS UI
 // =============================
 
-/*
+
 
 
 function createHoursUI(existing = {}) {
@@ -167,7 +167,7 @@ const container = document.getElementById("hoursContainer");
 
     container.appendChild(row);
   });
-}*/
+}
   
  // =============================
 // CARGAR DATOS
@@ -317,7 +317,7 @@ alwaysOpenCheckbox.addEventListener("change", () => {
   console.log("Modo creación limpio");
 
   loadSubcategories(categorySelect.value);
-  createHoursUI();
+
 
   document.getElementById("logoPreview").src = "/img/default.png";
   document.getElementById("coverPreview").src = "/img/default-cover.jpg";
