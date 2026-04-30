@@ -1,5 +1,5 @@
   import { map } from './map.js';
-import { getStoreStatusInfo } from "/js/store.js";
+
 
 import { SUBCATEGORY_MAP } from '../data/categories.js';
 
