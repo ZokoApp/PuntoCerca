@@ -158,6 +158,81 @@ function isStoreOpen(store) {
   return false;
 }
 
+export function getStoreStatusInfo(store) {
+
+  let hours;
+
+  try {
+    hours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    return { text: "Sin horarios", color: "#6b7280" };
+  }
+
+  if (!hours) {
+    return { text: "Sin horarios", color: "#6b7280" };
+  }
+
+  if (hours.always_open) {
+    return { text: "Abierto 24hs", color: "#16a34a" };
+  }
+
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
+  const today = hours[todayKey];
+
+  if (!today || today.closed) {
+    return { text: "Cerrado", color: "#dc2626" };
+  }
+
+  const ranges = Array.isArray(today) ? today : [today];
+
+  let isOpen = false;
+  let nextClose = null;
+  let nextOpen = null;
+
+  for (const r of ranges) {
+
+    if (!r.open || !r.close) continue;
+
+    const [oh, om] = r.open.split(":").map(Number);
+    const [ch, cm] = r.close.split(":").map(Number);
+
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
+
+    if (current >= openTime && current <= closeTime) {
+      isOpen = true;
+      nextClose = r.close;
+      break;
+    }
+
+    if (current < openTime && !nextOpen) {
+      nextOpen = r.open;
+    }
+  }
+
+  if (isOpen) {
+    return {
+      text: `Abierto ahora · Cierra ${nextClose}`,
+      color: "#16a34a"
+    };
+  }
+
+  if (nextOpen) {
+    return {
+      text: `Cerrado · Abre ${nextOpen}`,
+      color: "#dc2626"
+    };
+  }
+
+  return { text: "Cerrado", color: "#dc2626" };
+}
+
 function updateStoreStatus(store) {
 
   const statusEl = document.getElementById("storeStatus");
