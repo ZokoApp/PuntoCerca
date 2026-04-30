@@ -492,6 +492,18 @@ const location =
 // TITLE
 document.title = `${store.name} en ${location} | PuntoCerca`;
 
+    // 🔥 SEO visible para Google (contenido real)
+const seoContent = document.getElementById("seoContent");
+
+if (seoContent) {
+  seoContent.innerText = `
+    ${store.name} ubicado en ${location}.
+    ${store.description || "Negocio local"}.
+    ${store.street ? `Dirección: ${store.street}.` : ""}
+    Encontrá productos, precios y contacto directo en PuntoCerca.
+  `;
+}
+
 // DESCRIPTION
 let metaDesc = document.querySelector("meta[name='description']");
 if (!metaDesc) {
