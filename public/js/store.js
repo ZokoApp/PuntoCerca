@@ -133,9 +133,18 @@ function isStoreOpen(store) {
     const openTime = oh * 60 + om;
     const closeTime = ch * 60 + cm;
 
-    if (current >= openTime && current <= closeTime) {
-      return true;
-    }
+   // 🔥 horario normal
+if (openTime <= closeTime) {
+  if (current >= openTime && current <= closeTime) {
+    return true;
+  }
+} 
+// 🔥 horario nocturno (cruza medianoche)
+else {
+  if (current >= openTime || current <= closeTime) {
+    return true;
+  }
+}
   }
 
   return false;
@@ -194,11 +203,22 @@ function updateStoreStatus(store) {
     const openTime = oh * 60 + om;
     const closeTime = ch * 60 + cm;
 
-    if (current >= openTime && current <= closeTime) {
-      isOpenNow = true;
-      nextClose = range.close;
-      break;
-    }
+    // 🔥 horario normal
+if (openTime <= closeTime) {
+  if (current >= openTime && current <= closeTime) {
+    isOpenNow = true;
+    nextClose = range.close;
+    break;
+  }
+} 
+// 🔥 horario nocturno
+else {
+  if (current >= openTime || current <= closeTime) {
+    isOpenNow = true;
+    nextClose = range.close;
+    break;
+  }
+}
 
     if (current < openTime && !nextOpen) {
       nextOpen = range.open;
