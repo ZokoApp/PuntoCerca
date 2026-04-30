@@ -1,3 +1,5 @@
+import { showToast } from "./app.js";
+
 document.getElementById("eventForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -32,8 +34,7 @@ document.getElementById("eventForm").addEventListener("submit", async (e) => {
       return;
     }
 
-    showToast("Evento creado 🚀", "success");
-
+    alert("Evento creado 🚀");
     window.location.href = "/dashboard.html";
 
   } catch (err) {
