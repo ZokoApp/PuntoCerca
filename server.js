@@ -2110,25 +2110,35 @@ app.get("/api/events/:id", async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(`
-      SELECT 
-        e.id,
-        e.title,
-        e.description,
-        e.image_url,
-        e.start_at,
-        e.end_at,
-        s.name AS store_name,
-        s.slug AS store_slug
-      FROM events e
-      LEFT JOIN stores s ON e.store_id = s.id
-      WHERE e.id = $1
+      SELECT *
+      FROM events
+      WHERE id = $1
     `, [id]);
 
     if (!result.rows.length) {
       return res.status(404).json({ error: "Evento no encontrado" });
     }
 
-    res.json(result.rows[0]);
+    const event = result.rows[0];
+
+    // 🔥 buscar tienda aparte (no romper todo si falla)
+    let store = null;
+
+    if (event.store_id) {
+      const storeRes = await pool.query(`
+        SELECT name, slug
+        FROM stores
+        WHERE id = $1
+      `, [event.store_id]);
+
+      store = storeRes.rows[0] || null;
+    }
+
+    res.json({
+      ...event,
+      store_name: store?.name || "Tienda",
+      store_slug: store?.slug || ""
+    });
 
   } catch (err) {
     console.error("ERROR GET EVENT:", err);
