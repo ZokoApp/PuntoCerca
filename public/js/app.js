@@ -438,7 +438,10 @@ card.innerHTML = `
   <div class="event-image">
     <img src="${event.image_url}" />
 
-    <div class="event-badge ${status.className}" style="background:${status.color}">
+    <div 
+  class="event-badge ${status.className}" 
+  id="badge-${event.id}"
+  style="background:${status.color}">
   ${status.text}
 </div>
   </div>
@@ -483,8 +486,8 @@ card.innerHTML = `
   }
 }
 
-function startEventTimer(event) {
-  const el = document.getElementById(`timer-${event.id}`);
+function startLiveTimer(event) {
+  const el = document.getElementById(`badge-${event.id}`);
   if (!el) return;
 
   function update() {
@@ -495,17 +498,28 @@ function startEventTimer(event) {
 
     if (diff <= 0) {
       el.innerText = "🔥 En curso";
-      el.style.color = "#16a34a";
+      el.style.background = "#16a34a";
       return;
     }
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const totalSeconds = Math.floor(diff / 1000);
 
-    el.innerText = `⏳ Empieza en ${hours}h ${minutes}m`;
-    el.style.color = "#f97316";
+    const days = Math.floor(totalSeconds / (3600 * 24));
+    const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    let text = "Empieza en ";
+
+    if (days > 0) text += `${days}d `;
+    if (hours > 0 || days > 0) text += `${hours}h `;
+    if (minutes > 0 || hours > 0) text += `${minutes}m `;
+
+    text += `${seconds}s`;
+
+    el.innerText = text;
   }
 
   update();
-  setInterval(update, 60000);
+  setInterval(update, 1000);
 }
