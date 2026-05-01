@@ -2110,9 +2110,17 @@ app.get("/api/events/:id", async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(`
-      SELECT e.*, s.name AS store_name, s.slug AS store_slug
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.image_url,
+        e.start_at,
+        e.end_at,
+        s.name AS store_name,
+        s.slug AS store_slug
       FROM events e
-      JOIN stores s ON e.store_id = s.id
+      LEFT JOIN stores s ON e.store_id = s.id
       WHERE e.id = $1
     `, [id]);
 
@@ -2123,9 +2131,8 @@ app.get("/api/events/:id", async (req, res) => {
     res.json(result.rows[0]);
 
   } catch (err) {
-    console.error("ERROR EVENT:", err);
-    console.error(err);
-    res.status(500).json({ error: "Error obteniendo evento" });
+    console.error("ERROR GET EVENT:", err);
+    res.status(500).json({ error: "Error interno" });
   }
 });
   app.post('/api/product-view/:id', async (req, res) => {
