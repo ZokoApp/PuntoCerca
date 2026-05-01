@@ -496,8 +496,17 @@ nav a{
 .event-card {
   display: flex;
   flex-direction: column;
-  height: 420px; /* 🔥 altura fija */
+  height: 420px;
   overflow: hidden;
+}
+
+.card-content {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.card-buttons {
+  margin-top: auto;
 }
 
 .event-desc {
@@ -511,10 +520,4 @@ nav a{
   overflow: hidden;
 }
 
-.card-content {
-  flex-grow: 1;
-}
 
-.card-buttons {
-  margin-top: auto;
-}
