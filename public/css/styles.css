@@ -452,3 +452,43 @@ nav a{
   50% { transform: scale(1.01); }
   100% { transform: scale(1); }
 }
+
+.event-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+/* 🔴 urgente */
+.event-btn.soon {
+  background: #ef4444;
+  color: white;
+}
+
+/* 🟢 en vivo */
+.event-btn.live {
+  background: #16a34a;
+  color: white;
+}
+
+/* ⚠️ finalizando */
+.event-btn.ending {
+  background: #dc2626;
+  color: white;
+}
+
+/* 🟡 normal */
+.event-btn.upcoming {
+  background: #f59e0b;
+  color: white;
+}
+
+/* hover */
+.event-btn:hover {
+  transform: scale(1.03);
+  opacity: 0.9;
+}
