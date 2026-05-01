@@ -1,73 +1,124 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Evento - PuntoCerca</title>
+
+  <meta name="description" content="Descubrí eventos de comercios locales cerca tuyo en PuntoCerca." />
+
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="icon" type="image/png" href="/img/favicon.png" />
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
 
-<!-- HEADER -->
-<header class="bg-white shadow-sm sticky top-0 z-50">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-    <h1 class="text-xl font-bold text-orange-600 cursor-pointer" onclick="location.href='/'">
-      PuntoCerca
-    </h1>
-    <button onclick="history.back()" class="text-sm text-gray-500 hover:text-black">
-      ← Volver
-    </button>
-  </div>
-</header>
+  <!-- HEADER -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <button onclick="location.href='/'" class="text-2xl font-extrabold text-orange-600">
+        PuntoCerca
+      </button>
 
-<!-- MAIN -->
-<main class="max-w-6xl mx-auto p-4">
+      <button onclick="history.back()" class="text-sm text-gray-500 hover:text-orange-600 transition">
+        ← Volver
+      </button>
+    </div>
+  </header>
 
-  <!-- GALERÍA -->
-  <div class="bg-white rounded-2xl shadow p-4 mb-6">
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-1">
 
-    <img id="mainImage"
-      class="w-full h-80 object-cover rounded-xl mb-4 transition duration-300"/>
+    <!-- GALERÍA -->
+    <section class="bg-white rounded-3xl shadow-sm border overflow-hidden mb-6">
+      <div class="relative">
+        <img
+          id="mainImage"
+          class="w-full h-[260px] md:h-[460px] object-cover bg-gray-100"
+          alt="Imagen del evento"
+        />
 
-    <div id="gallery" class="flex gap-2 overflow-x-auto"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"></div>
 
-  </div>
+        <div class="absolute bottom-5 left-5 right-5 text-white">
+          <p id="eventStatus" class="inline-flex bg-orange-600 px-3 py-1 rounded-full text-sm font-semibold mb-3">
+            Cargando evento...
+          </p>
 
-  <!-- INFO -->
-  <div class="bg-white rounded-2xl shadow p-6 mb-6 animate-fadeIn">
+          <h1 id="eventTitle" class="text-3xl md:text-5xl font-extrabold leading-tight"></h1>
+        </div>
+      </div>
 
-    <h1 id="eventTitle" class="text-3xl font-bold mb-2"></h1>
+      <div id="gallery" class="flex gap-3 overflow-x-auto p-4 bg-white"></div>
+    </section>
 
-    <p id="eventDate" class="text-gray-500 mb-4"></p>
+    <!-- INFO + CTA -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
-    <p id="eventDesc" class="text-gray-700 leading-relaxed mb-6"></p>
+      <!-- INFO -->
+      <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border p-6">
+        <div class="flex flex-wrap gap-3 mb-5 text-sm">
+          <span id="eventDate" class="bg-orange-50 text-orange-700 px-4 py-2 rounded-full font-semibold"></span>
+          <span id="eventStore" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full font-semibold"></span>
+        </div>
 
-    <button id="goStore"
-      class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold transition">
-      Ver tienda
-    </button>
+        <h2 class="text-xl font-bold mb-3">Sobre el evento</h2>
 
-  </div>
+        <p id="eventDesc" class="text-gray-700 leading-relaxed whitespace-pre-line"></p>
+      </div>
 
-  <!-- RELACIONADOS -->
-  <div class="bg-white rounded-2xl shadow p-6">
+      <!-- ACCIONES -->
+      <aside class="bg-white rounded-3xl shadow-sm border p-6 h-fit">
+        <h2 class="text-xl font-bold mb-4">¿Querés ir?</h2>
 
-    <h2 class="text-xl font-bold mb-4">
-      🎉 Más eventos de este lugar
-    </h2>
+        <div class="space-y-3">
+          <button
+            id="ctaWhatsApp"
+            class="w-full bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold transition">
+            💬 Reservar por WhatsApp
+          </button>
 
-    <div id="relatedEvents" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+          <button
+            id="ctaReminder"
+            class="w-full border border-orange-500 text-orange-600 hover:bg-orange-50 px-6 py-3 rounded-xl font-bold transition">
+            ⏰ Agregar recordatorio
+          </button>
 
-  </div>
+          <button
+            id="goStore"
+            class="w-full bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-bold transition">
+            Ver tienda
+          </button>
+        </div>
 
-</main>
+        <p class="text-xs text-gray-500 mt-4">
+          Contacto directo con el comercio. PuntoCerca no organiza el evento.
+        </p>
+      </aside>
 
-<!-- FOOTER -->
-<footer class="mt-10 bg-white border-t py-6 text-center text-sm text-gray-500">
-  ©  PuntoCerca - Lo local nos conecta
-</footer>
+    </section>
 
-<script type="module" src="/js/event.js"></script>
+    <!-- RELACIONADOS -->
+    <section class="bg-white rounded-3xl shadow-sm border p-6">
+      <div class="flex items-center justify-between gap-4 mb-5">
+        <h2 class="text-xl font-bold">
+          🎉 Más eventos de este lugar
+        </h2>
+      </div>
+
+      <div id="relatedEvents" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-10 bg-white border-t py-6 text-center text-sm text-gray-500">
+    © PuntoCerca - Lo local nos conecta
+  </footer>
+
+  <script type="module" src="/js/event.js"></script>
 
 </body>
 </html>
