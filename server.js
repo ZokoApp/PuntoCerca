@@ -2123,6 +2123,7 @@ app.get("/api/events/:id", async (req, res) => {
     res.json(result.rows[0]);
 
   } catch (err) {
+    console.error("ERROR EVENT:", err);
     console.error(err);
     res.status(500).json({ error: "Error obteniendo evento" });
   }
