@@ -378,22 +378,29 @@ async function loadEvents() {
 
     // 🔥 ORDEN + FILTRO REAL
     const sortedEvents = events
-      .filter(e => new Date(e.end_at) > now)
-      .sort((a, b) => {
-        const aStart = new Date(a.start_at);
-        const bStart = new Date(b.start_at);
+  .filter(e => new Date(e.end_at) > now)
+  .sort((a, b) => {
+    const statusA = getEventStatus(a);
+    const statusB = getEventStatus(b);
 
-        const aActive = now >= aStart && now <= new Date(a.end_at);
-        const bActive = now >= bStart && now <= new Date(b.end_at);
+    const priority = {
+      live: 0,
+      ending: 1,
+      soon: 2,
+      upcoming: 3,
+      expired: 4
+    };
 
-        // activos primero
-        if (aActive && !bActive) return -1;
-        if (!aActive && bActive) return 1;
+    const priorityA = priority[statusA.className] ?? 99;
+    const priorityB = priority[statusB.className] ?? 99;
 
-        // luego por fecha
-        return aStart - bStart;
-      })
-      .slice(0, 10);
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+
+    return new Date(a.start_at) - new Date(b.start_at);
+  })
+  .slice(0, 10);
 
     if (!sortedEvents.length) {
       container.innerHTML = `<p style="color:#888;">No hay eventos próximos</p>`;
@@ -417,7 +424,7 @@ async function loadEvents() {
       });
 
       const card = document.createElement("div");
-card.className = "card event-card";
+card.className = `card event-card ${status.className}`;
 
 card.innerHTML = `
   <div class="event-image">
