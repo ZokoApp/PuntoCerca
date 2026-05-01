@@ -2111,7 +2111,7 @@ app.get("/api/events/:id", async (req, res) => {
 
     const result = await pool.query(`
       SELECT *
-      FROM events
+      FROM store_events
       WHERE id = $1
     `, [id]);
 
