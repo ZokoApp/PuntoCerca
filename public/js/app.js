@@ -424,12 +424,13 @@ async function loadEvents() {
 
       const status = getEventStatus(event);
 
-      const formattedDate = start.toLocaleString("es-AR", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+     const formattedDate = start.toLocaleString("es-AR", {
+  day: "2-digit",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+});
 
       const card = document.createElement("div");
 card.className = `card event-card ${status.className}`;
@@ -457,9 +458,7 @@ card.innerHTML = `
   <span>🏪 ${event.store_name}</span>
 </div>
 
-<div class="event-timer" id="timer-${event.id}">
-  Cargando...
-</div>
+
 
    <p class="event-desc">
   ${(event.description || "").slice(0, 80)}...
@@ -477,7 +476,7 @@ card.innerHTML = `
 </div>
 `;
       container.appendChild(card);
-      startEventTimer(event);
+      startLiveTimer(event);
     });
 
   } catch (err) {
