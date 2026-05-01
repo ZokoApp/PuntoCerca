@@ -369,9 +369,13 @@ card.innerHTML = `
     </h3>
 
     <div class="event-meta">
-      <span>📅 ${formattedDate}</span>
-      <span>🏪 ${event.store_name}</span>
-    </div>
+  <span>📅 ${formattedDate}</span>
+  <span>🏪 ${event.store_name}</span>
+</div>
+
+<div class="event-timer" id="timer-${event.id}">
+  Cargando...
+</div>
 
     <p class="event-desc">
       ${event.description || ""}
@@ -386,10 +390,38 @@ card.innerHTML = `
   </div>
 `;
       container.appendChild(card);
+      startEventTimer(event);
     });
 
   } catch (err) {
     console.error("Error cargando eventos:", err);
     container.innerHTML = `<p style="color:#888;">Error cargando eventos</p>`;
   }
+}
+
+function startEventTimer(event) {
+  const el = document.getElementById(`timer-${event.id}`);
+  if (!el) return;
+
+  function update() {
+    const now = new Date();
+    const start = new Date(event.start_at);
+
+    const diff = start - now;
+
+    if (diff <= 0) {
+      el.innerText = "🔥 En curso";
+      el.style.color = "#16a34a";
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+
+    el.innerText = `⏳ Empieza en ${hours}h ${minutes}m`;
+    el.style.color = "#f97316";
+  }
+
+  update();
+  setInterval(update, 60000);
 }
