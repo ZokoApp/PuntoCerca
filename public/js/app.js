@@ -407,8 +407,7 @@ async function loadEvents() {
 
       const isActive = now >= start && now <= end;
 
-      const statusText = isActive ? "En curso" : "Próximo";
-      const statusColor = isActive ? "#16a34a" : "#f59e0b";
+      const status = getEventStatus(event);
 
       const formattedDate = start.toLocaleString("es-AR", {
         day: "2-digit",
@@ -424,9 +423,9 @@ card.innerHTML = `
   <div class="event-image">
     <img src="${event.image_url}" />
 
-    <div class="event-badge" style="background:${statusColor}">
-      ${statusText}
-    </div>
+    <div class="event-badge ${status.className}" style="background:${status.color}">
+  ${status.text}
+</div>
   </div>
 
   <div class="card-content">
@@ -452,7 +451,7 @@ card.innerHTML = `
 
   <div class="card-buttons">
    <button onclick="window.location.href='/event.html?id=${event.id}'">
-  Ver evento
+  ${status.buttonText}
 </button>
   </div>
 `;
