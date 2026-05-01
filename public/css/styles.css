@@ -520,4 +520,11 @@ nav a{
   overflow: hidden;
 }
 
-
+.event-desc {
+  font-size: 13px;
+  color: #666;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
