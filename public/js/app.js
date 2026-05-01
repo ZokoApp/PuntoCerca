@@ -457,10 +457,13 @@ card.innerHTML = `
   </div>
 
   <div class="card-buttons">
-   <button onclick="window.location.href='/event.html?id=${event.id}'">
-  ${status.buttonText}
-</button>
-  </div>
+  <button 
+    class="event-btn ${status.className}"
+    onclick="window.location.href='/event.html?id=${event.id}'"
+  >
+    ${status.buttonText}
+  </button>
+</div>
 `;
       container.appendChild(card);
       startEventTimer(event);
