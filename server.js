@@ -2141,9 +2141,12 @@ app.get("/api/events/:id", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("ERROR GET EVENT:", err);
-    res.status(500).json({ error: "Error interno" });
-  }
+  console.error("ERROR GET EVENT:", err);
+
+  res.status(500).json({
+    error: err.message
+  });
+}
 });
   app.post('/api/product-view/:id', async (req, res) => {
   
