@@ -492,3 +492,29 @@ nav a{
   transform: scale(1.03);
   opacity: 0.9;
 }
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  height: 420px; /* 🔥 altura fija */
+  overflow: hidden;
+}
+
+.event-desc {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* 🔥 máximo 3 líneas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-content {
+  flex-grow: 1;
+}
+
+.card-buttons {
+  margin-top: auto;
+}
