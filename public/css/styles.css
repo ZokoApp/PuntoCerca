@@ -417,3 +417,9 @@ nav a{
   flex:0 0 auto;
   white-space:nowrap;
 }
+
+.event-timer {
+  font-weight: 600;
+  margin-top: 8px;
+  font-size: 14px;
+}
