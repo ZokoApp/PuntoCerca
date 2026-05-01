@@ -450,9 +450,9 @@ card.innerHTML = `
   Cargando...
 </div>
 
-    <p class="event-desc">
-      ${event.description || ""}
-    </p>
+   <p class="event-desc">
+  ${(event.description || "").slice(0, 80)}...
+</p>
 
   </div>
 
