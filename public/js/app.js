@@ -291,6 +291,73 @@ document.addEventListener("click", (e) => {
   }
 });
 
+function getEventStatus(event) {
+  const now = new Date();
+  const start = new Date(event.start_at);
+  const end = new Date(event.end_at);
+
+  const diffToStart = start - now;
+  const diffToEnd = end - now;
+
+  if (now >= start && now <= end) {
+    const minutesLeft = Math.floor(diffToEnd / (1000 * 60));
+
+    if (minutesLeft <= 30) {
+      return {
+        text: "Finalizando",
+        color: "#dc2626",
+        className: "ending",
+        buttonText: "Ver evento"
+      };
+    }
+
+    return {
+      text: "En curso",
+      color: "#16a34a",
+      className: "live",
+      buttonText: "Ver ahora"
+    };
+  }
+
+  if (diffToStart > 0) {
+    const minutes = Math.floor(diffToStart / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (minutes <= 60) {
+      return {
+        text: `Empieza en ${minutes} min`,
+        color: "#ef4444",
+        className: "soon",
+        buttonText: "Ver evento"
+      };
+    }
+
+    if (hours < 24) {
+      return {
+        text: `Empieza en ${hours}h ${remainingMinutes}m`,
+        color: "#f97316",
+        className: "upcoming",
+        buttonText: "Ver evento"
+      };
+    }
+
+    return {
+      text: "Próximo",
+      color: "#f59e0b",
+      className: "upcoming",
+      buttonText: "Ver evento"
+    };
+  }
+
+  return {
+    text: "Finalizado",
+    color: "#6b7280",
+    className: "expired",
+    buttonText: "Ver evento"
+  };
+}
+
 async function loadEvents() {
   const container = document.getElementById("eventsContainer");
   if (!container) return;
