@@ -2,29 +2,72 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Evento</title>
+  <title>Evento - PuntoCerca</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-50">
 
-  <div class="max-w-3xl mx-auto p-6">
+<!-- HEADER -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-orange-600 cursor-pointer" onclick="location.href='/'">
+      PuntoCerca
+    </h1>
+    <button onclick="history.back()" class="text-sm text-gray-500 hover:text-black">
+      ← Volver
+    </button>
+  </div>
+</header>
 
-    <img id="eventImage" class="w-full h-64 object-cover rounded-xl mb-4"/>
+<!-- MAIN -->
+<main class="max-w-6xl mx-auto p-4">
 
-    <h1 id="eventTitle" class="text-2xl font-bold mb-2"></h1>
+  <!-- GALERÍA -->
+  <div class="bg-white rounded-2xl shadow p-4 mb-6">
 
-    <p id="eventDate" class="text-sm text-gray-500 mb-2"></p>
+    <img id="mainImage"
+      class="w-full h-80 object-cover rounded-xl mb-4 transition duration-300"/>
 
-    <p id="eventDesc" class="mb-4"></p>
+    <div id="gallery" class="flex gap-2 overflow-x-auto"></div>
 
-    <button id="goStore" class="bg-orange-600 text-white px-4 py-2 rounded">
+  </div>
+
+  <!-- INFO -->
+  <div class="bg-white rounded-2xl shadow p-6 mb-6 animate-fadeIn">
+
+    <h1 id="eventTitle" class="text-3xl font-bold mb-2"></h1>
+
+    <p id="eventDate" class="text-gray-500 mb-4"></p>
+
+    <p id="eventDesc" class="text-gray-700 leading-relaxed mb-6"></p>
+
+    <button id="goStore"
+      class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold transition">
       Ver tienda
     </button>
 
   </div>
 
-  <script type="module" src="/js/event.js"></script>
+  <!-- RELACIONADOS -->
+  <div class="bg-white rounded-2xl shadow p-6">
+
+    <h2 class="text-xl font-bold mb-4">
+      🎉 Más eventos de este lugar
+    </h2>
+
+    <div id="relatedEvents" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="mt-10 bg-white border-t py-6 text-center text-sm text-gray-500">
+  ©  PuntoCerca - Lo local nos conecta
+</footer>
+
+<script type="module" src="/js/event.js"></script>
 
 </body>
 </html>
