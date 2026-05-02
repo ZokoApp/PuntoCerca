@@ -1206,8 +1206,14 @@ async function createNotification(userId, type, title, message, link = null) {
   }
 });
 
-app.post("/api/events", authMiddleware, uploadEvent.single("image"), async (req, res) => {
+app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
   try {
+
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
     const { title, description, start_at, end_at } = req.body;
 
     if (!title || !start_at || !end_at) {
@@ -1215,83 +1221,64 @@ app.post("/api/events", authMiddleware, uploadEvent.single("image"), async (req,
     }
 
     if (!req.file) {
-      return res.status(400).json({ error: "La imagen es obligatoria" });
+      return res.status(400).json({ error: "Imagen obligatoria" });
     }
 
     const start = new Date(start_at);
     const end = new Date(end_at);
     const now = new Date();
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({ error: "Fechas inválidas" });
+    if (start >= end) {
+      return res.status(400).json({ error: "Fecha inválida" });
     }
 
-    if (start >= end) {
-      return res.status(400).json({ error: "La fecha de inicio debe ser anterior a la fecha de fin" });
+    const diffHours = (end - start) / (1000 * 60 * 60);
+
+    if (diffHours > 72) {
+      return res.status(400).json({ error: "Máximo 72 horas" });
     }
 
     if (start < now) {
       return res.status(400).json({ error: "No podés crear eventos en el pasado" });
     }
 
-    const durationHours = (end - start) / (1000 * 60 * 60);
-
-    if (durationHours > 72) {
-      return res.status(400).json({ error: "El evento no puede durar más de 72 horas" });
-    }
-
+    // 🔥 tienda
     const storeRes = await pool.query(
-      `SELECT id FROM stores WHERE user_id = $1 LIMIT 1`,
-      [req.user.id]
+      "SELECT id FROM stores WHERE user_id = $1",
+      [user.id]
     );
 
     if (!storeRes.rows.length) {
-      return res.status(400).json({ error: "No tenés una tienda asociada" });
+      return res.status(400).json({ error: "No tenés tienda" });
     }
 
-    const storeId = storeRes.rows[0].id;
+    const store_id = storeRes.rows[0].id;
 
-    const countRes = await pool.query(
-      `
-      SELECT COUNT(*)::int AS total
-      FROM store_events
+    // 🔥 límite eventos
+    const activeEvents = await pool.query(`
+      SELECT COUNT(*) 
+      FROM events
       WHERE store_id = $1
       AND end_at >= NOW()
-      `,
-      [storeId]
-    );
+    `, [store_id]);
 
-    if (countRes.rows[0].total >= 3) {
-      return res.status(400).json({ error: "Solo podés tener hasta 3 eventos activos o programados" });
+    if (parseInt(activeEvents.rows[0].count) >= 3) {
+      return res.status(400).json({ error: "Máximo 3 eventos activos" });
     }
 
-    const imageUrl = req.file.path;
+    const image_url = req.file.path;
 
-    const result = await pool.query(
-      `
-      INSERT INTO store_events
-        (store_id, title, description, image_url, start_at, end_at)
-      VALUES
-        ($1, $2, $3, $4, $5, $6)
+    const result = await pool.query(`
+      INSERT INTO events
+      (store_id, title, description, image_url, start_at, end_at)
+      VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING *
-      `,
-      [
-        storeId,
-        title.trim(),
-        description?.trim() || null,
-        imageUrl,
-        start_at,
-        end_at
-      ]
-    );
+    `, [store_id, title, description, image_url, start_at, end_at]);
 
-    res.json({
-      message: "Evento creado correctamente",
-      event: result.rows[0]
-    });
+    res.json(result.rows[0]);
 
-  } catch (error) {
-    console.error("ERROR CREANDO EVENTO:", error);
+  } catch (err) {
+    console.error("ERROR CREANDO EVENTO:", err);
     res.status(500).json({ error: "Error creando evento" });
   }
 });
