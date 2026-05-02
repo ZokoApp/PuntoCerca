@@ -524,6 +524,7 @@ metaDesc.content = `
     }
 
     storeData = store;
+    loadStoreEvents(store.id);
 
     if(currentUser && store.user_id === currentUser.id){
       isOwner = true;
