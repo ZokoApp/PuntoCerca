@@ -52,13 +52,7 @@ const uploadEvent = multer({
   }
 });
 
-const uploadEvent = multer({
-  storage,
-  limits: { 
-    fileSize: 2 * 1024 * 1024, // 2MB
-    files: 1
-  }
-});
+
   /* ================================
      TOKEN CONFIG
   ================================ */
