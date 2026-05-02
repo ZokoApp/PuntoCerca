@@ -1,4 +1,4 @@
-  require('dotenv').config();
+require('dotenv').config();
   const crypto = require("crypto");
   
   const express = require('express');
@@ -38,28 +38,27 @@
       allowed_formats: ["jpg", "png", "jpeg", "webp"],
     },
   });
-const eventStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "puntocerca/events",
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
-  },
-});
   
   const upload = multer({
     storage,
     limits: { files: 5 }
   });
 
+const eventStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "puntocerca/events",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
+
 const uploadEvent = multer({
-  storage: eventStorage,
+  storage,
   limits: { 
-    fileSize: 2 * 1024 * 1024,
+    fileSize: 2 * 1024 * 1024, // 2MB
     files: 1
   }
 });
-
-
   /* ================================
      TOKEN CONFIG
   ================================ */
@@ -1127,7 +1126,6 @@ async function createNotification(userId, type, title, message, link = null) {
       offerCreatedAt = new Date();
       offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
-
     const result = await pool.query(
       `INSERT INTO products
         (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug)
@@ -1207,7 +1205,7 @@ async function createNotification(userId, type, title, message, link = null) {
   }
 });
 
-app.post("/api/events", authMiddleware, uploadEvent.single("image"), async (req, res) => {
+app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
   try {
 
     const user = req.user;
@@ -1300,6 +1298,8 @@ app.get("/api/events", async (req, res) => {
         s.name AS store_name,
         s.slug AS store_slug,
         s.logo_url AS store_logo,
+        s.street AS store_street,
+        s.city AS store_city,
 
         CASE 
           WHEN NOW() BETWEEN e.start_at AND e.end_at THEN 'active'
@@ -1307,7 +1307,7 @@ app.get("/api/events", async (req, res) => {
           ELSE 'expired'
         END AS status
 
-      FROM events e
+      FROM store_events e
       JOIN stores s ON s.id = e.store_id
 
       WHERE e.end_at >= NOW()
@@ -1329,6 +1329,7 @@ app.get("/api/events", async (req, res) => {
     res.status(500).json({ error: "Error cargando eventos" });
   }
 });
+
   
   
   
@@ -1357,6 +1358,82 @@ app.get("/api/events", async (req, res) => {
     }
   });
 
+app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
+  try {
+
+    const user = req.user; // asumimos que ya tenés auth middleware
+    if (!user) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    const { title, description, start_at, end_at } = req.body;
+
+    if (!title || !start_at || !end_at) {
+      return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Imagen obligatoria" });
+    }
+
+    const start = new Date(start_at);
+    const end = new Date(end_at);
+    const now = new Date();
+
+    if (start >= end) {
+      return res.status(400).json({ error: "Fecha inválida" });
+    }
+
+    const diffHours = (end - start) / (1000 * 60 * 60);
+
+    if (diffHours > 72) {
+      return res.status(400).json({ error: "Máximo 72 horas" });
+    }
+
+    if (start < now) {
+      return res.status(400).json({ error: "No podés crear eventos en el pasado" });
+    }
+
+    // 🔥 buscar tienda del usuario
+    const storeRes = await pool.query(
+      "SELECT id FROM stores WHERE user_id = $1",
+      [user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(400).json({ error: "No tenés tienda" });
+    }
+
+    const store_id = storeRes.rows[0].id;
+
+    // 🔥 validar máximo 3 eventos activos/programados
+    const activeEvents = await pool.query(`
+      SELECT COUNT(*) 
+      FROM store_events
+      WHERE store_id = $1
+      AND end_at >= NOW()
+    `, [store_id]);
+
+    if (parseInt(activeEvents.rows[0].count) >= 3) {
+      return res.status(400).json({ error: "Máximo 3 eventos activos" });
+    }
+
+    const image_url = req.file.path;
+
+    const result = await pool.query(`
+      INSERT INTO events
+      (store_id, title, description, image_url, start_at, end_at)
+      VALUES ($1,$2,$3,$4,$5,$6)
+      RETURNING *
+    `, [store_id, title, description, image_url, start_at, end_at]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creando evento" });
+  }
+});
 
   app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
   
