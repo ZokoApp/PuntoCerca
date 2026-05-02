@@ -1514,7 +1514,35 @@ try {
       });
     }
   });
-  
+  app.get("/api/my-events", authMiddleware, async (req, res) => {
+  try {
+
+    // 🔥 obtener tienda del usuario
+    const storeRes = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.json([]);
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    const result = await pool.query(`
+      SELECT *
+      FROM events
+      WHERE store_id = $1
+      ORDER BY start_at DESC
+    `, [storeId]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("ERROR MY EVENTS:", err);
+    res.status(500).json({ error: "Error cargando eventos" });
+  }
+});
   
   
   // ================================
