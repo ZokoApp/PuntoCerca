@@ -49,6 +49,7 @@ export const CATEGORIES = {
     { id: 11, name: "Barbería" },
     { id: 12, name: "Estética" },
     { id: 83, name: "Cosmeticos" },
+     { id: 100, name: "Manicura" },
     { id: 13, name: "Spa" }
   ],
 
