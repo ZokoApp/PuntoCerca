@@ -1095,4 +1095,47 @@ async function deleteComment(commentId) {
   }
 }
 
+async function loadStoreEvents(storeId) {
+  try {
+
+    const res = await fetch(`/api/stores/${storeId}/events`);
+    const events = await res.json();
+
+    const container = document.getElementById("storeEvents");
+
+    if (!events.length) {
+      container.innerHTML = "<p>No hay eventos activos</p>";
+      return;
+    }
+
+    container.innerHTML = events.map(event => {
+
+      const now = new Date();
+      const start = new Date(event.start_at);
+      const end = new Date(event.end_at);
+
+      let status = "Próximo";
+
+      if (now >= start && now <= end) {
+        status = "En curso";
+      }
+
+      return `
+        <div class="event-card">
+          <img src="${event.image_url}" />
+          <div class="event-body">
+            <h3>${event.title}</h3>
+            <p>${status}</p>
+            <p>${new Date(event.start_at).toLocaleString()}</p>
+          </div>
+        </div>
+      `;
+
+    }).join("");
+
+  } catch (err) {
+    console.error("ERROR EVENTS:", err);
+  }
+}
+
 
