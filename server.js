@@ -44,12 +44,12 @@
     limits: { files: 5 }
   });
 
-const eventStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "puntocerca/events",
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
-  },
+const uploadEvent = multer({
+  storage: eventStorage,
+  limits: { 
+    fileSize: 2 * 1024 * 1024,
+    files: 1
+  }
 });
 
 const uploadEvent = multer({
@@ -1206,7 +1206,7 @@ async function createNotification(userId, type, title, message, link = null) {
   }
 });
 
-app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
+app.post("/api/events", authMiddleware, uploadEvent.single("image"), async (req, res) => {
   try {
 
     const user = req.user;
@@ -1299,8 +1299,6 @@ app.get("/api/events", async (req, res) => {
         s.name AS store_name,
         s.slug AS store_slug,
         s.logo_url AS store_logo,
-        s.street AS store_street,
-        s.city AS store_city,
 
         CASE 
           WHEN NOW() BETWEEN e.start_at AND e.end_at THEN 'active'
@@ -1308,7 +1306,7 @@ app.get("/api/events", async (req, res) => {
           ELSE 'expired'
         END AS status
 
-      FROM store_events e
+      FROM events e
       JOIN stores s ON s.id = e.store_id
 
       WHERE e.end_at >= NOW()
@@ -1330,7 +1328,6 @@ app.get("/api/events", async (req, res) => {
     res.status(500).json({ error: "Error cargando eventos" });
   }
 });
-
   
   
   
