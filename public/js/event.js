@@ -86,22 +86,49 @@ async function loadEvent() {
     // =============================
     // WHATSAPP
     // =============================
-    document.getElementById("ctaWhatsApp").onclick = () => {
-      const phone = event.store_phone;
+    document.addEventListener("DOMContentLoaded", () => {
 
-      if (!phone) {
-        alert("Sin contacto disponible");
-        return;
-      }
+  const btn = document.getElementById("ctaWhatsApp");
 
-      const clean = phone.replace(/\D/g, "");
+  if (!btn) return;
 
-      const text = encodeURIComponent(
-        `Hola! Vi el evento "${event.title}" en PuntoCerca.`
-      );
+  btn.addEventListener("click", () => {
 
-      window.open(`https://wa.me/${clean}?text=${text}`, "_blank");
-    };
+    const phone = event.store_phone;
+
+    if (!phone) {
+      showToast("Este comercio no tiene WhatsApp disponible", "error");
+      return;
+    }
+
+    // limpiar número
+    let clean = phone.replace(/\D/g, "");
+
+    // 🔥 normalizar Argentina (clave)
+    if (clean.startsWith("0")) {
+      clean = clean.substring(1);
+    }
+
+    if (!clean.startsWith("54")) {
+      clean = "54" + clean;
+    }
+
+    // validar largo mínimo
+    if (clean.length < 10) {
+      showToast("Número inválido", "error");
+      return;
+    }
+
+    const text = encodeURIComponent(
+      `Hola! Vi el evento "${event.title}" en PuntoCerca y quiero info`
+    );
+
+    const url = `https://wa.me/${clean}?text=${text}`;
+
+    window.open(url, "_blank");
+  });
+
+});
 
     // =============================
     // RECORDATORIO
