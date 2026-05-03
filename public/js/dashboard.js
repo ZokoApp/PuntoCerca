@@ -34,6 +34,20 @@ async function loadUser(){
   }
 }
 
+function renderPrice(price) {
+  if (price === null || price === undefined || price === "") {
+    return "Consultar";
+  }
+
+  const num = Number(price);
+
+  if (isNaN(num)) {
+    return "Consultar";
+  }
+
+  return "$" + num.toLocaleString("es-AR");
+}
+
 /* ================================
    STORE
 ================================ */
@@ -116,7 +130,9 @@ async function loadProducts(){
   <div class="dashboard-product-body">
     <div class="dashboard-product-brand">${product.brand || ""}</div>
     <div class="dashboard-product-name">${product.name}</div>
-    <div class="dashboard-product-price">$${parseFloat(product.price).toLocaleString()}</div>
+   <div class="dashboard-product-price">
+  ${renderPrice(product.price)}
+</div>
     <div class="dashboard-product-meta">${product.views || 0} vistas</div>
 
     ${
