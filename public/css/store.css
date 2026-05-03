@@ -706,3 +706,15 @@ body.store-page{
   color: #666;
   text-align: center;
 }
+
+.login-btn {
+  margin-top: 10px;
+  background: #ff6a00;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 500;
+}
