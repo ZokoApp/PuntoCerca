@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar evento | PuntoCerca</title>
+</head>
+<body style="font-family:sans-serif; padding:20px;">
+
+  <h2>Editar evento</h2>
+
+  <input id="title" placeholder="Título" style="display:block;margin-bottom:10px;width:300px;" />
+
+  <input id="start_at" type="datetime-local" style="display:block;margin-bottom:10px;width:300px;" />
+
+  <input id="end_at" type="datetime-local" style="display:block;margin-bottom:10px;width:300px;" />
+
+  <button onclick="save()">Guardar cambios</button>
+  <button onclick="cancel()">Cancelar</button>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+      alert("ID inválido");
+    }
+
+    async function load() {
+      const res = await fetch(`/api/events/${id}`);
+      if (!res.ok) {
+        alert("Error cargando evento");
+        return;
+      }
+
+      const event = await res.json();
+
+      document.getElementById("title").value = event.title;
+      document.getElementById("start_at").value = event.start_at.slice(0,16);
+      document.getElementById("end_at").value = event.end_at.slice(0,16);
+    }
+
+    async function save() {
+      const title = document.getElementById("title").value;
+      const start_at = document.getElementById("start_at").value;
+      const end_at = document.getElementById("end_at").value;
+
+      const res = await fetch(`/api/events/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, start_at, end_at })
+      });
+
+      if (!res.ok) {
+        alert("Error actualizando");
+        return;
+      }
+
+      alert("Evento actualizado");
+
+      // 🔥 volver a la tienda
+      window.history.back();
+    }
+
+    function cancel() {
+      window.history.back();
+    }
+
+    load();
+  </script>
+
+</body>
+</html>
