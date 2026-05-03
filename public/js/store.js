@@ -1128,15 +1128,62 @@ const events = await res.json();
       }
 
       return `
-        <div class="event-card">
-          <img src="${event.image_url}" />
-          <div class="event-body">
-            <h3>${event.title}</h3>
-            <p>${status}</p>
-            <p>${new Date(event.start_at).toLocaleString()}</p>
-          </div>
-        </div>
-      `;
+  <div style="
+    width:220px;
+    min-width:220px;
+    border-radius:14px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    cursor:pointer;
+  ">
+
+    <div style="
+      width:100%;
+      height:130px;
+      overflow:hidden;
+    ">
+      <img 
+        src="${event.image_url}" 
+        style="
+          width:100%;
+          height:100%;
+          object-fit:cover;
+        "
+      />
+    </div>
+
+    <div style="padding:10px">
+
+      <div style="
+        font-size:12px;
+        color:#16a34a;
+        font-weight:600;
+        margin-bottom:4px;
+      ">
+        ${status === "En curso" ? "🔥 En curso" : "⏳ Próximo"}
+      </div>
+
+      <h3 style="
+        font-size:14px;
+        font-weight:600;
+        margin:0 0 5px 0;
+      ">
+        ${event.title}
+      </h3>
+
+      <p style="
+        font-size:12px;
+        color:#666;
+        margin:0;
+      ">
+        ${new Date(event.start_at).toLocaleString()}
+      </p>
+
+    </div>
+
+  </div>
+`;
 
     }).join("");
 
