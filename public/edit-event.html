@@ -1,139 +1,192 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Editar evento | PuntoCerca</title>
+  <meta charset="UTF-8">
+  <title>Editar evento | PuntoCerca</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  margin:0;
-  font-family: system-ui;
-  background:#f3f4f6;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #ff6a00, #ff8c42);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-.container {
-  max-width:500px;
-  margin:60px auto;
-  background:#fff;
-  padding:25px;
-  border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.1);
-}
+    .card {
+      width: 420px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: fadeInUp 0.5s ease;
+    }
 
-h2 {
-  margin-bottom:20px;
-}
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-input {
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:8px;
-  border:1px solid #ddd;
-  font-size:14px;
-}
+    h2 {
+      margin: 0 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-input:focus {
-  outline:none;
-  border-color:#ff6a00;
-  box-shadow:0 0 0 2px rgba(255,106,0,0.2);
-}
+    .preview {
+      width: 100%;
+      height: 180px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      transition: 0.3s;
+    }
 
-.btn {
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-}
+    .preview:hover {
+      transform: scale(1.02);
+    }
 
-.primary {
-  background:#ff6a00;
-  color:#fff;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 12px;
+      font-size: 14px;
+      transition: 0.2s;
+    }
 
-.secondary {
-  background:#e5e7eb;
-}
+    input:focus {
+      outline: none;
+      border-color: #ff6a00;
+      box-shadow: 0 0 0 2px rgba(255,106,0,0.2);
+    }
 
-.actions {
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
+    .file-input {
+      background: #f9fafb;
+      border: 2px dashed #ddd;
+      text-align: center;
+      cursor: pointer;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      transition: 0.2s;
+    }
 
-.loading {
-  opacity:0.6;
-  pointer-events:none;
-}
-</style>
+    .file-input:hover {
+      border-color: #ff6a00;
+      background: #fff3e6;
+    }
 
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .save {
+      background: #ff6a00;
+      color: white;
+    }
+
+    .save:hover {
+      background: #e65c00;
+      transform: scale(1.03);
+    }
+
+    .cancel {
+      background: #eee;
+    }
+
+    .cancel:hover {
+      background: #ddd;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container" id="formBox">
+  <div class="card">
+    <h2>✏️ Editar evento</h2>
 
-  <h2>✏️ Editar evento</h2>
+    <!-- PREVIEW -->
+    <img id="preview" class="preview" />
 
-  <input id="title" placeholder="Título del evento" />
+    <!-- UPLOAD -->
+    <label class="file-input">
+      📸 Cambiar imagen
+      <input type="file" id="image" accept="image/*" hidden>
+    </label>
 
-  <input id="start_at" type="datetime-local" />
-  <input id="end_at" type="datetime-local" />
+    <!-- FORM -->
+    <input id="title" placeholder="Título del evento">
 
-  <div class="actions">
-    <button class="btn primary" onclick="save()">Guardar cambios</button>
-    <button class="btn secondary" onclick="cancel()">Cancelar</button>
+    <input type="datetime-local" id="start_at">
+    <input type="datetime-local" id="end_at">
+
+    <div class="buttons">
+      <button class="save" onclick="save()">Guardar cambios</button>
+      <button class="cancel" onclick="cancel()">Cancelar</button>
+    </div>
   </div>
 
-</div>
-
 <script>
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-const box = document.getElementById("formBox");
+const id = new URLSearchParams(location.search).get("id");
 
 async function load() {
-  try {
-    const res = await fetch(`/api/events/${id}`);
-    const event = await res.json();
+  const res = await fetch(`/api/events/${id}`);
+  const e = await res.json();
 
-    document.getElementById("title").value = event.title;
-    document.getElementById("start_at").value = event.start_at.slice(0,16);
-    document.getElementById("end_at").value = event.end_at.slice(0,16);
+  document.getElementById("title").value = e.title;
+  document.getElementById("start_at").value = e.start_at?.slice(0,16);
+  document.getElementById("end_at").value = e.end_at?.slice(0,16);
 
-  } catch {
-    alert("Error cargando evento");
-  }
+  document.getElementById("preview").src = e.image_url;
 }
 
+document.getElementById("image").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  document.getElementById("preview").src = url;
+});
+
 async function save() {
+  const formData = new FormData();
 
-  const title = document.getElementById("title").value.trim();
-  const start_at = document.getElementById("start_at").value;
-  const end_at = document.getElementById("end_at").value;
+  formData.append("title", document.getElementById("title").value);
+  formData.append("start_at", document.getElementById("start_at").value);
+  formData.append("end_at", document.getElementById("end_at").value);
 
-  if (!title || !start_at || !end_at) {
-    alert("Completá todos los campos");
-    return;
-  }
-
-  if (start_at > end_at) {
-    alert("La fecha de inicio no puede ser mayor a la de fin");
-    return;
-  }
-
-  box.classList.add("loading");
+  const file = document.getElementById("image").files[0];
+  if (file) formData.append("image", file);
 
   const res = await fetch(`/api/events/${id}`, {
-    method:"PUT",
-    headers:{ "Content-Type":"application/json" },
-    credentials:"include",
-    body: JSON.stringify({ title, start_at, end_at })
+    method: "PUT",
+    credentials: "include",
+    body: formData
   });
-
-  box.classList.remove("loading");
 
   if (!res.ok) {
     alert("Error actualizando");
@@ -141,8 +194,7 @@ async function save() {
   }
 
   alert("Evento actualizado");
-
-  window.location.href = document.referrer || "/";
+  window.history.back();
 }
 
 function cancel() {
