@@ -1144,13 +1144,13 @@ const events = await res.json();
       overflow:hidden;
     ">
       <img 
-        src="${event.image_url}" 
-        style="
-          width:100%;
-          height:100%;
-          object-fit:cover;
-        "
-      />
+  src="${event.image_url}" 
+  style="
+    width:100%;
+    height:130px;
+    object-fit:cover;
+  "
+/>
     </div>
 
     <div style="padding:10px">
