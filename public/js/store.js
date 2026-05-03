@@ -1164,7 +1164,14 @@ const events = await res.json();
 
 }).join("");
 
-   async function deleteEvent(id) {
+  
+  } catch (err) {
+    console.error("ERROR EVENTS:", err);
+  }
+}
+
+
+ async function deleteEvent(id) {
   if (!confirm("¿Eliminar evento?")) return;
 
   const res = await fetch(`/api/events/${id}`, {
@@ -1183,9 +1190,3 @@ const events = await res.json();
 function editEvent(id) {
   window.location.href = `/edit-event.html?id=${id}`;
 }
-  } catch (err) {
-    console.error("ERROR EVENTS:", err);
-  }
-}
-
-
