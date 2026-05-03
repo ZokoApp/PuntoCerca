@@ -2089,6 +2089,67 @@ app.get("/api/events/:id", async (req, res) => {
     res.status(500).json({ error: "Error cargando evento" });
   }
 });
+
+app.put("/api/events/:id", async (req, res) => {
+  try {
+    const userId = req.user.id; // 👈 asumo que usás auth con req.user
+    const { id } = req.params;
+    const { title, description, start_at, end_at, image_url } = req.body;
+
+    const check = await pool.query(`
+      SELECT e.id
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+      WHERE e.id = $1 AND s.user_id = $2
+    `, [id, userId]);
+
+    if (!check.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    await pool.query(`
+      UPDATE store_events
+      SET title = $1,
+          description = $2,
+          start_at = $3,
+          end_at = $4,
+          image_url = $5
+      WHERE id = $6
+    `, [title, description, start_at, end_at, image_url, id]);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error actualizando evento" });
+  }
+});
+
+app.delete("/api/events/:id", async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const check = await pool.query(`
+      SELECT e.id
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+      WHERE e.id = $1 AND s.user_id = $2
+    `, [id, userId]);
+
+    if (!check.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    await pool.query(`DELETE FROM store_events WHERE id = $1`, [id]);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error eliminando evento" });
+  }
+});
   app.post('/api/product-view/:id', async (req, res) => {
   
     await pool.query(
