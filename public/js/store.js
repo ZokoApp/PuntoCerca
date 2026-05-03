@@ -1100,7 +1100,13 @@ async function loadStoreEvents(storeId) {
   try {
 
     const res = await fetch(`/api/stores/${storeId}/events`);
-    const events = await res.json();
+
+if (!res.ok) {
+  console.error("ERROR HTTP:", res.status);
+  return;
+}
+
+const events = await res.json();
 
     const container = document.getElementById("storeEvents");
 
