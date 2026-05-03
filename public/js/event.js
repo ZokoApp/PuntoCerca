@@ -86,25 +86,24 @@ async function loadEvent() {
     // =============================
     // WHATSAPP
     // =============================
-    document.addEventListener("DOMContentLoaded", () => {
+    // =============================
+// WHATSAPP (FIX REAL)
+// =============================
+const btn = document.getElementById("ctaWhatsApp");
 
-  const btn = document.getElementById("ctaWhatsApp");
-
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
+if (btn) {
+  btn.onclick = () => {
 
     const phone = event.store_phone;
 
     if (!phone) {
-      showToast("Este comercio no tiene WhatsApp disponible", "error");
+      alert("Este comercio no tiene WhatsApp disponible");
       return;
     }
 
-    // limpiar número
     let clean = phone.replace(/\D/g, "");
 
-    // 🔥 normalizar Argentina (clave)
+    // 🇦🇷 normalización Argentina
     if (clean.startsWith("0")) {
       clean = clean.substring(1);
     }
@@ -113,22 +112,20 @@ async function loadEvent() {
       clean = "54" + clean;
     }
 
-    // validar largo mínimo
     if (clean.length < 10) {
-      showToast("Número inválido", "error");
+      alert("Número inválido");
       return;
     }
 
     const text = encodeURIComponent(
-      `Hola! Vi el evento "${event.title}" en PuntoCerca y quiero info`
+      `Hola! 👋 Vi el evento "${event.title}" en PuntoCerca. ¿Me pasás info?`
     );
 
     const url = `https://wa.me/${clean}?text=${text}`;
 
     window.open(url, "_blank");
-  });
-
-});
+  };
+}
 
     // =============================
     // RECORDATORIO
