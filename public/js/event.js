@@ -11,44 +11,31 @@ if (!id) {
 // =============================
 async function loadEvent() {
   try {
+    console.log("Cargando evento ID:", id);
+
     const res = await fetch(`/api/events/${id}`);
 
     if (!res.ok) {
+      const text = await res.text();
+      console.error("❌ Backend respondió:", res.status, text);
       throw new Error("Evento no encontrado");
     }
 
     const event = await res.json();
 
-    // =============================
-    // IMÁGENES
-    // =============================
-    const images = event.images?.length
-      ? event.images
-      : [event.image_url];
+    console.log("✅ EVENT:", event);
 
+    // =============================
+    // IMAGEN
+    // =============================
     const mainImage = document.getElementById("mainImage");
-    mainImage.src = images[0] || "/img/default.png";
-
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = "";
-
-    images.forEach(img => {
-      const thumb = document.createElement("img");
-      thumb.src = img;
-      thumb.className =
-        "w-24 h-16 object-cover rounded-lg cursor-pointer opacity-70 hover:opacity-100 transition";
-
-      thumb.onclick = () => {
-        mainImage.src = img;
-      };
-
-      gallery.appendChild(thumb);
-    });
+    mainImage.src = event.image_url || "/img/default.png";
 
     // =============================
-    // TEXTOS
+    // TEXTO
     // =============================
-    document.getElementById("eventTitle").innerText = event.title || "Evento";
+    document.getElementById("eventTitle").innerText =
+      event.title || "Evento";
 
     document.getElementById("eventDesc").innerText =
       event.description || "Sin descripción";
@@ -68,7 +55,7 @@ async function loadEvent() {
       event.store_name || "Tienda";
 
     // =============================
-    // ESTADO (badge arriba)
+    // STATUS
     // =============================
     const statusEl = document.getElementById("eventStatus");
 
@@ -88,34 +75,36 @@ async function loadEvent() {
     }
 
     // =============================
-    // CTA TIENDA
+    // TIENDA
     // =============================
     document.getElementById("goStore").onclick = () => {
-      window.location.href = `/${event.store_slug}`;
+      if (event.store_slug) {
+        window.location.href = `/${event.store_slug}`;
+      }
     };
 
     // =============================
-    // CTA WHATSAPP
+    // WHATSAPP
     // =============================
     document.getElementById("ctaWhatsApp").onclick = () => {
-      const phone = event.phone || event.store_phone;
+      const phone = event.store_phone;
 
       if (!phone) {
-        alert("Este evento no tiene contacto disponible");
+        alert("Sin contacto disponible");
         return;
       }
 
       const clean = phone.replace(/\D/g, "");
 
       const text = encodeURIComponent(
-        `Hola! Vi el evento "${event.title}" en PuntoCerca. Quiero más info.`
+        `Hola! Vi el evento "${event.title}" en PuntoCerca.`
       );
 
       window.open(`https://wa.me/${clean}?text=${text}`, "_blank");
     };
 
     // =============================
-    // CTA RECORDATORIO
+    // RECORDATORIO
     // =============================
     document.getElementById("ctaReminder").onclick = () => {
       const startDate = new Date(event.start_at);
@@ -124,46 +113,47 @@ async function loadEvent() {
       const format = d =>
         d.toISOString().replace(/-|:|\.\d+/g, "");
 
-      const url = `
-https://www.google.com/calendar/render?action=TEMPLATE
+      const url = `https://www.google.com/calendar/render?action=TEMPLATE
 &text=${encodeURIComponent(event.title)}
 &dates=${format(startDate)}/${format(endDate)}
-&details=${encodeURIComponent(event.description || "")}
-`;
+&details=${encodeURIComponent(event.description || "")}`;
 
       window.open(url, "_blank");
     };
 
     // =============================
-    // RELACIONADOS
+    // RELACIONADOS (ARREGLADO)
     // =============================
     loadRelatedEvents(event.store_id, event.id);
 
   } catch (err) {
-    console.error(err);
+    console.error("🔥 ERROR FINAL:", err);
 
     document.body.innerHTML = `
       <div style="padding:40px; text-align:center">
-        <h1 style="font-size:22px; margin-bottom:10px;">Error cargando el evento</h1>
+        <h1 style="font-size:22px;">Error cargando el evento</h1>
         <p style="color:#666;">Puede que haya sido eliminado o no exista.</p>
+        <p style="margin-top:10px;color:#999;">ID: ${id}</p>
       </div>
     `;
   }
 }
 
 // =============================
-// RELACIONADOS
+// RELACIONADOS (FIX REAL)
 // =============================
 async function loadRelatedEvents(storeId, currentId) {
   try {
-    const res = await fetch(`/api/events?store_id=${storeId}`);
+    const res = await fetch(`/api/events`);
     const events = await res.json();
 
     const container = document.getElementById("relatedEvents");
+    if (!container) return;
+
     container.innerHTML = "";
 
     events
-      .filter(e => e.id !== currentId)
+      .filter(e => e.store_id === storeId && e.id !== currentId)
       .slice(0, 3)
       .forEach(e => {
 
