@@ -1,6 +1,6 @@
 // store.js
 
-import { SUBCATEGORY_MAP } from "./categories.js";
+import { SUBCATEGORY_MAP } from "./data/categories.js";
 import "./store-products.js";
 import "./store-ui.js";
 
