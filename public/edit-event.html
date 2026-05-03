@@ -1,73 +1,156 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Editar evento | PuntoCerca</title>
+<meta charset="UTF-8">
+<title>Editar evento | PuntoCerca</title>
+
+<style>
+body {
+  margin:0;
+  font-family: system-ui;
+  background:#f3f4f6;
+}
+
+.container {
+  max-width:500px;
+  margin:60px auto;
+  background:#fff;
+  padding:25px;
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+h2 {
+  margin-bottom:20px;
+}
+
+input {
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+input:focus {
+  outline:none;
+  border-color:#ff6a00;
+  box-shadow:0 0 0 2px rgba(255,106,0,0.2);
+}
+
+.btn {
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.primary {
+  background:#ff6a00;
+  color:#fff;
+}
+
+.secondary {
+  background:#e5e7eb;
+}
+
+.actions {
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.loading {
+  opacity:0.6;
+  pointer-events:none;
+}
+</style>
+
 </head>
-<body style="font-family:sans-serif; padding:20px;">
 
-  <h2>Editar evento</h2>
+<body>
 
-  <input id="title" placeholder="Título" style="display:block;margin-bottom:10px;width:300px;" />
+<div class="container" id="formBox">
 
-  <input id="start_at" type="datetime-local" style="display:block;margin-bottom:10px;width:300px;" />
+  <h2>✏️ Editar evento</h2>
 
-  <input id="end_at" type="datetime-local" style="display:block;margin-bottom:10px;width:300px;" />
+  <input id="title" placeholder="Título del evento" />
 
-  <button onclick="save()">Guardar cambios</button>
-  <button onclick="cancel()">Cancelar</button>
+  <input id="start_at" type="datetime-local" />
+  <input id="end_at" type="datetime-local" />
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+  <div class="actions">
+    <button class="btn primary" onclick="save()">Guardar cambios</button>
+    <button class="btn secondary" onclick="cancel()">Cancelar</button>
+  </div>
 
-    if (!id) {
-      alert("ID inválido");
-    }
+</div>
 
-    async function load() {
-      const res = await fetch(`/api/events/${id}`);
-      if (!res.ok) {
-        alert("Error cargando evento");
-        return;
-      }
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
-      const event = await res.json();
+const box = document.getElementById("formBox");
 
-      document.getElementById("title").value = event.title;
-      document.getElementById("start_at").value = event.start_at.slice(0,16);
-      document.getElementById("end_at").value = event.end_at.slice(0,16);
-    }
+async function load() {
+  try {
+    const res = await fetch(`/api/events/${id}`);
+    const event = await res.json();
 
-    async function save() {
-      const title = document.getElementById("title").value;
-      const start_at = document.getElementById("start_at").value;
-      const end_at = document.getElementById("end_at").value;
+    document.getElementById("title").value = event.title;
+    document.getElementById("start_at").value = event.start_at.slice(0,16);
+    document.getElementById("end_at").value = event.end_at.slice(0,16);
 
-      const res = await fetch(`/api/events/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title, start_at, end_at })
-      });
+  } catch {
+    alert("Error cargando evento");
+  }
+}
 
-      if (!res.ok) {
-        alert("Error actualizando");
-        return;
-      }
+async function save() {
 
-      alert("Evento actualizado");
+  const title = document.getElementById("title").value.trim();
+  const start_at = document.getElementById("start_at").value;
+  const end_at = document.getElementById("end_at").value;
 
-      // 🔥 volver a la tienda
-      window.history.back();
-    }
+  if (!title || !start_at || !end_at) {
+    alert("Completá todos los campos");
+    return;
+  }
 
-    function cancel() {
-      window.history.back();
-    }
+  if (start_at > end_at) {
+    alert("La fecha de inicio no puede ser mayor a la de fin");
+    return;
+  }
 
-    load();
-  </script>
+  box.classList.add("loading");
+
+  const res = await fetch(`/api/events/${id}`, {
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    credentials:"include",
+    body: JSON.stringify({ title, start_at, end_at })
+  });
+
+  box.classList.remove("loading");
+
+  if (!res.ok) {
+    alert("Error actualizando");
+    return;
+  }
+
+  alert("Evento actualizado");
+
+  window.location.href = document.referrer || "/";
+}
+
+function cancel() {
+  window.history.back();
+}
+
+load();
+</script>
 
 </body>
 </html>
