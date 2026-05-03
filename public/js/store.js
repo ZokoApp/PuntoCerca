@@ -1,49 +1,13 @@
 // store.js
 
+import { SUBCATEGORY_MAP } from "./categories.js";
 
 let currentUser = null;
 let isOwner = false;
 let storeData = null;
 let storeIdGlobal = null;
 
-const CATEGORY_MAP = {
-  "Gastronomía": [
-    { id: 1, name: "Restaurante" },
-    { id: 2, name: "Pizzería" },
-    { id: 3, name: "Bar" },
-    { id: 4, name: "Cafetería" },
-    { id: 5, name: "Heladería" }
-  ],
-  "Comercio": [
-    { id: 6, name: "Ropa" },
-    { id: 7, name: "Electrónica" },
-    { id: 8, name: "Ferretería" },
-    { id: 9, name: "Librería" },
-    { id: 46, name: "Verdulería" },
-    { id: 47, name: "Almacén" },
-    { id: 48, name: "Kiosco" },
-    { id: 49, name: "Supermercado" },
-    { id: 50, name: "Carnicería" },
-    { id: 51, name: "Panadería" },
-    { id: 52, name: "Fiambrería" },
-    { id: 53, name: "Dietética" },
-    { id: 54, name: "Bebidas" },
-    { id: 55, name: "Mayorista" }
-  ],
-  "Servicios": [
-    { id: 18, name: "Electricista" },
-    { id: 19, name: "Plomería" },
-    { id: 20, name: "Gasista" },
-    { id: 21, name: "Técnico PC" },
-    { id: 22, name: "Reparaciones" }
-  ],
-  "Automotor": [
-    { id: 23, name: "Taller mecánico" },
-    { id: 24, name: "Lavadero" },
-    { id: 25, name: "Gomería" },
-    { id: 26, name: "Repuestos" }
-  ]
-};
+
 
 function showToast(message, type = "success") {
 
@@ -968,17 +932,9 @@ function getSubcategoryNames(ids) {
     }
   }
 
-  const names = [];
-
-  Object.values(CATEGORY_MAP).forEach(subs => {
-    subs.forEach(sub => {
-      if (parsed.includes(sub.id)) {
-        names.push(sub.name);
-      }
-    });
-  });
-
-  return names;
+  return parsed
+    .map(id => SUBCATEGORY_MAP[id])
+    .filter(Boolean);
 }
 
 /* ================================
