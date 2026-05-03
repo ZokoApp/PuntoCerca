@@ -2150,6 +2150,38 @@ app.delete("/api/events/:id", async (req, res) => {
     res.status(500).json({ error: "Error eliminando evento" });
   }
 });
+
+    // GET evento por ID
+app.get("/api/events/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const result = await pool.query(
+    "SELECT * FROM events WHERE id = $1",
+    [id]
+  );
+
+  if (!result.rows.length) {
+    return res.status(404).json({ error: "Evento no encontrado" });
+  }
+
+  res.json(result.rows[0]);
+});
+
+
+// UPDATE evento
+app.put("/api/events/:id", async (req, res) => {
+  const { id } = req.params;
+  const { title, start_at, end_at } = req.body;
+
+  await pool.query(
+    `UPDATE events 
+     SET title = $1, start_at = $2, end_at = $3 
+     WHERE id = $4`,
+    [title, start_at, end_at, id]
+  );
+
+  res.json({ success: true });
+});
   app.post('/api/product-view/:id', async (req, res) => {
   
     await pool.query(
