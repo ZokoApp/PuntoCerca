@@ -2125,7 +2125,7 @@ app.put("/api/events/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/events/:id", async (req, res) => {
+app.delete("/api/events/:id", authMiddleware, async (req, res) => {
   try {
     console.log("👉 USER:", req.user);
     console.log("👉 ID:", req.params.id);
@@ -2176,7 +2176,7 @@ app.get("/api/events/:id", async (req, res) => {
 
 
 // UPDATE evento
-app.put("/api/events/:id", async (req, res) => {
+app.put("/api/events/:id", authMiddleware, async (req, res) => {{
   const { id } = req.params;
   const { title, start_at, end_at } = req.body;
 
