@@ -1089,43 +1089,46 @@ const events = await res.json();
       return;
     }
 
-    container.innerHTML = events.map(event => {
+   container.innerHTML = events.map(event => {
 
-      const now = new Date();
-      const start = new Date(event.start_at);
-      const end = new Date(event.end_at);
+  const now = new Date();
+  const start = new Date(event.start_at);
+  const end = new Date(event.end_at);
 
-      let status = "Próximo";
+  let status = "Próximo";
 
-      if (now >= start && now <= end) {
-        status = "En curso";
-      }
+  if (now >= start && now <= end) {
+    status = "En curso";
+  }
 
-      return `
-  <div style="
-    width:220px;
-    min-width:220px;
-    border-radius:14px;
-    overflow:hidden;
-    background:#fff;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-    cursor:pointer;
-  ">
-
-    <div style="
-      width:100%;
-      height:130px;
+  return `
+  <div 
+    onclick="window.location.href='/event.html?id=${event.id}'"
+    style="
+      position:relative;
+      width:220px;
+      min-width:220px;
+      border-radius:14px;
       overflow:hidden;
-    ">
-      <img 
-  src="${event.image_url}" 
-  style="
-    width:100%;
-    height:130px;
-    object-fit:cover;
-  "
-/>
-    </div>
+      background:#fff;
+      box-shadow:0 5px 15px rgba(0,0,0,0.1);
+      cursor:pointer;
+    "
+  >
+
+    ${
+      isOwner ? `
+      <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px; z-index:10;">
+        <button onclick="event.stopPropagation(); editEvent(${event.id})" style="background:#fff;padding:4px 8px;border-radius:6px;">✏️</button>
+        <button onclick="event.stopPropagation(); deleteEvent(${event.id})" style="background:#fff;padding:4px 8px;border-radius:6px;color:red;">🗑</button>
+      </div>
+      ` : ""
+    }
+
+    <img 
+      src="${event.image_url}" 
+      style="width:100%; height:130px; object-fit:cover;"
+    />
 
     <div style="padding:10px">
 
@@ -1157,9 +1160,29 @@ const events = await res.json();
     </div>
 
   </div>
-`;
+  `;
 
-    }).join("");
+}).join("");
+
+    async function deleteEvent(id) {
+  if (!confirm("¿Eliminar evento?")) return;
+
+  const res = await fetch(`/api/events/${id}`, {
+    method: "DELETE",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    alert("Error eliminando");
+    return;
+  }
+
+  loadStoreEvents(storeData.id);
+}
+
+function editEvent(id) {
+  window.location.href = `/edit-event.html?id=${id}`;
+}
 
   } catch (err) {
     console.error("ERROR EVENTS:", err);
