@@ -366,6 +366,27 @@ async function createNotification(userId, type, title, message, link = null) {
       res.status(500).json({ error: "Error obteniendo rating" });
     }
   });
+
+app.get("/api/stores/:id/events", async (req, res) => {
+  try {
+
+    const storeId = req.params.id;
+
+    const result = await pool.query(`
+      SELECT *
+      FROM store_events
+      WHERE store_id = $1
+      AND end_at >= NOW()
+      ORDER BY start_at ASC
+    `, [storeId]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("ERROR STORE EVENTS:", err);
+    res.status(500).json({ error: "Error cargando eventos" });
+  }
+});
   
   
   app.get('/product/:id', (req, res) => {
