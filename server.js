@@ -2126,6 +2126,7 @@ app.put("/api/events/:id", async (req, res) => {
 });
 
 app.delete("/api/events/:id", async (req, res) => {
+  console.log("USER EN DELETE:", req.user);
   try {
     const userId = req.user.id;
     const { id } = req.params;
@@ -2146,9 +2147,9 @@ app.delete("/api/events/:id", async (req, res) => {
     res.json({ ok: true });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error eliminando evento" });
-  }
+  console.error("🔥 DELETE ERROR:", err);
+  res.status(500).json({ error: err.message });
+}
 });
 
     // GET evento por ID
