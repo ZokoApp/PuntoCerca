@@ -1,138 +1,138 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perfil Tienda - PuntoCerca</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="/css/store.css">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="icon" type="image/png" href="/img/favicon.png">
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-
-<body class="store-page">
-
-  <!-- NAV -->
-  <nav class="store-nav">
-    <div class="store-nav__inner">
-      <a href="/" class="store-nav__brand">PuntoCerca</a>
-
-      <div class="store-nav__right">
-        <a href="/" class="store-nav__link">Inicio</a>
-
-        <div id="ownerActions" class="store-owner-actions" style="display:none;">
-          <a href="/dashboard" class="store-nav__link">Dashboard</a>
-          <a href="#storeProducts" class="store-nav__link">Mis productos</a>
-          <a href="/new-product" class="store-nav__link">Publicar producto</a>
-          <a href="/edit-store" class="store-nav__link">Editar tienda</a>
-          <button id="logoutBtn" class="store-nav__logout" type="button">Logout</button>
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil Tienda - PuntoCerca</title>
+  
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/store.css">
+  
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+  
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  
+  <body class="store-page">
+  
+    <!-- NAV -->
+    <nav class="store-nav">
+      <div class="store-nav__inner">
+        <a href="/" class="store-nav__brand">PuntoCerca</a>
+  
+        <div class="store-nav__right">
+          <a href="/" class="store-nav__link">Inicio</a>
+  
+          <div id="ownerActions" class="store-owner-actions" style="display:none;">
+            <a href="/dashboard" class="store-nav__link">Dashboard</a>
+            <a href="#storeProducts" class="store-nav__link">Mis productos</a>
+            <a href="/new-product" class="store-nav__link">Publicar producto</a>
+            <a href="/edit-store" class="store-nav__link">Editar tienda</a>
+            <button id="logoutBtn" class="store-nav__logout" type="button">Logout</button>
+          </div>
         </div>
       </div>
-    </div>
-  </nav>
-
-  <!-- HERO -->
-  <header class="store-hero">
-    <div id="storeCover" class="store-cover">
-      <div class="store-cover__overlay"></div>
-    </div>
-
-    <div class="store-hero__content">
-      <div id="storeLogo" class="store-logo"></div>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="store-main">
-    <section class="store-card">
-
-      <!-- INFO -->
-      <div class="store-header">
-        <div class="store-header__info">
-          <h1 id="storeName" class="store-title">Tienda en PuntoCerca</h1>
-
-          <p id="seoContent" class="seo-only">
-            Negocio local en Argentina. Ver productos, precios, opiniones y contacto directo.
-          </p>
-
-          <div id="storeStatus"></div>
-          <div id="storeCategory" class="store-category"></div>
-          <div id="storeAddress" class="store-meta"></div>
-          <div id="storeStats" class="store-stats"></div>
-
-          <button id="openStoreCommentsModal" class="store-comments-badge" type="button">
-            💬 Ver opiniones
-            <span id="commentsCount">0</span>
-          </button>
-        </div>
-
-        <div class="store-header__actions">
-          <a id="whatsappBtn" class="btn btn-whatsapp" target="_blank">WhatsApp</a>
-          <button id="mapButton" class="btn btn-primary">Ver ubicación</button>
-          <button id="followBtn" class="btn btn-follow">Seguir</button>
-        </div>
+    </nav>
+  
+    <!-- HERO -->
+    <header class="store-hero">
+      <div id="storeCover" class="store-cover">
+        <div class="store-cover__overlay"></div>
       </div>
-
-      <!-- SOBRE -->
-      <section class="store-section">
-        <h2 class="section-title">Sobre la tienda</h2>
-        <p id="storeDescription" class="store-description"></p>
-      </section>
-
-      <!-- 🔥 EVENTOS (BIEN UBICADO) -->
-      <section class="store-section">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">Eventos</h2>
-            <p class="section-subtitle">Promociones y actividades de esta tienda</p>
+  
+      <div class="store-hero__content">
+        <div id="storeLogo" class="store-logo"></div>
+      </div>
+    </header>
+  
+    <!-- MAIN -->
+    <main class="store-main">
+      <section class="store-card">
+  
+        <!-- INFO -->
+        <div class="store-header">
+          <div class="store-header__info">
+            <h1 id="storeName" class="store-title">Tienda en PuntoCerca</h1>
+  
+            <p id="seoContent" class="seo-only">
+              Negocio local en Argentina. Ver productos, precios, opiniones y contacto directo.
+            </p>
+  
+            <div id="storeStatus"></div>
+            <div id="storeCategory" class="store-category"></div>
+            <div id="storeAddress" class="store-meta"></div>
+            <div id="storeStats" class="store-stats"></div>
+  
+            <button id="openStoreCommentsModal" class="store-comments-badge" type="button">
+              💬 Ver opiniones
+              <span id="commentsCount">0</span>
+            </button>
+          </div>
+  
+          <div class="store-header__actions">
+            <a id="whatsappBtn" class="btn btn-whatsapp" target="_blank">WhatsApp</a>
+            <button id="mapButton" class="btn btn-primary">Ver ubicación</button>
+            <button id="followBtn" class="btn btn-follow">Seguir</button>
           </div>
         </div>
-
-        <div id="storeEvents" class="events-grid">
-          <p style="color:#888;">Cargando eventos...</p>
-        </div>
-      </section>
-
-      <!-- MAPA -->
-      <section class="store-section">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">Ubicación</h2>
-            <p class="section-subtitle">Encontrá esta tienda en el mapa</p>
+  
+        <!-- SOBRE -->
+        <section class="store-section">
+          <h2 class="section-title">Sobre la tienda</h2>
+          <p id="storeDescription" class="store-description"></p>
+        </section>
+  
+        <!-- 🔥 EVENTOS (BIEN UBICADO) -->
+        <section class="store-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Eventos</h2>
+              <p class="section-subtitle">Promociones y actividades de esta tienda</p>
+            </div>
           </div>
-        </div>
-
-        <div id="storeMap" class="store-map"></div>
-      </section>
-
-      <!-- PRODUCTOS -->
-      <section class="store-section products-section">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">Productos</h2>
-            <p class="section-subtitle">Explorá lo que ofrece esta tienda</p>
+  
+          <div id="storeEvents" class="events-scroll">
+            <p style="color:#888;">Cargando eventos...</p>
           </div>
-
-          <input id="searchProducts" placeholder="Buscar productos..." />
-        </div>
-
-        <div id="storeProducts" class="products-grid"></div>
+        </section>
+  
+        <!-- MAPA -->
+        <section class="store-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Ubicación</h2>
+              <p class="section-subtitle">Encontrá esta tienda en el mapa</p>
+            </div>
+          </div>
+  
+          <div id="storeMap" class="store-map"></div>
+        </section>
+  
+        <!-- PRODUCTOS -->
+        <section class="store-section products-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Productos</h2>
+              <p class="section-subtitle">Explorá lo que ofrece esta tienda</p>
+            </div>
+  
+            <input id="searchProducts" placeholder="Buscar productos..." />
+          </div>
+  
+          <div id="storeProducts" class="products-grid"></div>
+        </section>
+  
       </section>
-
-    </section>
-  </main>
-
-  <!-- SCRIPTS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="/js/store.js"></script>
-  <script src="/js/store-products.js"></script>
-  <script src="/js/store-ui.js"></script>
-
-</body>
-</html>
+    </main>
+  
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/js/store.js"></script>
+    <script src="/js/store-products.js"></script>
+    <script src="/js/store-ui.js"></script>
+  
+  </body>
+  </html>
