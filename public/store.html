@@ -127,6 +127,29 @@
   
       </section>
     </main>
+    <!-- 🔥 MODAL COMENTARIOS -->
+<div id="storeCommentsModal" class="modal hidden">
+
+  <div class="modal-content">
+
+    <button id="closeStoreCommentsModal" class="modal-close">✖</button>
+
+    <h2 style="margin-bottom:10px;">Opiniones</h2>
+
+    <div id="storeCommentsContainer"></div>
+
+    <div id="storeCommentBox" class="hidden" style="margin-top:15px;">
+      <textarea id="storeCommentInput" placeholder="Escribí tu opinión..." style="width:100%; padding:10px; border-radius:8px;"></textarea>
+      <button id="sendStoreComment" style="margin-top:10px;">Enviar</button>
+    </div>
+
+    <p id="storeLoginMessage" class="hidden" style="margin-top:10px; color:#666;">
+      Tenés que iniciar sesión para comentar
+    </p>
+
+  </div>
+
+</div>
   
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
