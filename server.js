@@ -1205,82 +1205,6 @@ async function createNotification(userId, type, title, message, link = null) {
   }
 });
 
-app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
-  try {
-
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ error: "No autorizado" });
-    }
-
-    const { title, description, start_at, end_at } = req.body;
-
-    if (!title || !start_at || !end_at) {
-      return res.status(400).json({ error: "Faltan datos obligatorios" });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ error: "Imagen obligatoria" });
-    }
-
-    const start = new Date(start_at);
-    const end = new Date(end_at);
-    const now = new Date();
-
-    if (start >= end) {
-      return res.status(400).json({ error: "Fecha inválida" });
-    }
-
-    const diffHours = (end - start) / (1000 * 60 * 60);
-
-    if (diffHours > 72) {
-      return res.status(400).json({ error: "Máximo 72 horas" });
-    }
-
-    if (start < now) {
-      return res.status(400).json({ error: "No podés crear eventos en el pasado" });
-    }
-
-    // 🔥 tienda
-    const storeRes = await pool.query(
-      "SELECT id FROM stores WHERE user_id = $1",
-      [user.id]
-    );
-
-    if (!storeRes.rows.length) {
-      return res.status(400).json({ error: "No tenés tienda" });
-    }
-
-    const store_id = storeRes.rows[0].id;
-
-    // 🔥 límite eventos
-    const activeEvents = await pool.query(`
-      SELECT COUNT(*) 
-      FROM events
-      WHERE store_id = $1
-      AND end_at >= NOW()
-    `, [store_id]);
-
-    if (parseInt(activeEvents.rows[0].count) >= 3) {
-      return res.status(400).json({ error: "Máximo 3 eventos activos" });
-    }
-
-    const image_url = req.file.path;
-
-    const result = await pool.query(`
-      INSERT INTO events
-      (store_id, title, description, image_url, start_at, end_at)
-      VALUES ($1,$2,$3,$4,$5,$6)
-      RETURNING *
-    `, [store_id, title, description, image_url, start_at, end_at]);
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error("ERROR CREANDO EVENTO:", err);
-    res.status(500).json({ error: "Error creando evento" });
-  }
-});
 
 app.get("/api/events", async (req, res) => {
   try {
@@ -1358,13 +1282,10 @@ app.get("/api/events", async (req, res) => {
     }
   });
 
-app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
+app.post("/api/events", uploadEvent.single("image"), authMiddleware, async (req, res) => {
   try {
 
-    const user = req.user; // asumimos que ya tenés auth middleware
-    if (!user) {
-      return res.status(401).json({ error: "No autorizado" });
-    }
+    const user = req.user;
 
     const { title, description, start_at, end_at } = req.body;
 
@@ -1394,7 +1315,7 @@ app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
       return res.status(400).json({ error: "No podés crear eventos en el pasado" });
     }
 
-    // 🔥 buscar tienda del usuario
+    // 🔥 tienda del usuario
     const storeRes = await pool.query(
       "SELECT id FROM stores WHERE user_id = $1",
       [user.id]
@@ -1406,7 +1327,7 @@ app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
 
     const store_id = storeRes.rows[0].id;
 
-    // 🔥 validar máximo 3 eventos activos/programados
+    // 🔥 validar máximo 3 eventos activos
     const activeEvents = await pool.query(`
       SELECT COUNT(*) 
       FROM store_events
@@ -1420,8 +1341,9 @@ app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
 
     const image_url = req.file.path;
 
+    // 🔥 INSERT CORRECTO (ACÁ ESTABA TU ERROR)
     const result = await pool.query(`
-      INSERT INTO events
+      INSERT INTO store_events
       (store_id, title, description, image_url, start_at, end_at)
       VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING *
@@ -1430,11 +1352,10 @@ app.post("/api/events", uploadEvent.single("image"), async (req, res) => {
     res.json(result.rows[0]);
 
   } catch (err) {
-    console.error(err);
+    console.error("ERROR CREANDO EVENTO:", err);
     res.status(500).json({ error: "Error creando evento" });
   }
 });
-
   app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
   
     const { content } = req.body;
@@ -2124,9 +2045,14 @@ app.get("/api/events/:id", async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(`
-      SELECT *
-      FROM events
-      WHERE id = $1
+      SELECT 
+        e.*,
+        s.name AS store_name,
+        s.slug AS store_slug,
+        s.phone AS store_phone
+      FROM store_events e
+      LEFT JOIN stores s ON s.id = e.store_id
+      WHERE e.id = $1
     `, [id]);
 
     if (!result.rows.length) {
@@ -2135,32 +2061,12 @@ app.get("/api/events/:id", async (req, res) => {
 
     const event = result.rows[0];
 
-    // 🔥 buscar tienda aparte (no romper todo si falla)
-    let store = null;
-
-    if (event.store_id) {
-      const storeRes = await pool.query(`
-        SELECT name, slug
-        FROM stores
-        WHERE id = $1
-      `, [event.store_id]);
-
-      store = storeRes.rows[0] || null;
-    }
-
-    res.json({
-      ...event,
-      store_name: store?.name || "Tienda",
-      store_slug: store?.slug || ""
-    });
+    res.json(event);
 
   } catch (err) {
-  console.error("ERROR GET EVENT:", err);
-
-  res.status(500).json({
-    error: err.message
-  });
-}
+    console.error("ERROR GET EVENT:", err);
+    res.status(500).json({ error: "Error cargando evento" });
+  }
 });
   app.post('/api/product-view/:id', async (req, res) => {
   
