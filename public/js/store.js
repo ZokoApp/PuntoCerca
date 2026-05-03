@@ -1,6 +1,8 @@
 // store.js
 
 import { SUBCATEGORY_MAP } from "./categories.js";
+import "./store-products.js";
+import "./store-ui.js";
 
 let currentUser = null;
 let isOwner = false;
