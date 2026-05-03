@@ -2126,8 +2126,14 @@ app.put("/api/events/:id", async (req, res) => {
 });
 
 app.delete("/api/events/:id", async (req, res) => {
-  console.log("USER EN DELETE:", req.user);
   try {
+    console.log("👉 USER:", req.user);
+    console.log("👉 ID:", req.params.id);
+
+    if (!req.user) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+
     const userId = req.user.id;
     const { id } = req.params;
 
@@ -2147,9 +2153,9 @@ app.delete("/api/events/:id", async (req, res) => {
     res.json({ ok: true });
 
   } catch (err) {
-  console.error("🔥 DELETE ERROR:", err);
-  res.status(500).json({ error: err.message });
-}
+    console.error("🔥 ERROR DELETE:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
     // GET evento por ID
