@@ -1190,3 +1190,6 @@ const events = await res.json();
 function editEvent(id) {
   window.location.href = `/edit-event.html?id=${id}`;
 }
+
+window.deleteEvent = deleteEvent;
+window.editEvent = editEvent;
