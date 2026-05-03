@@ -367,6 +367,22 @@ if (pathParts[1] === "store") {
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+
+const overlay = document.querySelector(".modal-overlay");
+
+if (overlay) {
+  overlay.onclick = () => {
+    document.getElementById("storeCommentsModal").classList.add("hidden");
+  };
+}
+  const goLoginBtn = document.getElementById("goLoginBtn");
+
+if (goLoginBtn) {
+  goLoginBtn.onclick = () => {
+    window.location.href = "/login";
+  };
+}
+
   // 🟣 MODAL COMENTARIOS
 const openModalBtn = document.getElementById("openStoreCommentsModal");
 const closeModalBtn = document.getElementById("closeStoreCommentsModal");
