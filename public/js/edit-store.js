@@ -381,7 +381,7 @@ const searchAddressInput = document.getElementById("searchAddress");
 
  
 
-searchAddressInput.addEventListener("keydown", (e) => {
+  searchAddressInput.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
 
   e.preventDefault();
@@ -391,49 +391,51 @@ searchAddressInput.addEventListener("keydown", (e) => {
 
   const geocoder = new google.maps.Geocoder();
 
-  // 🔥 QUERY INTELIGENTE
   let query = value;
 
   const city = document.getElementById("city")?.value;
 
-  if (city && !value.toLowerCase().includes(city.toLowerCase())) {
-    query += `, ${city}`;
+  // 🔥 FORZAMOS CONTEXTO REAL
+  if (city) {
+    query = `${value}, ${city}, Argentina`;
+  } else {
+    query = `${value}, Argentina`;
   }
 
-  query += ", Argentina";
+  geocoder.geocode(
+    {
+      address: query,
 
-  // 🔥 SI NO PUSO CIUDAD → USAMOS MAPA COMO REFERENCIA
-  const options = { address: query };
+      // 🔥 ESTO ES MÁS FUERTE QUE bounds
+      componentRestrictions: {
+        country: "AR"
+      }
+    },
+    (results, status) => {
+      if (status === "OK" && results[0]) {
 
-  if (!value.includes(",") && map) {
-    options.bounds = map.getBounds();
-  }
+        const loc = results[0].geometry.location;
 
-  geocoder.geocode(options, (results, status) => {
-    if (status === "OK" && results[0]) {
+        selectedLat = loc.lat();
+        selectedLng = loc.lng();
 
-      const loc = results[0].geometry.location;
+        map.setCenter(loc);
+        map.setZoom(17);
 
-      selectedLat = loc.lat();
-      selectedLng = loc.lng();
+        marker.setPosition(loc);
 
-      map.setCenter(loc);
-      map.setZoom(17);
+        const fullAddress = results[0].formatted_address;
+        const shortAddress = fullAddress.split(",")[0];
 
-      marker.setPosition(loc);
+        document.getElementById("streetDisplay").textContent = shortAddress;
+        document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+        searchAddressInput.value = fullAddress;
 
-    
-      const fullAddress = results[0].formatted_address;
-      const shortAddress = fullAddress.split(",")[0];
-
-      document.getElementById("streetDisplay").textContent = shortAddress;
-      document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
-      searchAddressInput.value = fullAddress;
-
-    } else {
-      alert("No se encontró la dirección");
+      } else {
+        alert("No se encontró la dirección");
+      }
     }
-  });
+  );
 });
 
 async function loadGoogleMapsScript() {
