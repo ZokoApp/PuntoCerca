@@ -61,6 +61,7 @@ export const CATEGORIES = {
     { id: 93, name: "Buzos" },
     { id: 94, name: "Ropa Interior" },
     { id: 95, name: "Ropa Deportiva" },
+    { id: 101, name: "Short" },
     { id: 96, name: "Gorras" }
   ],
 
