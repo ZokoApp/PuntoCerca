@@ -379,56 +379,59 @@ const closeMapBtn = document.getElementById("closeMap");
 const saveLocationBtn = document.getElementById("saveLocation");
 const searchAddressInput = document.getElementById("searchAddress");
 
-  searchAddressInput.addEventListener("keydown", async (e) => {
+ 
+
+searchAddressInput.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
 
   e.preventDefault();
 
   const value = searchAddressInput.value;
-
   if (!value || !window.google) return;
 
   const geocoder = new google.maps.Geocoder();
 
-  geocoder.geocode({ address: value }, (results, status) => {
+  // 🔥 QUERY INTELIGENTE
+  let query = value;
+
+  const city = document.getElementById("city")?.value;
+
+  if (city && !value.toLowerCase().includes(city.toLowerCase())) {
+    query += `, ${city}`;
+  }
+
+  query += ", Argentina";
+
+  // 🔥 SI NO PUSO CIUDAD → USAMOS MAPA COMO REFERENCIA
+  const options = { address: query };
+
+  if (!value.includes(",") && map) {
+    options.bounds = map.getBounds();
+  }
+
+  geocoder.geocode(options, (results, status) => {
     if (status === "OK" && results[0]) {
 
-      const location = results[0].geometry.location;
+      const loc = results[0].geometry.location;
 
-      selectedLat = location.lat();
-      selectedLng = location.lng();
+      selectedLat = loc.lat();
+      selectedLng = loc.lng();
 
-      map.setCenter(location);
+      map.setCenter(loc);
       map.setZoom(17);
 
-      marker.setPosition(location);
+      marker.setPosition(loc);
+
+    
+      const fullAddress = results[0].formatted_address;
+      const shortAddress = fullAddress.split(",")[0];
+
+      document.getElementById("streetDisplay").textContent = shortAddress;
+      document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+      searchAddressInput.value = fullAddress;
 
     } else {
       alert("No se encontró la dirección");
-    }
-  });
-});
-
-  searchAddressInput.addEventListener("change", async () => {
-  const value = searchAddressInput.value;
-
-  if (!value || !window.google) return;
-
-  const geocoder = new google.maps.Geocoder();
-
-  geocoder.geocode({ address: value }, (results, status) => {
-    if (status === "OK" && results[0]) {
-
-      const location = results[0].geometry.location;
-
-      selectedLat = location.lat();
-      selectedLng = location.lng();
-
-      map.setCenter(location);
-      map.setZoom(17);
-
-      marker.setPosition(location);
-
     }
   });
 });
