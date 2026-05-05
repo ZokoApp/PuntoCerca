@@ -714,3 +714,8 @@ body.dashboard-page{
   }
 
 }
+
+.pac-container {
+  z-index: 999999 !important;
+  position: absolute !important;
+}
