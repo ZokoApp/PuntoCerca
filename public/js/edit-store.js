@@ -372,12 +372,16 @@ let googleMapsLoaded = false;
 
 let selectedLat = store ? Number(store.lat) : null;
 let selectedLng = store ? Number(store.lng) : null;
+  let placeSelected = false;
 
 const mapModal = document.getElementById("mapModal");
 const openMapBtn = document.getElementById("openMap");
 const closeMapBtn = document.getElementById("closeMap");
 const saveLocationBtn = document.getElementById("saveLocation");
 const searchAddressInput = document.getElementById("searchAddress");
+  searchAddressInput.addEventListener("input", () => {
+  placeSelected = false;
+});
 
  
 
@@ -550,6 +554,8 @@ autocomplete.bindTo("bounds", map);
 
       if (!place.geometry || !place.geometry.location) return;
 
+      placeSelected = true;
+
       selectedLat = place.geometry.location.lat();
       selectedLng = place.geometry.location.lng();
 
@@ -655,6 +661,10 @@ saveLocationBtn.addEventListener("click", () => {
 
 
     e.preventDefault();
+    if (!placeSelected) {
+  alert("Seleccioná una dirección válida de la lista");
+  return;
+}
 
     const formData = new FormData();
     const hours = getHoursData(); 
