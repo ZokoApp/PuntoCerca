@@ -382,62 +382,11 @@ const searchAddressInput = document.getElementById("searchAddress");
  
 
   searchAddressInput.addEventListener("keydown", (e) => {
-  if (e.key !== "Enter") return;
-
-  e.preventDefault();
-
-  const value = searchAddressInput.value;
-  if (!value || !window.google) return;
-
-  const geocoder = new google.maps.Geocoder();
-
-  let query = value;
-
-  const city = document.getElementById("city")?.value;
-
-  // 🔥 FORZAMOS CONTEXTO REAL
-  if (city) {
-    query = `${value}, ${city}, Argentina`;
-  } else {
-    query = `${value}, Argentina`;
+  if (e.key === "Enter") {
+    e.preventDefault();
   }
-
-  geocoder.geocode(
-    {
-      address: query,
-
-      // 🔥 ESTO ES MÁS FUERTE QUE bounds
-      componentRestrictions: {
-        country: "AR"
-      }
-    },
-    (results, status) => {
-      if (status === "OK" && results[0]) {
-
-        const loc = results[0].geometry.location;
-
-        selectedLat = loc.lat();
-        selectedLng = loc.lng();
-
-        map.setCenter(loc);
-        map.setZoom(17);
-
-        marker.setPosition(loc);
-
-        const fullAddress = results[0].formatted_address;
-        const shortAddress = fullAddress.split(",")[0];
-
-        document.getElementById("streetDisplay").textContent = shortAddress;
-        document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
-        searchAddressInput.value = fullAddress;
-
-      } else {
-        alert("No se encontró la dirección");
-      }
-    }
-  );
 });
-
+  
 async function loadGoogleMapsScript() {
   if (googleMapsLoaded && window.google?.maps) return;
 
@@ -582,10 +531,18 @@ function initGoogleMap(lat, lng) {
       }
     });
 
-    autocomplete = new google.maps.places.Autocomplete(searchAddressInput, {
+   autocomplete = new google.maps.places.Autocomplete(searchAddressInput, {
   fields: ["formatted_address", "geometry", "name"],
+  
+  // 🔥 SOLO direcciones reales (no negocios random)
+  types: ["address"],
+
+  // 🔥 SOLO Argentina
   componentRestrictions: { country: "ar" }
 });
+
+// 🔥 MUY IMPORTANTE → prioriza zona del mapa (ej: Rosario)
+autocomplete.bindTo("bounds", map);
     autocomplete.bindTo("bounds", map);
 
     autocomplete.addListener("place_changed", () => {
