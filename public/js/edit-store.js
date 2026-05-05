@@ -379,6 +379,36 @@ const closeMapBtn = document.getElementById("closeMap");
 const saveLocationBtn = document.getElementById("saveLocation");
 const searchAddressInput = document.getElementById("searchAddress");
 
+  searchAddressInput.addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+
+  e.preventDefault();
+
+  const value = searchAddressInput.value;
+
+  if (!value || !window.google) return;
+
+  const geocoder = new google.maps.Geocoder();
+
+  geocoder.geocode({ address: value }, (results, status) => {
+    if (status === "OK" && results[0]) {
+
+      const location = results[0].geometry.location;
+
+      selectedLat = location.lat();
+      selectedLng = location.lng();
+
+      map.setCenter(location);
+      map.setZoom(17);
+
+      marker.setPosition(location);
+
+    } else {
+      alert("No se encontró la dirección");
+    }
+  });
+});
+
   searchAddressInput.addEventListener("change", async () => {
   const value = searchAddressInput.value;
 
