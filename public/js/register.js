@@ -160,6 +160,55 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   // =============================
+// AUTOBÚSQUEDA (MEJORA UX)
+// =============================
+
+let searchTimeout;
+
+const streetInput = document.querySelector("input[name='street']");
+const cityInput = document.querySelector("input[name='city']");
+
+streetInput.addEventListener("input", handleAutoSearch);
+cityInput.addEventListener("input", handleAutoSearch);
+
+function handleAutoSearch() {
+
+  clearTimeout(searchTimeout);
+
+  searchTimeout = setTimeout(async () => {
+
+    const street = streetInput.value;
+    const city = cityInput.value;
+
+    // 🚫 evitar consultas basura
+    if (street.length < 4 || city.length < 3) return;
+
+    try {
+
+      const query = `${street}, ${city}`;
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+      );
+
+      const data = await response.json();
+
+      if (!data.length) return;
+
+      selectedLat = parseFloat(data[0].lat);
+      selectedLng = parseFloat(data[0].lon);
+
+      map.setView([selectedLat, selectedLng], 16);
+      marker.setLatLng([selectedLat, selectedLng]);
+
+    } catch (err) {
+      console.error("AUTO SEARCH ERROR:", err);
+    }
+
+  }, 600); // delay para no spamear API
+}
+
+  // =============================
   // SUBMIT
   // =============================
 
@@ -184,14 +233,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
       try{
 
-          const data = {
+    const payload = {
   name: form.querySelector("input[name='name']").value,
   email: form.querySelector("input[name='email']").value,
   password: form.querySelector("input[name='password']").value,
   role: "seller",
 
-  // 🔥 DATOS DE TIENDA
-  store_name: form.querySelector("input[name='store_name']").value,
   category: form.querySelector("select[name='category']").value,
   street: form.querySelector("input[name='street']").value,
   city: form.querySelector("input[name='city']").value,
@@ -205,18 +252,18 @@ const response = await fetch('/api/register', {
   headers: {
     "Content-Type": "application/json"
   },
-  body: JSON.stringify(data)
+  body: JSON.stringify(payload)
 });
 
-          const data = await response.json();
+const result = await response.json();
 
-          if(!response.ok){
-              alert(data.error || "Error registrando tienda");
-              return;
-          }
+if(!response.ok){
+  alert(result.error || "Error registrando tienda");
+  return;
+}
 
-          alert("Perfil creado correctamente 🚀");
-          window.location.href = "/login";
+alert("Perfil creado correctamente 🚀");
+window.location.href = "/login";
 
       }catch(error){
           console.error(error);
