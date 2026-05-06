@@ -12,44 +12,162 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  #mapFull {
-    height: 100vh;
-    width: 100%;
-  }
 
-  .store-preview {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 400px;
-    background: white;
-    border-radius: 16px;
-    padding: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 999;
-  }
+html,
+body{
+  margin:0;
+  padding:0;
+  height:100%;
+  overflow:hidden;
+  font-family:sans-serif;
+}
+
+#mapFull{
+  height:100vh;
+  width:100%;
+}
+
+header{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  background:white;
+  padding:14px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.store-preview{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-100%;
+  z-index:2000;
+
+  transition:0.35s ease;
+
+  padding:12px;
+}
+
+.store-preview.active{
+  bottom:0;
+}
+
+.sheet{
+  background:white;
+  border-radius:24px 24px 0 0;
+  overflow:hidden;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.25);
+}
+
+.sheet-handle{
+  width:50px;
+  height:5px;
+  background:#ddd;
+  border-radius:999px;
+  margin:10px auto;
+}
+
+.close-sheet{
+  position:absolute;
+  right:18px;
+  top:18px;
+
+  width:34px;
+  height:34px;
+
+  border-radius:50%;
+  border:none;
+
+  background:white;
+  box-shadow:0 2px 10px rgba(0,0,0,0.15);
+
+  cursor:pointer;
+}
+
+.marker-pin{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  overflow:hidden;
+  background:white;
+
+  box-shadow:0 4px 15px rgba(0,0,0,0.25);
+}
+
+.marker-pin img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.open-border{
+  border:3px solid #22c55e;
+}
+
+.closed-border{
+  border:3px solid #9ca3af;
+  filter:grayscale(100%);
+}
+
+.action-btn{
+  flex:1;
+  padding:12px;
+  border-radius:14px;
+  text-align:center;
+  font-weight:600;
+}
+
+.view-btn{
+  background:#ff6a00;
+  color:white;
+}
+
+.route-btn{
+  background:#f3f4f6;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<!-- HEADER SIMPLE -->
-<header class="bg-white shadow px-6 py-4 flex justify-between">
-  <a href="/" class="font-bold text-orange-600 text-xl">PuntoCerca</a>
-  <a href="/" class="text-sm">Inicio</a>
+<header>
+  <a href="/" class="font-bold text-orange-600 text-xl">
+    PuntoCerca
+  </a>
+
+  <a href="/" class="text-sm">
+    Inicio
+  </a>
 </header>
 
-<!-- MAPA -->
 <div id="mapFull"></div>
 
-<!-- PREVIEW -->
-<div id="storePreview" class="store-preview hidden"></div>
+<!-- BOTTOM SHEET -->
+<div id="storePreview" class="store-preview">
+
+  <div class="sheet">
+
+    <div class="sheet-handle"></div>
+
+    <button id="closePreview" class="close-sheet">
+      ✕
+    </button>
+
+    <div id="storePreviewContent"></div>
+
+  </div>
+
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script type="module" src="js/map.js"></script>
+<script type="module" src="/js/map.js"></script>
 
 </body>
 </html>
