@@ -1,137 +1,193 @@
 import { isStoreOpen } from "/js/store.js";
 import { getStoreStatusInfo } from "/js/store.js";
-const map = L.map('mapFull').setView([-32.95, -60.66], 13); // Rosario default
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+const map = L.map("mapFull").setView([-32.95, -60.66], 13);
 
-let markers = [];
+L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  {
+    maxZoom: 19
+  }
+).addTo(map);
+
+const preview = document.getElementById("storePreview");
+const previewContent = document.getElementById("storePreviewContent");
+const closePreviewBtn = document.getElementById("closePreview");
+
+// 🔥 cerrar tocando mapa
+map.on("click", () => {
+  closePreview();
+});
+
+// 🔥 cerrar botón
+closePreviewBtn.addEventListener("click", closePreview);
+
+function closePreview(){
+  preview.classList.remove("active");
+}
 
 // 📍 cargar tiendas
-async function loadMapStores() {
+async function loadMapStores(){
 
-  try {
-    const res = await fetch('/api/stores');
+  try{
+
+    const res = await fetch("/api/stores");
     const stores = await res.json();
 
     stores.forEach(store => {
 
-  if (!store.lat || !store.lng) return;
+      if (!store.lat || !store.lng) return;
 
-  // 🔥 ESTADO ABIERTO / CERRADO
-  const isOpen = isStoreOpen(store);
-  const borderColor = isOpen ? "#22c55e" : "#ef4444";
+      const isOpen = isStoreOpen(store);
 
-  // 🔥 ICONO PERSONALIZADO
-  const icon = L.divIcon({
-    className: "custom-marker",
-    html: `
-      <div style="
-        width:50px;
-        height:50px;
-        border-radius:50%;
-        overflow:hidden;
-        border:3px solid ${borderColor};
-        box-shadow:0 4px 10px rgba(0,0,0,0.3);
-        background:#fff;
-      ">
-        <img src="${store.logo_url || '/img/default.png'}"
-             style="width:100%;height:100%;object-fit:cover;">
-      </div>
-    `,
-    iconSize: [50, 50],
-    iconAnchor: [25, 50]
-  });
+      const icon = L.divIcon({
+        className: "",
+        html: `
+          <div class="marker-pin ${isOpen ? "open-border" : "closed-border"}">
+            <img src="${store.logo_url || "/img/default.png"}">
+          </div>
+        `,
+        iconSize:[48,48],
+        iconAnchor:[24,48]
+      });
 
-  const marker = L.marker([store.lat, store.lng], { icon }).addTo(map);
+      const marker = L.marker(
+        [store.lat, store.lng],
+        { icon }
+      ).addTo(map);
 
-  marker.on("click", () => showPreview(store));
+      marker.on("click", (e) => {
 
-});
+        // 🔥 evita que el mapa cierre instantáneamente
+        L.DomEvent.stopPropagation(e);
 
-  } catch (err) {
+        showPreview(store);
+      });
+
+    });
+
+  } catch(err){
     console.error(err);
   }
 }
 
 function showPreview(store){
 
-  const preview = document.getElementById("storePreview");
+  const status = getStoreStatusInfo(store);
 
- const status = getStoreStatusInfo(store);
+  const googleMapsUrl =
+    `https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}`;
 
-const statusText = status.text;
-const statusColor = status.color;
+  previewContent.innerHTML = `
 
-  preview.innerHTML = `
+    <!-- COVER -->
     <div style="
-      background:white;
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+      height:160px;
+      background:url('${store.cover_url || "/img/hero.png"}') center/cover;
+      position:relative;
     ">
 
-      <!-- COVER -->
       <div style="
-        height:120px;
-        background:url('${store.cover_url || "/img/hero.png"}') center/cover;
-        position:relative;
+        position:absolute;
+        left:14px;
+        top:14px;
+        background:${status.color};
+        color:white;
+        padding:6px 12px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:600;
       ">
-        <div style="
-          position:absolute;
-          top:10px;
-          left:10px;
-          background:${statusColor};
-          color:white;
-          padding:4px 10px;
-          border-radius:999px;
-          font-size:12px;
-        ">
-          ${statusText}
-        </div>
+        ${status.text}
       </div>
 
-      <!-- CONTENIDO -->
-      <div style="padding:12px">
+    </div>
 
-        <div style="display:flex;gap:10px;align-items:center;">
-          <img src="${store.logo_url || '/img/default.png'}"
-               style="width:50px;height:50px;border-radius:10px;object-fit:cover;">
+    <!-- CONTENT -->
+    <div style="padding:16px;">
 
-          <div>
-            <strong>${store.name}</strong><br>
-            <span style="font-size:12px;color:#666;">
-              ${store.category || ""}
-            </span>
+      <div style="
+        display:flex;
+        gap:12px;
+        align-items:center;
+      ">
+
+        <img
+          src="${store.logo_url || "/img/default.png"}"
+          style="
+            width:60px;
+            height:60px;
+            border-radius:16px;
+            object-fit:cover;
+          "
+        >
+
+        <div>
+
+          <div style="
+            font-size:20px;
+            font-weight:700;
+          ">
+            ${store.name}
           </div>
+
+          <div style="
+            color:#666;
+            font-size:14px;
+            margin-top:2px;
+          ">
+            ${store.category || ""}
+          </div>
+
         </div>
 
-        <div style="margin-top:8px;font-size:13px;color:#555;">
-          📍 ${store.street || "Sin dirección"}
-        </div>
+      </div>
 
-        <div style="margin-top:5px;font-size:13px;">
-          ⭐ ${store.rating_avg || "0"} (${store.rating_count || 0})
-        </div>
+      <div style="
+        margin-top:14px;
+        color:#555;
+        font-size:14px;
+        line-height:1.4;
+      ">
+        📍 ${store.street || "Sin dirección"}
+      </div>
 
-        <a href="/${store.slug}" 
-           style="
-            display:block;
-            margin-top:12px;
-            text-align:center;
-            background:#ff6a00;
-            color:white;
-            padding:10px;
-            border-radius:12px;
-            font-weight:bold;
-           ">
+      <div style="
+        margin-top:10px;
+        font-size:14px;
+        color:#444;
+      ">
+        ⭐ ${store.rating_avg || "0"} (${store.rating_count || 0})
+      </div>
+
+      <!-- BOTONES -->
+      <div style="
+        display:flex;
+        gap:10px;
+        margin-top:18px;
+      ">
+
+        <a
+          href="/${store.slug}"
+          class="action-btn view-btn"
+        >
           Ver tienda
         </a>
 
+        <a
+          href="${googleMapsUrl}"
+          target="_blank"
+          class="action-btn route-btn"
+        >
+          Cómo llegar
+        </a>
+
       </div>
+
     </div>
   `;
 
-  preview.classList.remove("hidden");
+  preview.classList.add("active");
 }
 
 loadMapStores();
