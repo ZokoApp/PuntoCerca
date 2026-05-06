@@ -19,7 +19,7 @@ body{
   padding:0;
   height:100%;
   overflow:hidden;
-  font-family:sans-serif;
+  font-family:Arial, sans-serif;
 }
 
 #mapFull{
@@ -27,76 +27,122 @@ body{
   width:100%;
 }
 
-header{
+/* HEADER */
+
+.map-header{
   position:absolute;
   top:0;
   left:0;
   right:0;
-  z-index:1000;
-  background:white;
-  padding:14px 18px;
+  z-index:2000;
+
   display:flex;
   justify-content:space-between;
   align-items:center;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+
+  padding:14px 18px;
+
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(10px);
+
+  box-shadow:0 2px 15px rgba(0,0,0,0.08);
 }
 
-.store-preview{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:-100%;
-  z-index:2000;
-
-  transition:0.35s ease;
-
-  padding:12px;
+.logo{
+  font-size:28px;
+  font-weight:800;
+  color:#ff6a00;
 }
 
-.store-preview.active{
-  bottom:0;
-}
-
-.sheet{
-  background:white;
-  border-radius:24px 24px 0 0;
-  overflow:hidden;
-  box-shadow:0 -10px 40px rgba(0,0,0,0.25);
-}
-
-.sheet-handle{
-  width:50px;
-  height:5px;
-  background:#ddd;
-  border-radius:999px;
-  margin:10px auto;
-}
-
-.close-sheet{
-  position:absolute;
-  right:18px;
-  top:18px;
-
-  width:34px;
-  height:34px;
-
-  border-radius:50%;
+.header-btn{
+  background:#fff;
   border:none;
-
-  background:white;
-  box-shadow:0 2px 10px rgba(0,0,0,0.15);
-
+  padding:10px 14px;
+  border-radius:14px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.1);
   cursor:pointer;
 }
 
+/* ACTIVIDAD */
+
+.live-bar{
+  position:absolute;
+  top:78px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1500;
+
+  background:#111827;
+  color:#fff;
+
+  padding:10px 16px;
+  border-radius:999px;
+
+  font-size:13px;
+  font-weight:600;
+
+  box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* CARD */
+
+.store-preview{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(120%);
+  width:92%;
+  max-width:430px;
+  z-index:3000;
+
+  transition:0.35s ease;
+}
+
+.store-preview.active{
+  transform:translateX(-50%) translateY(0);
+}
+
+/* PINS */
+
+.marker-wrapper{
+  position:relative;
+}
+
+.marker-pulse{
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  animation:pulse 2s infinite;
+  opacity:0.5;
+}
+
+.open-pulse{
+  background:#22c55e;
+}
+
+.closed-pulse{
+  background:#9ca3af;
+}
+
 .marker-pin{
-  width:48px;
-  height:48px;
+  width:58px;
+  height:58px;
   border-radius:50%;
   overflow:hidden;
-  background:white;
+  position:relative;
+  z-index:2;
+  background:#fff;
 
-  box-shadow:0 4px 15px rgba(0,0,0,0.25);
+  box-shadow:0 5px 18px rgba(0,0,0,0.25);
+}
+
+.open-border{
+  border:4px solid #22c55e;
+}
+
+.closed-border{
+  border:4px solid #9ca3af;
+  opacity:0.8;
 }
 
 .marker-pin img{
@@ -105,30 +151,42 @@ header{
   object-fit:cover;
 }
 
-.open-border{
-  border:3px solid #22c55e;
+@keyframes pulse{
+  0%{
+    transform:scale(1);
+    opacity:0.5;
+  }
+
+  70%{
+    transform:scale(1.7);
+    opacity:0;
+  }
+
+  100%{
+    transform:scale(1.7);
+    opacity:0;
+  }
 }
 
-.closed-border{
-  border:3px solid #9ca3af;
-  opacity:0.75;
-}
+/* BOTONES CARD */
 
-.action-btn{
+.card-btn{
   flex:1;
   padding:12px;
   border-radius:14px;
+  font-weight:700;
   text-align:center;
-  font-weight:600;
+  text-decoration:none;
 }
 
-.view-btn{
+.btn-primary{
   background:#ff6a00;
-  color:white;
+  color:#fff;
 }
 
-.route-btn{
+.btn-secondary{
   background:#f3f4f6;
+  color:#111827;
 }
 
 </style>
@@ -137,34 +195,29 @@ header{
 
 <body>
 
-<header>
-  <a href="/" class="font-bold text-orange-600 text-xl">
+<!-- HEADER -->
+<div class="map-header">
+
+  <div class="logo">
     PuntoCerca
-  </a>
-
-  <a href="/" class="text-sm">
-    Inicio
-  </a>
-</header>
-
-<div id="mapFull"></div>
-
-<!-- BOTTOM SHEET -->
-<div id="storePreview" class="store-preview">
-
-  <div class="sheet">
-
-    <div class="sheet-handle"></div>
-
-    <button id="closePreview" class="close-sheet">
-      ✕
-    </button>
-
-    <div id="storePreviewContent"></div>
-
   </div>
 
+  <button class="header-btn" onclick="window.location.href='/'">
+    Inicio
+  </button>
+
 </div>
+
+<!-- ACTIVIDAD -->
+<div class="live-bar" id="liveBar">
+  🔥 12 personas explorando esta zona
+</div>
+
+<!-- MAPA -->
+<div id="mapFull"></div>
+
+<!-- CARD -->
+<div id="storePreview" class="store-preview"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module" src="/js/map.js"></script>
