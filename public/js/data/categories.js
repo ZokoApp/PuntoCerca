@@ -61,7 +61,7 @@ export const CATEGORIES = {
     { id: 93, name: "Buzos" },
     { id: 94, name: "Ropa Interior" },
     { id: 95, name: "Ropa Deportiva" },
-    { id: 101, name: "Short" },
+    { id: 102, name: "Short" },
     { id: 96, name: "Gorras" }
   ],
 
@@ -87,6 +87,7 @@ export const CATEGORIES = {
   { id: 21, name: "Técnico PC" },
   { id: 22, name: "Reparaciones" },
   { id: 61, name: "Cerrajeria" },
+    { id: 103, name: "Flete" },
 
   // 🔥 NUEVAS
   { id: 56, name: "Refrigeración" },
