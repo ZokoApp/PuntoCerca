@@ -20,6 +20,8 @@ export const CATEGORIES = {
     { id: 55, name: "Mayorista" },
     { id: 49, name: "Supermercado" },
     { id: 47, name: "Almacén" },
+    { id: 104, name: "Distribuidora" },
+
     { id: 48, name: "Kiosco" }
   ],
 
