@@ -54,7 +54,7 @@ function showToast(message, type = "success") {
    STATUS
 ================================ */
 
-function isStoreOpen(store) {
+export function isStoreOpen(store) {
 
   if (!store.is_open) return false;
   if (!store.opening_hours) return store.is_open;
@@ -124,7 +124,7 @@ function isStoreOpen(store) {
   return false;
 }
 
-function getStoreStatusInfo(store) {
+export function getStoreStatusInfo(store) {
 
   let hours;
 
