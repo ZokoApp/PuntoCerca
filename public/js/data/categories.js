@@ -116,6 +116,8 @@ export const CATEGORIES = {
   "Deportes": [
     { id: 30, name: "Gimnasio" },
     { id: 31, name: "Escuela deportiva" },
+     { id: 105, name: "Yoga" },
+
     { id: 32, name: "Club" }
   ],
 
