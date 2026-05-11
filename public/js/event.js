@@ -138,7 +138,7 @@ if (btn) {
 
 🎉 ${event.title}
 📅 ${formattedDate}
-📍 ${address}
+
 
 🔗 ${eventUrl}`;
 
