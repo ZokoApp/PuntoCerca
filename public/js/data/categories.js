@@ -21,7 +21,7 @@ export const CATEGORIES = {
     { id: 49, name: "Supermercado" },
     { id: 47, name: "Almacén" },
     { id: 104, name: "Distribuidora" },
-      { id: 107, name: "Regaleria" },
+    
 
     { id: 48, name: "Kiosco" }
   ],
@@ -42,8 +42,10 @@ export const CATEGORIES = {
   { id: 65, name: "TV y Smart TV" },
   { id: 66, name: "Audio" },
   { id: 67, name: "Gaming" },
+    
 
   { id: 8, name: "Ferretería" },
+      { id: 107, name: "Regaleria" },
   { id: 9, name: "Librería" }
 ],
 
