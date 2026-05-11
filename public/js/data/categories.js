@@ -90,6 +90,7 @@ export const CATEGORIES = {
   { id: 22, name: "Reparaciones" },
   { id: 61, name: "Cerrajeria" },
     { id: 103, name: "Flete" },
+    { id: 106, name: "Rotulaciones" },
 
   // 🔥 NUEVAS
   { id: 56, name: "Refrigeración" },
