@@ -93,7 +93,6 @@ const btn = document.getElementById("ctaWhatsApp");
 
 if (btn) {
   btn.onclick = () => {
-
     const phone = event.store_phone;
 
     if (!phone) {
@@ -103,7 +102,7 @@ if (btn) {
 
     let clean = phone.replace(/\D/g, "");
 
-    // 🇦🇷 normalización Argentina
+    // 🇦🇷 Normalización Argentina
     if (clean.startsWith("0")) {
       clean = clean.substring(1);
     }
@@ -117,14 +116,40 @@ if (btn) {
       return;
     }
 
-    const text = encodeURIComponent(
-      `Hola! 👋 Vi el evento "${event.title}" en PuntoCerca. ¿Me pasás info?`
-    );
+    // 📅 Fecha legible
+    const date = new Date(event.start_at);
+
+    const formattedDate = date.toLocaleString("es-AR", {
+      day: "2-digit",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    });
+
+    // 📍 Dirección
+    const address = event.address || event.store_address || "Sin dirección";
+
+    // 🔗 Link directo al evento
+    const eventUrl = `${window.location.origin}/event.html?id=${event.id}`;
+
+    // 💬 Mensaje completo
+    const message =
+`Hola! 👋 Vi este evento en PuntoCerca y me gustaría reservar.
+
+🎉 ${event.title}
+📅 ${formattedDate}
+📍 ${address}
+
+🔗 ${eventUrl}`;
+
+    const text = encodeURIComponent(message);
 
     const url = `https://wa.me/${clean}?text=${text}`;
 
     window.open(url, "_blank");
   };
+}
 }
 
     // =============================
