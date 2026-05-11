@@ -128,7 +128,12 @@ if (btn) {
     });
 
     // 📍 Dirección
-    const address = event.address || event.store_address || "Sin dirección";
+    const address =
+  event.store_street ||
+  event.store_address ||
+  event.street ||
+  event.address ||
+  "Dirección a confirmar";
 
     // 🔗 Link directo al evento
     const eventUrl = `${window.location.origin}/event.html?id=${event.id}`;
