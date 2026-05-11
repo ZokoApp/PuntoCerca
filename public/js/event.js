@@ -127,13 +127,7 @@ if (btn) {
       hour12: false
     });
 
-    // 📍 Dirección
-    const address =
-  event.store_street ||
-  event.store_address ||
-  event.street ||
-  event.address ||
-  "Dirección a confirmar";
+    
 
     // 🔗 Link directo al evento
     const eventUrl = `${window.location.origin}/event.html?id=${event.id}`;
