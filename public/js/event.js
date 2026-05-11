@@ -150,7 +150,7 @@ if (btn) {
     window.open(url, "_blank");
   };
 }
-}
+
 
     // =============================
     // RECORDATORIO
