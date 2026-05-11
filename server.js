@@ -2091,40 +2091,100 @@ app.get("/api/events/:id", async (req, res) => {
   }
 });
 
-app.put("/api/events/:id", async (req, res) => {
-  try {
-    const userId = req.user.id; // 👈 asumo que usás auth con req.user
-    const { id } = req.params;
-    const { title, description, start_at, end_at, image_url } = req.body;
+app.put(
+  "/api/events/:id",
+  authMiddleware,
+  uploadEvent.single("image"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const { title, description, start_at, end_at } = req.body;
 
-    const check = await pool.query(`
-      SELECT e.id
-      FROM store_events e
-      JOIN stores s ON s.id = e.store_id
-      WHERE e.id = $1 AND s.user_id = $2
-    `, [id, userId]);
+      const check = await pool.query(`
+        SELECT
+          e.id,
+          e.image_url
+        FROM store_events e
+        JOIN stores s ON s.id = e.store_id
+        WHERE e.id = $1
+          AND s.user_id = $2
+      `, [id, userId]);
 
-    if (!check.rows.length) {
-      return res.status(403).json({ error: "No autorizado" });
-    }
+      if (!check.rows.length) {
+        return res.status(403).json({
+          error: "No autorizado"
+        });
+      }
 
-    await pool.query(`
-      UPDATE store_events
-      SET title = $1,
+      const currentEvent = check.rows[0];
+
+      if (!title || !start_at || !end_at) {
+        return res.status(400).json({
+          error: "Título y fechas son obligatorios"
+        });
+      }
+
+      const start = new Date(start_at);
+      const end = new Date(end_at);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({
+          error: "Fechas inválidas"
+        });
+      }
+
+      if (start >= end) {
+        return res.status(400).json({
+          error: "La fecha de inicio debe ser menor a la fecha de fin"
+        });
+      }
+
+      const diffHours = (end - start) / (1000 * 60 * 60);
+
+      if (diffHours > 72) {
+        return res.status(400).json({
+          error: "El evento no puede durar más de 72 horas"
+        });
+      }
+
+      let image_url = currentEvent.image_url;
+
+      if (req.file) {
+        image_url = req.file.path;
+      }
+
+      const result = await pool.query(`
+        UPDATE store_events
+        SET
+          title = $1,
           description = $2,
           start_at = $3,
           end_at = $4,
           image_url = $5
-      WHERE id = $6
-    `, [title, description, start_at, end_at, image_url, id]);
+        WHERE id = $6
+        RETURNING *
+      `, [
+        title,
+        description || null,
+        start_at,
+        end_at,
+        image_url,
+        id
+      ]);
 
-    res.json({ ok: true });
+      res.json(result.rows[0]);
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error actualizando evento" });
+    } catch (err) {
+      console.error("ERROR ACTUALIZANDO EVENTO:", err);
+
+      res.status(500).json({
+        error: "Error actualizando evento",
+        detail: err.message
+      });
+    }
   }
-});
+);
 
 app.delete("/api/events/:id", authMiddleware, async (req, res) => {
   try {
