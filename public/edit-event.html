@@ -1,167 +1,334 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Editar evento | PuntoCerca</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Editar evento | PuntoCerca</title>
 
-  <style>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 40%),
+      linear-gradient(135deg, #ff6a00 0%, #ff8c42 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.20),
+      0 10px 20px rgba(255, 106, 0, 0.12);
+    animation: fadeUp 0.45s ease;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .header-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff6a00, #ff8c42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(255, 106, 0, 0.25);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.1;
+    color: #111827;
+    font-weight: 800;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .image-wrapper {
+    position: relative;
+    margin-bottom: 22px;
+  }
+
+  .preview {
+    width: 100%;
+    height: 220px;
+    border-radius: 20px;
+    object-fit: cover;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .change-image {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+    transition: all 0.2s ease;
+  }
+
+  .change-image:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .hidden-input {
+    display: none;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: #111827;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #ff6a00;
+    box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.12);
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  button {
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .save {
+    background: linear-gradient(135deg, #ff6a00, #ff8c42);
+    color: #ffffff;
+    box-shadow: 0 12px 24px rgba(255, 106, 0, 0.25);
+  }
+
+  .save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 28px rgba(255, 106, 0, 0.30);
+  }
+
+  .cancel {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .cancel:hover {
+    background: #e5e7eb;
+  }
+
+  .loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #ff6a00, #ff8c42);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      padding: 12px;
+      align-items: flex-start;
     }
 
     .card {
-      width: 420px;
-      background: #fff;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      animation: fadeInUp 0.5s ease;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    h2 {
-      margin: 0 0 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      padding: 20px;
+      border-radius: 22px;
+      max-height: none;
     }
 
     .preview {
-      width: 100%;
-      height: 180px;
-      border-radius: 12px;
-      object-fit: cover;
-      margin-bottom: 10px;
-      transition: 0.3s;
+      height: 190px;
     }
 
-    .preview:hover {
-      transform: scale(1.02);
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      margin-bottom: 12px;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #ff6a00;
-      box-shadow: 0 0 0 2px rgba(255,106,0,0.2);
-    }
-
-    .file-input {
-      background: #f9fafb;
-      border: 2px dashed #ddd;
-      text-align: center;
-      cursor: pointer;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      transition: 0.2s;
-    }
-
-    .file-input:hover {
-      border-color: #ff6a00;
-      background: #fff3e6;
-    }
-
+    .grid-2,
     .buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      grid-template-columns: 1fr;
     }
 
-    button {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
+    h1 {
+      font-size: 24px;
     }
-
-    .save {
-      background: #ff6a00;
-      color: white;
-    }
-
-    .save:hover {
-      background: #e65c00;
-      transform: scale(1.03);
-    }
-
-    .cancel {
-      background: #eee;
-    }
-
-    .cancel:hover {
-      background: #ddd;
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
 
-  <div class="card">
-    <h2>✏️ Editar evento</h2>
-
-    <!-- PREVIEW -->
-    <img id="preview" class="preview" />
-
-    <!-- UPLOAD -->
-    <label class="file-input">
-      📸 Cambiar imagen
-      <input type="file" id="image" accept="image/*" hidden>
-    </label>
-
-    <!-- FORM -->
-    <input id="title" placeholder="Título del evento">
-
-    <input type="datetime-local" id="start_at">
-    <input type="datetime-local" id="end_at">
-
-    <div class="buttons">
-      <button class="save" onclick="save()">Guardar cambios</button>
-      <button class="cancel" onclick="cancel()">Cancelar</button>
+<div class="card" id="card">
+  <div class="header">
+    <div class="header-icon">✏️</div>
+    <div>
+      <h1>Editar evento</h1>
+      <p class="subtitle">Actualizá la información del evento</p>
     </div>
   </div>
+
+  <!-- Imagen -->
+  <div class="image-wrapper">
+    <img id="preview" class="preview" src="/img/default.png" alt="Vista previa del evento">
+
+    <label class="change-image">
+      📸 Cambiar imagen
+      <input type="file" id="image" class="hidden-input" accept="image/*">
+    </label>
+  </div>
+
+  <!-- Título -->
+  <div class="field">
+    <label for="title">Título</label>
+    <input id="title" type="text" placeholder="Ej: Se junta La Veredita + Ondera de Fisherton">
+  </div>
+
+  <!-- Descripción -->
+  <div class="field">
+    <label for="description">Descripción</label>
+    <textarea
+      id="description"
+      placeholder="Contá de qué se trata el evento, promociones, horarios y detalles importantes."
+    ></textarea>
+  </div>
+
+  <!-- Fechas -->
+  <div class="grid-2">
+    <div class="field">
+      <label for="start_at">Inicio</label>
+      <input type="datetime-local" id="start_at">
+    </div>
+
+    <div class="field">
+      <label for="end_at">Fin</label>
+      <input type="datetime-local" id="end_at">
+    </div>
+  </div>
+
+  <!-- Botones -->
+  <div class="buttons">
+    <button class="save" onclick="save()">Guardar cambios</button>
+    <button class="cancel" onclick="cancel()">Cancelar</button>
+  </div>
+</div>
 
 <script>
 const id = new URLSearchParams(location.search).get("id");
 
+if (!id) {
+  alert("Evento inválido");
+  history.back();
+}
+
 async function load() {
-  const res = await fetch(`/api/events/${id}`);
-  const e = await res.json();
+  try {
+    const res = await fetch(`/api/events/${id}`);
 
-  document.getElementById("title").value = e.title;
-  document.getElementById("start_at").value = e.start_at?.slice(0,16);
-  document.getElementById("end_at").value = e.end_at?.slice(0,16);
+    if (!res.ok) {
+      throw new Error("No se pudo cargar el evento");
+    }
 
-  document.getElementById("preview").src = e.image_url;
+    const event = await res.json();
+
+    document.getElementById("title").value = event.title || "";
+    document.getElementById("description").value = event.description || "";
+    document.getElementById("start_at").value = event.start_at?.slice(0, 16) || "";
+    document.getElementById("end_at").value = event.end_at?.slice(0, 16) || "";
+    document.getElementById("preview").src =
+      event.image_url || "/img/default.png";
+
+    document.title = `Editar ${event.title || "evento"} | PuntoCerca`;
+
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo cargar el evento");
+    history.back();
+  }
 }
 
 document.getElementById("image").addEventListener("change", (e) => {
@@ -173,32 +340,73 @@ document.getElementById("image").addEventListener("change", (e) => {
 });
 
 async function save() {
-  const formData = new FormData();
+  const title = document.getElementById("title").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const startAt = document.getElementById("start_at").value;
+  const endAt = document.getElementById("end_at").value;
 
-  formData.append("title", document.getElementById("title").value);
-  formData.append("start_at", document.getElementById("start_at").value);
-  formData.append("end_at", document.getElementById("end_at").value);
-
-  const file = document.getElementById("image").files[0];
-  if (file) formData.append("image", file);
-
-  const res = await fetch(`/api/events/${id}`, {
-    method: "PUT",
-    credentials: "include",
-    body: formData
-  });
-
-  if (!res.ok) {
-    alert("Error actualizando");
+  if (!title) {
+    alert("Ingresá un título");
     return;
   }
 
-  alert("Evento actualizado");
-  window.history.back();
+  if (!startAt || !endAt) {
+    alert("Completá la fecha de inicio y fin");
+    return;
+  }
+
+  if (new Date(endAt) <= new Date(startAt)) {
+    alert("La fecha de finalización debe ser posterior al inicio");
+    return;
+  }
+
+  const card = document.getElementById("card");
+  card.classList.add("loading");
+
+  try {
+    const formData = new FormData();
+
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("start_at", startAt);
+    formData.append("end_at", endAt);
+
+    const file = document.getElementById("image").files[0];
+    if (file) {
+      formData.append("image", file);
+    }
+
+    const res = await fetch(`/api/events/${id}`, {
+      method: "PUT",
+      credentials: "include",
+      body: formData
+    });
+
+    if (!res.ok) {
+      let message = "Error actualizando el evento";
+
+      try {
+        const data = await res.json();
+        if (data.error) message = data.error;
+      } catch {}
+
+      alert(message);
+      return;
+    }
+
+    alert("Evento actualizado correctamente");
+    window.location.href = `/event.html?id=${id}`;
+
+  } catch (error) {
+    console.error(error);
+    alert("Error de conexión");
+  } finally {
+    card.classList.remove("loading");
+  }
 }
 
 function cancel() {
-  window.history.back();
+  history.back();
 }
 
 load();
