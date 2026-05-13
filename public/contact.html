@@ -4,14 +4,175 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contacto | PuntoCerca</title>
+  <meta name="description" content="Contactate con PuntoCerca. Estamos para ayudarte.">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    :root{
+      --primary:#ff6a00;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --bg:#f8fafc;
+      --border:#e5e7eb;
+    }
+
+    body{
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(255,106,0,.08), transparent 40%),
+        linear-gradient(180deg,#fff7f0 0%, var(--bg) 220px);
+      color:var(--text);
+      line-height:1.7;
+    }
+
+    .container{
+      width:min(100%, 900px);
+      margin:auto;
+      padding:24px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+    }
+
+    .logo{
+      font-size:2rem;
+      font-weight:800;
+      color:var(--primary);
+      text-decoration:none;
+    }
+
+    .back-btn{
+      padding:10px 16px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      text-decoration:none;
+      color:var(--text);
+      font-weight:600;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#ff6a00,#ff8c42);
+      color:#fff;
+      border-radius:28px;
+      padding:48px 40px;
+      margin-bottom:30px;
+      box-shadow:0 20px 60px rgba(255,106,0,.22);
+    }
+
+    .hero h1{
+      font-size:clamp(2rem,5vw,3.2rem);
+      font-weight:800;
+      margin-bottom:12px;
+    }
+
+    .hero p{
+      opacity:.95;
+      max-width:650px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:34px;
+      box-shadow:0 12px 40px rgba(15,23,42,.06);
+    }
+
+    .item{
+      padding:24px;
+      border:1px solid #f1f5f9;
+      border-radius:18px;
+      margin-bottom:18px;
+      background:#fafafa;
+    }
+
+    .item:last-child{
+      margin-bottom:0;
+    }
+
+    .item h3{
+      font-size:1.1rem;
+      margin-bottom:8px;
+    }
+
+    .item a{
+      color:var(--primary);
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    .footer{
+      text-align:center;
+      margin-top:26px;
+      color:#94a3b8;
+      font-size:.9rem;
+    }
+
+    @media (max-width:768px){
+      .container{ padding:16px; }
+      .hero{ padding:34px 24px; border-radius:22px; }
+      .card{ padding:24px; border-radius:20px; }
+      .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Contacto</h1>
 
-  <p>Podés comunicarte con nosotros a través de los siguientes medios:</p>
+  <div class="container">
 
-  <p>Email: contacto@puntocerca.com.ar</p>
-  <p>WhatsApp: +54 9 3417819577</p>
-  <p>Instagram: @puntocerca</p>
+    <div class="topbar">
+      <a href="/" class="logo">PuntoCerca</a>
+      <a href="/" class="back-btn">← Volver al inicio</a>
+    </div>
+
+    <section class="hero">
+      <h1>Contacto</h1>
+      <p>
+        Si necesitás ayuda, querés reportar un problema o realizar una consulta,
+        podés comunicarte con nosotros por cualquiera de los siguientes medios.
+      </p>
+    </section>
+
+    <main class="card">
+
+      <div class="item">
+        <h3>📧 Correo electrónico</h3>
+        <a href="mailto:contacto@puntocerca.com.ar">
+          contacto@puntocerca.com.ar
+        </a>
+      </div>
+
+      <div class="item">
+        <h3>📱 WhatsApp</h3>
+        <a href="https://wa.me/5497819577" target="_blank">
+          Enviar mensaje por WhatsApp
+        </a>
+      </div>
+
+      <div class="item">
+        <h3>📸 Instagram</h3>
+        <a href="https://instagram.com/puntocerca" target="_blank">
+          @puntocerca
+        </a>
+      </div>
+
+    </main>
+
+    <div class="footer">
+      ©  PuntoCerca — Lo local nos conecta.
+    </div>
+
+  </div>
+
 </body>
 </html>
