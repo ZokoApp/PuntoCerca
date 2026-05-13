@@ -1,25 +1,341 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Política de Privacidad | PuntoCerca</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #ff6a00;
+      --primary-dark: #e65c00;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(255, 106, 0, 0.08), transparent 40%),
+        linear-gradient(180deg, #fff7f0 0%, var(--bg) 220px);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      width: min(100%, 900px);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    }
+
+    .back-btn:hover {
+      transform: translateY(-1px);
+      border-color: #ffd2b3;
+      box-shadow: 0 10px 24px rgba(255, 106, 0, 0.08);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ff6a00, #ff8c42);
+      color: white;
+      border-radius: 28px;
+      padding: 48px 40px;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(255, 106, 0, 0.22);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .hero::before {
+      width: 180px;
+      height: 180px;
+      top: -50px;
+      right: -40px;
+    }
+
+    .hero::after {
+      width: 110px;
+      height: 110px;
+      bottom: -20px;
+      left: -20px;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-12px);
+      }
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.05;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      font-size: 1.08rem;
+      opacity: 0.95;
+      max-width: 620px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 34px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .section {
+      margin-bottom: 34px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .section h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon {
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: #fff4eb;
+      color: var(--primary);
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .contact-box {
+      background: linear-gradient(180deg, #fffaf6, #ffffff);
+      border: 1px solid #ffe2cc;
+      border-radius: 18px;
+      padding: 22px;
+      margin-top: 14px;
+    }
+
+    .contact-box a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .contact-box a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 26px;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 16px;
+      }
+
+      .hero {
+        padding: 34px 24px;
+        border-radius: 22px;
+      }
+
+      .card {
+        padding: 24px;
+        border-radius: 20px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .logo {
+        font-size: 1.7rem;
+      }
+
+      .section h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Política de Privacidad</h1>
 
-  <p>En PuntoCerca respetamos tu privacidad y protegemos tus datos personales.</p>
+  <div class="container">
 
-  <h2>Datos que recopilamos</h2>
-  <p>Nombre, correo electrónico, información de comercios, comentarios y calificaciones.</p>
+    <div class="topbar">
+      <a href="/" class="logo">PuntoCerca</a>
+      <a href="/" class="back-btn">← Volver al inicio</a>
+    </div>
 
-  <h2>Uso de la información</h2>
-  <p>Utilizamos los datos para operar la plataforma y mejorar la experiencia del usuario.</p>
+    <section class="hero">
+      <span class="badge">🔒 Transparencia y privacidad</span>
+      <h1>Política de Privacidad</h1>
+      <p>
+        En PuntoCerca protegemos la información de nuestros usuarios y comercios.
+        Tus datos se utilizan exclusivamente para operar y mejorar la plataforma.
+      </p>
+    </section>
 
-  <h2>Compartición de datos</h2>
-  <p>No vendemos información personal a terceros.</p>
+    <main class="card">
 
-  <h2>Contacto</h2>
-  <p>contacto@puntocerca.com.ar</p>
+      <section class="section">
+        <h2>
+          <span class="icon">📄</span>
+          Datos que recopilamos
+        </h2>
+        <p>
+          Podemos recopilar nombre, correo electrónico, información de comercios,
+          comentarios, calificaciones y otros datos necesarios para el funcionamiento
+          de la plataforma.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>
+          <span class="icon">⚙️</span>
+          Uso de la información
+        </h2>
+        <p>
+          Utilizamos los datos para gestionar cuentas, mostrar negocios, procesar
+          interacciones entre usuarios y comercios, y mejorar continuamente
+          la experiencia en PuntoCerca.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>
+          <span class="icon">🤝</span>
+          Compartición de datos
+        </h2>
+        <p>
+          No vendemos información personal a terceros. Solo compartimos datos
+          cuando es necesario para prestar el servicio o cumplir obligaciones legales.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>
+          <span class="icon">🍪</span>
+          Cookies y tecnologías similares
+        </h2>
+        <p>
+          Utilizamos cookies para mantener sesiones activas, recordar preferencias
+          y analizar el rendimiento general de la plataforma.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>
+          <span class="icon">📬</span>
+          Contacto
+        </h2>
+
+        <div class="contact-box">
+          <p>
+            Si tenés dudas sobre esta política, podés escribirnos a:<br><br>
+            <a href="mailto:contacto@puntocerca.com.ar">
+              contacto@puntocerca.com.ar
+            </a>
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <div class="footer">
+      © 2026 PuntoCerca — Lo local nos conecta.
+    </div>
+
+  </div>
+
 </body>
 </html>
