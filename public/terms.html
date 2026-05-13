@@ -4,19 +4,228 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Términos y Condiciones | PuntoCerca</title>
+  <meta name="description" content="Términos y condiciones de uso de PuntoCerca.">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --primary:#ff6a00;
+      --primary-dark:#e65c00;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --border:#e5e7eb;
+    }
+
+    body{
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(255,106,0,.08), transparent 40%),
+        linear-gradient(180deg,#fff7f0 0%, var(--bg) 220px);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container{
+      width:min(100%, 900px);
+      margin:auto;
+      padding:24px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+    }
+
+    .logo{
+      font-size:2rem;
+      font-weight:800;
+      color:var(--primary);
+      text-decoration:none;
+    }
+
+    .back-btn{
+      padding:10px 16px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      text-decoration:none;
+      color:var(--text);
+      font-weight:600;
+      box-shadow:0 4px 14px rgba(0,0,0,.04);
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#ff6a00,#ff8c42);
+      color:#fff;
+      border-radius:28px;
+      padding:48px 40px;
+      margin-bottom:30px;
+      box-shadow:0 20px 60px rgba(255,106,0,.22);
+    }
+
+    .badge{
+      display:inline-block;
+      padding:8px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.18);
+      font-size:.85rem;
+      font-weight:700;
+      margin-bottom:18px;
+    }
+
+    .hero h1{
+      font-size:clamp(2rem,5vw,3.2rem);
+      font-weight:800;
+      margin-bottom:12px;
+    }
+
+    .hero p{
+      font-size:1.05rem;
+      opacity:.95;
+      max-width:650px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:34px;
+      box-shadow:0 12px 40px rgba(15,23,42,.06);
+    }
+
+    .section{
+      margin-bottom:34px;
+      padding-bottom:28px;
+      border-bottom:1px solid #f1f5f9;
+    }
+
+    .section:last-child{
+      border-bottom:none;
+      margin-bottom:0;
+      padding-bottom:0;
+    }
+
+    .section h2{
+      font-size:1.35rem;
+      font-weight:800;
+      margin-bottom:12px;
+    }
+
+    p{
+      color:var(--muted);
+    }
+
+    .footer{
+      text-align:center;
+      margin-top:26px;
+      color:#94a3b8;
+      font-size:.9rem;
+    }
+
+    @media (max-width:768px){
+      .container{ padding:16px; }
+      .hero{ padding:34px 24px; border-radius:22px; }
+      .card{ padding:24px; border-radius:20px; }
+      .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Términos y Condiciones</h1>
 
-  <p>PuntoCerca es una plataforma que conecta usuarios con comercios locales.</p>
+  <div class="container">
 
-  <h2>Responsabilidad</h2>
-  <p>Los comercios son responsables por la información publicada y por las operaciones realizadas con los usuarios.</p>
+    <div class="topbar">
+      <a href="/" class="logo">PuntoCerca</a>
+      <a href="/" class="back-btn">← Volver al inicio</a>
+    </div>
 
-  <h2>Uso aceptable</h2>
-  <p>No está permitido publicar información falsa, ofensiva o ilegal.</p>
+    <section class="hero">
+      <span class="badge">📘 Condiciones de uso</span>
+      <h1>Términos y Condiciones</h1>
+      <p>
+        Al utilizar PuntoCerca aceptás estas condiciones, que regulan
+        el uso de la plataforma por parte de usuarios y comercios.
+      </p>
+    </section>
 
-  <h2>Modificaciones</h2>
-  <p>Podemos actualizar estos términos en cualquier momento.</p>
+    <main class="card">
+
+      <section class="section">
+        <h2>🏪 Sobre la plataforma</h2>
+        <p>
+          PuntoCerca conecta usuarios con comercios y servicios locales.
+          La plataforma facilita el descubrimiento de negocios, productos,
+          ofertas, eventos y contacto directo mediante WhatsApp.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>👤 Responsabilidad de los usuarios</h2>
+        <p>
+          Los usuarios se comprometen a brindar información veraz y a utilizar
+          la plataforma de forma respetuosa y conforme a la ley.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>🏬 Responsabilidad de los comercios</h2>
+        <p>
+          Cada comercio es responsable por la exactitud de sus datos,
+          precios, descripciones, promociones, horarios, eventos y medios de contacto.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>⭐ Comentarios y calificaciones</h2>
+        <p>
+          PuntoCerca podrá moderar o eliminar contenido ofensivo, falso,
+          engañoso o que infrinja derechos de terceros.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>⚠️ Limitación de responsabilidad</h2>
+        <p>
+          PuntoCerca no participa directamente en las transacciones entre
+          usuarios y comercios y no garantiza la calidad de los productos o servicios.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>🔄 Modificaciones</h2>
+        <p>
+          Nos reservamos el derecho de actualizar estos términos en cualquier momento.
+          El uso continuado de la plataforma implica la aceptación de dichas modificaciones.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>📬 Contacto</h2>
+        <p>
+          Para consultas legales o generales, escribinos a
+          <a href="mailto:contacto@puntocerca.com.ar"
+             style="color:#ff6a00;font-weight:700;text-decoration:none;">
+            contacto@puntocerca.com.ar
+          </a>.
+        </p>
+      </section>
+
+    </main>
+
+    <div class="footer">
+      © 2026 PuntoCerca — Lo local nos conecta.
+    </div>
+
+  </div>
+
 </body>
 </html>
