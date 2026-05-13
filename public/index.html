@@ -151,49 +151,40 @@
 </header>
 <main>
 <!-- ================= HERO ================= -->
-<section class="relative min-h-[520px] flex items-center overflow-hidden">
+<section class="pc-hero">
 
-  <!-- IMAGEN DE FONDO -->
-  <div class="absolute inset-0">
-    <img 
-      src="/img/hero.png"
-      class="w-full h-full object-cover"
-    >
+  <div class="pc-hero-bg">
+    <img src="/img/hero.png" alt="PuntoCerca">
   </div>
 
-  <!-- OVERLAY NARANJA -->
-  <div class="absolute inset-0 bg-gradient-to-r from-orange-600/90 via-orange-500/80 to-orange-400/60"></div>
+  <div class="pc-hero-overlay"></div>
 
-  <!-- CONTENIDO -->
-  <div class="relative max-w-7xl mx-auto px-6 w-full">
+  <div class="pc-hero-floating pc-float-1">🛍️</div>
+  <div class="pc-hero-floating pc-float-2">📍</div>
+  <div class="pc-hero-floating pc-float-3">⭐</div>
 
-    <div class="max-w-xl text-white">
+  <div class="pc-hero-inner">
 
-      <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm mb-6">
+    <div class="pc-hero-content">
 
+      <span class="pc-hero-badge">
+        📍 Cerca tuyo, siempre
+      </span>
 
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>
-</svg>
-
-  Cerca tuyo, siempre
-</div>
-
-      <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-        Todo lo que necesitás,
-        <span class="text-orange-200">cerca tuyo</span>
+      <h1>
+        Negocios, productos y servicios cerca tuyo
       </h1>
 
-      <p class="text-lg text-white/90 mb-10">
-        Descubrí negocios reales, ofertas increíbles y productos de comercios locales.
+      <p>
+        Encontrá comercios reales, precios, ofertas y contacto directo por WhatsApp.
       </p>
 
-      <div class="flex gap-4">
-        <a href="/stores.html" class="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold">
+      <div class="pc-hero-actions">
+        <a href="/stores.html" class="pc-btn-main">
           Explorar negocios
         </a>
 
-        <a href="/map.html" class="border border-white px-6 py-3 rounded-full">
+        <a href="/map.html" class="pc-btn-secondary">
           Ver en el mapa
         </a>
       </div>
