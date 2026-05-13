@@ -1,31 +1,17 @@
 window.isOwner = false;
 window.allProducts = [];
 
-window.isOwner = false;
-window.allProducts = [];
+function formatPrice(value) {
+  const price = parseFloat(value);
 
-// 👇 PEGAR ACÁ
-function renderPriceSafe(p){
-
-  const price = parseFloat(p.price);
-  const oldPrice = p.old_price ? parseFloat(p.old_price) : null;
-
-  if (!price || price <= 0) {
-    return `<span class="consultar">Consultar</span>`;
+  if (isNaN(price) || price <= 0) {
+    return "Consultar";
   }
 
-  if (oldPrice && oldPrice > price) {
-    return `
-      <span class="old-price">$${oldPrice.toLocaleString("es-AR")}</span>
-      <span class="new-price">$${price.toLocaleString("es-AR")}</span>
-    `;
-  }
-
-  return `<span class="new-price">$${price.toLocaleString("es-AR")}</span>`;
+  return `$${price.toLocaleString("es-AR")}`;
 }
 
 window.initStoreProducts = async function (store) {
-
   const storeId = store?.id;
 
   if (!storeId) {
@@ -33,9 +19,11 @@ window.initStoreProducts = async function (store) {
     return;
   }
 
-  // 🔐 detectar dueño
+  // Detectar si es el dueño
   try {
-    const resUser = await fetch('/api/me', { credentials: 'include' });
+    const resUser = await fetch("/api/me", {
+      credentials: "include"
+    });
 
     if (resUser.ok) {
       const user = await resUser.json();
@@ -46,13 +34,12 @@ window.initStoreProducts = async function (store) {
     }
   } catch {}
 
-  // 📦 cargar productos
+  // Cargar productos
   try {
     const res = await fetch(`/api/stores/${storeId}/products`);
     const data = await res.json();
 
     window.allProducts = Array.isArray(data) ? data : [];
-
     renderProducts(window.allProducts);
 
   } catch (err) {
@@ -61,7 +48,6 @@ window.initStoreProducts = async function (store) {
 };
 
 function renderProducts(products) {
-
   const container = document.getElementById("storeProducts");
 
   if (!container) {
@@ -73,104 +59,56 @@ function renderProducts(products) {
 
   if (!products.length) {
     container.innerHTML = `
-      <p style="color:#888;">Esta tienda todavía no tiene productos</p>
+      <p style="color:#888;">Esta tienda todavía no tiene productos.</p>
     `;
     return;
   }
 
-  products.forEach(p => {
+  products.forEach((p) => {
+    const image = p.image_url || "/img/no-image.png";
+    const title = p.name || "Producto sin nombre";
+    const price = formatPrice(p.price);
+
+    const rating =
+      p.rating_avg && parseFloat(p.rating_avg) > 0
+        ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
+        : "Sin valoraciones";
+
+    const buttonText =
+      p.price && parseFloat(p.price) > 0
+        ? "Ver producto"
+        : "Consultar";
 
     const card = document.createElement("div");
     card.className = "product-card";
 
     card.innerHTML = `
       <div class="card-image">
-
-        ${p.is_offer ? `<span class="badge-offer">OFERTA</span>` : ""}
-
-        <img src="${p.image_url || '/img/no-image.png'}" alt="${p.name}" />
-
-        ${
-          window.isOwner
-            ? `
-            <div class="card-actions">
-              <button class="edit-btn">✏️</button>
-              <button class="delete-btn">🗑️</button>
-            </div>
-          `
-            : ""
-        }
-
+        <img src="${image}" alt="${title}">
       </div>
 
       <div class="card-body">
+        <h3 class="card-title">${title}</h3>
 
-        <h3 class="card-title">${p.name}</h3>
+        <div class="card-price">${price}</div>
 
-        <div class="card-price">
-          ${renderPriceSafe(p)}
-        </div>
+        <div class="card-rating">${rating}</div>
 
-        <div class="card-rating">
-          ${
-            p.rating_avg
-              ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
-              : "Sin valoraciones"
-          }
-        </div>
-
-        <button class="card-btn">
-  ${p.price && p.price > 0 ? "Ver producto" : "Consultar"}
-</button>
-
+        <button class="card-btn">${buttonText}</button>
       </div>
     `;
 
-    // 👉 click en toda la card
-    card.onclick = () => {
+    // Click en toda la tarjeta
+    card.addEventListener("click", () => {
       window.location.href = `/product/${p.slug || p.id}`;
-    };
+    });
 
-    // 🔥 botón consultar (evita conflicto click padre)
+    // Click en el botón
     const btn = card.querySelector(".card-btn");
     if (btn) {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         window.location.href = `/product/${p.slug || p.id}`;
-      });
-    }
-
-    // ✏️ editar
-    const editBtn = card.querySelector(".edit-btn");
-    if (editBtn) {
-      editBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.location.href = `/edit-product/${p.id}`;
-      });
-    }
-
-    // 🗑️ eliminar
-    const deleteBtn = card.querySelector(".delete-btn");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-
-        if (!confirm("¿Eliminar producto?")) return;
-
-        try {
-          const res = await fetch(`/api/products/${p.id}`, {
-            method: "DELETE",
-            credentials: "include"
-          });
-
-          if (!res.ok) throw new Error();
-
-          window.allProducts = window.allProducts.filter(prod => prod.id !== p.id);
-          renderProducts(window.allProducts);
-
-        } catch {
-          alert("Error eliminando");
-        }
       });
     }
 
