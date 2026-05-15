@@ -106,9 +106,11 @@ export const CATEGORIES = {
 ],
 
   "Automotor": [
+    { id: 107, name: "Gestoria" },
     { id: 23, name: "Taller mecánico" },
     { id: 24, name: "Lavadero" },
     { id: 25, name: "Gomería" },
+    
     { id: 26, name: "Repuestos" }
   ],
 
