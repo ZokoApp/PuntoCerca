@@ -6,6 +6,7 @@ export const CATEGORIES = {
     { id: 3, name: "Bar" },
     { id: 4, name: "Cafetería" },
      { id: 98, name: "Rotiseria" },
+    { id: 108, name: "Hamburgueseria" },
     { id: 5, name: "Heladería" }
     
   ],
