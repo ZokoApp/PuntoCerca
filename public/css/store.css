@@ -348,6 +348,12 @@ body.store-page{
   box-shadow:0 16px 35px rgba(37,211,102,.25);
 }
 
+.btn-share{
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
+  box-shadow:0 16px 35px rgba(37,99,235,.25);
+}
+
 /* =========================
    COMMENTS BADGE
 ========================= */
