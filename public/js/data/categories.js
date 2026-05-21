@@ -36,6 +36,7 @@ export const CATEGORIES = {
     { id: 82, name: "Minorista" },
     { id: 83, name: "Mayorista" },
     { id: 104, name: "Distribuidora" },
+    { id: 110, name: "Lenceria" },
     
   { id: 7, name: "Electrónica general" },
   { id: 62, name: "Celulares" },
@@ -47,7 +48,7 @@ export const CATEGORIES = {
     
 
   { id: 8, name: "Ferretería" },
-      { id: 107, name: "Regaleria" },
+      { id: 109, name: "Regaleria" },
   { id: 9, name: "Librería" }
 ],
 
