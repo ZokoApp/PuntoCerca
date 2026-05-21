@@ -85,6 +85,8 @@ export const CATEGORIES = {
     { id: 14, name: "Clínica" },
     { id: 15, name: "Odontología" },
     { id: 16, name: "Farmacia" },
+    { id: 112, name: "Fonoaudiologia" },
+    { id: 113, name: "Psicopedagogia" },
     { id: 17, name: "Psicología" }
   ],
 
@@ -97,7 +99,7 @@ export const CATEGORIES = {
   { id: 61, name: "Cerrajeria" },
     { id: 103, name: "Flete" },
     { id: 106, name: "Rotulaciones" },
-     { id: 111, name: "Soda y Aguas" },
+     { id: 111, name: "Sodas y Aguas" },
 
   // 🔥 NUEVAS
   { id: 56, name: "Refrigeración" },
