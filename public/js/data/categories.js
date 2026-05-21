@@ -97,6 +97,7 @@ export const CATEGORIES = {
   { id: 61, name: "Cerrajeria" },
     { id: 103, name: "Flete" },
     { id: 106, name: "Rotulaciones" },
+     { id: 111, name: "Soda y Aguas" },
 
   // 🔥 NUEVAS
   { id: 56, name: "Refrigeración" },
