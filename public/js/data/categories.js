@@ -46,6 +46,7 @@ export const CATEGORIES = {
   { id: 66, name: "Audio" },
   { id: 67, name: "Gaming" },
     
+    
 
   { id: 8, name: "Ferretería" },
       { id: 109, name: "Regaleria" },
@@ -98,6 +99,7 @@ export const CATEGORIES = {
   { id: 22, name: "Reparaciones" },
   { id: 61, name: "Cerrajeria" },
     { id: 103, name: "Flete" },
+    { id: 114, name: "Sublimados" },
     { id: 106, name: "Rotulaciones" },
      { id: 111, name: "Sodas y Aguas" },
 
