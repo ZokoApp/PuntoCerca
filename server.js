@@ -52,7 +52,7 @@ const pdfStorage = new CloudinaryStorage({
   params: async (req, file) => {
     return {
       folder: "puntocerca/catalogs",
-      resource_type: "raw",
+      resource_type: "image",
       format: "pdf"
     };
   },
