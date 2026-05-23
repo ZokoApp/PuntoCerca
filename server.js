@@ -2249,7 +2249,74 @@ app.delete("/api/events/:id", authMiddleware, async (req, res) => {
     res.json({ ok:true });
   
   });
-  
+  // ================================
+// SUBIR CATALOGO PDF
+// ================================
+
+app.post(
+  "/api/store-catalog",
+  authenticateToken,
+  uploadPDF.single("catalog"),
+  async (req, res) => {
+
+    try {
+
+      const userId = req.user.id;
+
+      // buscar tienda del usuario
+      const storeResult = await pool.query(
+        `
+        SELECT id
+        FROM stores
+        WHERE user_id = $1
+        `,
+        [userId]
+      );
+
+      if (!storeResult.rows.length) {
+        return res.status(404).json({
+          error: "Tienda no encontrada"
+        });
+      }
+
+      const storeId = storeResult.rows[0].id;
+
+      // pdf subido
+      const pdfUrl = req.file?.path;
+
+      if (!pdfUrl) {
+        return res.status(400).json({
+          error: "PDF requerido"
+        });
+      }
+
+      // guardar url
+      await pool.query(
+        `
+        UPDATE stores
+        SET catalog_pdf_url = $1
+        WHERE id = $2
+        `,
+        [pdfUrl, storeId]
+      );
+
+      res.json({
+        success: true,
+        pdfUrl
+      });
+
+    } catch (err) {
+
+      console.error("UPLOAD PDF ERROR:", err);
+
+      res.status(500).json({
+        error: "Error subiendo PDF"
+      });
+
+    }
+
+  }
+);
   
   app.delete('/api/follow/:storeId', authMiddleware, async (req, res) => {
   
