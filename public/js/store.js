@@ -1034,36 +1034,17 @@ const closeCatalogOverlay =
 const catalogModal =
   document.getElementById("catalogModal");
 
-const catalogFrame =
-  document.getElementById("catalogFrame");
-
 if(store.catalog_pdf_url){
 
   catalogSection.classList.remove("hidden");
 
   openCatalogBtn.onclick = () => {
 
- catalogFrame.src =
-`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(store.catalog_pdf_url)}`;;
+    window.open(store.catalog_pdf_url, "_blank");
 
-    catalogModal.classList.remove("hidden");
-
-    document.body.style.overflow = "hidden";
   };
 
-  const closeCatalog = () => {
-
-    catalogModal.classList.add("hidden");
-
-    catalogFrame.src = "";
-
-    document.body.style.overflow = "";
-  };
-
-  closeCatalogBtn.onclick = closeCatalog;
-
-  closeCatalogOverlay.onclick = closeCatalog;
-
+}
 }
 
   const stats = document.getElementById("storeStats");
