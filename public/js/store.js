@@ -939,10 +939,6 @@ function getSubcategoryNames(ids) {
     .filter(Boolean);
 }
 
-/* ================================
-   RENDER
-================================ */
-
 function renderStore(store){
 
   if(store.error){
@@ -950,141 +946,182 @@ function renderStore(store){
     return;
   }
 
+  /* ================================
+     COVER
+  ================================= */
+
   const cover = document.getElementById("storeCover");
- if (store.cover_url) {
-  cover.style.backgroundImage = `url('${store.cover_url}')`;
-  cover.style.backgroundSize = "cover";
-  cover.style.backgroundPosition = "center";
-  cover.style.backgroundRepeat = "no-repeat";
-} else {
-  cover.style.background = "linear-gradient(135deg,#ff6a00,#ff8c42)";
-}
-   
 
-  if(store.logo_url){
-    document.getElementById("storeLogo").style.backgroundImage =
-      `url('${store.logo_url}')`;
+  if (store.cover_url) {
+
+    cover.style.backgroundImage =
+      `url('${store.cover_url}')`;
+
+    cover.style.backgroundSize = "cover";
+    cover.style.backgroundPosition = "center";
+    cover.style.backgroundRepeat = "no-repeat";
+
+  } else {
+
+    cover.style.background =
+      "linear-gradient(135deg,#ff6a00,#ff8c42)";
   }
-
-  document.getElementById("storeName").innerText = store.name;
-
-  // 🔥 STATUS separado
-  updateStoreStatus(store);
-
-  let subcategoryText = "";
-
-if (store.subcategory_ids) {
-  try {
-    const subs = typeof store.subcategory_ids === "string"
-      ? JSON.parse(store.subcategory_ids)
-      : store.subcategory_ids;
-
-    if (Array.isArray(subs) && subs.length > 0) {
-      subcategoryText = subs[0];
-    }
-  } catch (error) {
-    console.error("Error leyendo subcategorías:", error);
-  }
-}
-
-const subNames = getSubcategoryNames(store.subcategory_ids);
-
-document.getElementById("storeCategory").innerText =
-  subNames.length > 0
-    ? subNames.join(" • ")
-    : "";
-const addressParts = [];
-
-if (store.street) {
-  addressParts.push(store.street);
-}
-
-if (store.local) {
-  addressParts.push(`Local ${store.local}`);
-}
-
-if (store.apartment) {
-  addressParts.push(`Piso/Dpto ${store.apartment}`);
-}
-
-const fullAddress = addressParts.join(" · ");
-
-document.getElementById("storeAddress").innerText =
-  fullAddress || "Sin dirección";
-
- document.getElementById("storeDescription").innerText =
-  store.description || "";
 
   /* ================================
-   CATALOGO PDF
-================================ */
+     LOGO
+  ================================= */
 
-const catalogSection =
-  document.getElementById("catalogSection");
+  if(store.logo_url){
 
-const openCatalogBtn =
-  document.getElementById("openCatalogBtn");
+    document.getElementById("storeLogo")
+      .style.backgroundImage =
+      `url('${store.logo_url}')`;
 
-const closeCatalogBtn =
-  document.getElementById("closeCatalogBtn");
+  }
 
-const closeCatalogOverlay =
-  document.getElementById("closeCatalogOverlay");
+  /* ================================
+     INFO
+  ================================= */
 
-const catalogModal =
-  document.getElementById("catalogModal");
+  document.getElementById("storeName").innerText =
+    store.name;
 
-if(store.catalog_pdf_url){
+  updateStoreStatus(store);
 
-  catalogSection.classList.remove("hidden");
+  const subNames =
+    getSubcategoryNames(store.subcategory_ids);
 
-  openCatalogBtn.onclick = () => {
+  document.getElementById("storeCategory").innerText =
+    subNames.length > 0
+      ? subNames.join(" • ")
+      : "";
 
-   const pdfUrl =
+  const addressParts = [];
+
+  if (store.street) {
+    addressParts.push(store.street);
+  }
+
+  if (store.local) {
+    addressParts.push(`Local ${store.local}`);
+  }
+
+  if (store.apartment) {
+    addressParts.push(`Piso/Dpto ${store.apartment}`);
+  }
+
+  const fullAddress = addressParts.join(" · ");
+
+  document.getElementById("storeAddress").innerText =
+    fullAddress || "Sin dirección";
+
+  document.getElementById("storeDescription").innerText =
+    store.description || "";
+
+  /* ================================
+     CATALOGO PDF
+  ================================= */
+
+  const catalogSection =
+    document.getElementById("catalogSection");
+
+  const openCatalogBtn =
+    document.getElementById("openCatalogBtn");
+
+  if (
+    store.catalog_pdf_url &&
+    catalogSection &&
+    openCatalogBtn
+  ){
+
+    catalogSection.classList.remove("hidden");
+
+    openCatalogBtn.onclick = () => {
+
+      const pdfUrl =
   store.catalog_pdf_url.replace(
     "/upload/",
-    "/upload/fl_attachment:false/"
+    "/upload/fl_inline/"
   );
 
 window.open(pdfUrl, "_blank");
 
-  };
 
-}
-}
+    };
 
-  const stats = document.getElementById("storeStats");
-
-// estrellas visuales
-function renderStars(avg) {
-  const rating = Math.round(avg || 0);
-  let stars = "";
-
-  for (let i = 1; i <= 5; i++) {
-    stars += i <= rating ? "★" : "☆";
   }
 
-  return stars;
+  /* ================================
+     STATS
+  ================================= */
+
+  const stats =
+    document.getElementById("storeStats");
+
+  function renderStars(avg){
+
+    const rating = Math.round(avg || 0);
+
+    let stars = "";
+
+    for(let i = 1; i <= 5; i++){
+
+      stars += i <= rating
+        ? "★"
+        : "☆";
+
+    }
+
+    return stars;
+  }
+
+  if(stats){
+
+    stats.innerHTML = `
+      <div style="
+        display:flex;
+        gap:12px;
+        align-items:center;
+        margin-top:6px;
+        font-size:14px;
+        flex-wrap:wrap;
+      ">
+
+        <span style="color:#f59e0b;">
+          ${renderStars(Number(store.rating_avg))}
+        </span>
+
+        <span style="color:#666;">
+          (${store.rating_count || 0})
+        </span>
+
+        <span
+          id="followersCount"
+          style="color:#666;"
+        ></span>
+
+      </div>
+    `;
+
+    fetch(`/api/store-followers/${store.id}`)
+      .then(res => res.json())
+      .then(data => {
+
+        const followersEl =
+          document.getElementById("followersCount");
+
+        if(followersEl){
+
+          followersEl.innerText =
+            `${data.count} seguidores`;
+
+        }
+
+      });
+
+  }
+
 }
-
-stats.innerHTML = `
-  <div style="display:flex; gap:12px; align-items:center; margin-top:6px; font-size:14px;">
-    <span style="color:#f59e0b;">
-     ${renderStars(Number(store.rating_avg))}
-    </span>
-    <span style="color:#666;">
-      (${store.rating_count || 0})
-    </span>
-    <span id="followersCount" style="color:#666;"></span>
-  </div>
-`;
-
-fetch(`/api/store-followers/${store.id}`)
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("followersCount").innerText =
-      `${data.count} seguidores`;
-  });
 
 
 async function deleteComment(commentId) {
