@@ -77,7 +77,7 @@ const eventStorage = new CloudinaryStorage({
 });
 
 const uploadEvent = multer({
-  storage,
+ storage: eventStorage,
   limits: { 
     fileSize: 2 * 1024 * 1024, // 2MB
     files: 1
@@ -2287,7 +2287,10 @@ app.post(
       const storeId = storeResult.rows[0].id;
 
       // pdf subido
-      const pdfUrl = req.file?.path;
+      const pdfUrl = cloudinary.url(req.file.filename, {
+  resource_type: "raw",
+  secure: true
+});
 
       if (!pdfUrl) {
         return res.status(400).json({
