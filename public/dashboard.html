@@ -123,6 +123,64 @@
 </div>
 
   </main>
+  <!-- =========================
+     MODAL CATALOGO PDF
+========================= -->
+<div id="catalogModal" class="catalog-modal hidden">
+
+  <div class="catalog-modal-content">
+
+    <div class="catalog-modal-header">
+      <h2>📘 Catálogo PDF</h2>
+
+      <button
+        id="closeCatalogModal"
+        class="catalog-close"
+        type="button"
+      >
+        ✕
+      </button>
+    </div>
+
+    <form id="catalogForm" class="catalog-form">
+
+      <div class="catalog-form-group">
+        <label>Título del catálogo</label>
+
+        <input
+          type="text"
+          id="catalogTitle"
+          placeholder="Ej: Menú 2026 / Lista de precios"
+        >
+      </div>
+
+      <div class="catalog-form-group">
+
+        <label>Archivo PDF</label>
+
+        <div class="catalog-upload">
+
+          <input
+            type="file"
+            id="catalogPdf"
+            accept="application/pdf"
+          >
+
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="catalog-submit"
+      >
+        Guardar catálogo
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
 
  <script type="module" src="/js/dashboard.js"></script>
 </body>
