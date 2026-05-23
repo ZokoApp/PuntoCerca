@@ -1057,17 +1057,17 @@ function renderStore(store){
         ✕
       </button>
 
-      <iframe
-        src="${store.catalog_pdf_url}"
-        frameborder="0"
-        allowfullscreen
-        style="
-          width:100%;
-          height:100%;
-          border:none;
-          background:#fff;
-        "
-      ></iframe>
+      <embed
+  src="${store.catalog_pdf_url}"
+  type="application/pdf"
+  width="100%"
+  height="100%"
+  style="
+    border:none;
+    border-radius:20px;
+    background:#fff;
+  "
+/>
 
     </div>
   `;
