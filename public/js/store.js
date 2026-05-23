@@ -1079,7 +1079,7 @@ fetch(`/api/store-followers/${store.id}`)
     document.getElementById("followersCount").innerText =
       `${data.count} seguidores`;
   });
-}
+
 
 async function deleteComment(commentId) {
   if (!confirm("¿Eliminar comentario?")) return;
