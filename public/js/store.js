@@ -1040,7 +1040,13 @@ if(store.catalog_pdf_url){
 
   openCatalogBtn.onclick = () => {
 
-    window.open(store.catalog_pdf_url, "_blank");
+   const pdfUrl =
+  store.catalog_pdf_url.replace(
+    "/upload/",
+    "/upload/fl_attachment:false/"
+  );
+
+window.open(pdfUrl, "_blank");
 
   };
 
