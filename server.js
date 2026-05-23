@@ -49,10 +49,15 @@ require('dotenv').config();
 
 const pdfStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: "puntocerca/catalogs",
-    resource_type: "raw",
-    format: "pdf",
+  params: async (req, file) => {
+
+    return {
+      folder: "puntocerca/catalogs",
+      resource_type: "raw",
+      type: "upload",
+      access_mode: "public"
+    };
+
   },
 });
 
