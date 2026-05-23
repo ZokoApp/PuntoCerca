@@ -2283,11 +2283,7 @@ app.post(
 
       const storeId = storeResult.rows[0].id;
 
-      // pdf subido
-      const pdfUrl = cloudinary.url(req.file.filename, {
-  resource_type: "raw",
-  secure: true
-});
+      const pdfUrl = req.file.path;
 
       if (!pdfUrl) {
         return res.status(400).json({
