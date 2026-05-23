@@ -811,4 +811,106 @@ body.store-page{
   }
 }
 
+/* =========================
+   CATALOGO PDF
+========================= */
+
+.catalog-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+  padding:28px;
+  border-radius:28px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,106,0,.08),
+      rgba(255,154,60,.04)
+    );
+  border:1px solid rgba(255,106,0,.10);
+  box-shadow:0 18px 40px rgba(15,23,42,.06);
+}
+
+.catalog-info{
+  flex:1;
+}
+
+.catalog-modal{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:24px;
+}
+
+.catalog-modal-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(6px);
+}
+
+.catalog-modal-content{
+  position:relative;
+  width:min(1400px, 95vw);
+  height:min(92vh, 1000px);
+  background:#fff;
+  border-radius:28px;
+  overflow:hidden;
+  z-index:2;
+  box-shadow:0 40px 120px rgba(0,0,0,.35);
+}
+
+.catalog-close-btn{
+  position:absolute;
+  top:18px;
+  right:18px;
+  width:46px;
+  height:46px;
+  border:none;
+  border-radius:50%;
+  background:#111827;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+  z-index:3;
+}
+
+#catalogFrame{
+  width:100%;
+  height:100%;
+  border:none;
+  background:#fff;
+}
+
+/* =========================
+   RESPONSIVE PDF
+========================= */
+
+@media (max-width:768px){
+
+  .catalog-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .catalog-card .btn{
+    width:100%;
+  }
+
+  .catalog-modal{
+    padding:10px;
+  }
+
+  .catalog-modal-content{
+    width:100%;
+    height:92vh;
+    border-radius:20px;
+  }
+
+}
+
 
