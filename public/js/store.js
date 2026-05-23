@@ -1043,8 +1043,8 @@ if(store.catalog_pdf_url){
 
   openCatalogBtn.onclick = () => {
 
-    catalogFrame.src =
-      store.catalog_pdf_url;
+ catalogFrame.src =
+`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(store.catalog_pdf_url)}`;;
 
     catalogModal.classList.remove("hidden");
 
