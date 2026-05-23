@@ -1038,13 +1038,52 @@ function renderStore(store){
 
     openCatalogBtn.onclick = () => {
 
-      const pdfUrl =
-  store.catalog_pdf_url.replace(
-    "/upload/",
-    "/upload/fl_inline/"
-  );
+   openCatalogBtn.onclick = () => {
 
-window.open(pdfUrl, "_blank");
+  let modal = document.getElementById("pdfViewerModal");
+
+  if (!modal) {
+
+    modal = document.createElement("div");
+
+    modal.id = "pdfViewerModal";
+
+    modal.innerHTML = `
+      <div class="pdf-modal-overlay"></div>
+
+      <div class="pdf-modal-content">
+
+        <button id="closePdfModal" class="pdf-close-btn">
+          ✕
+        </button>
+
+        <iframe
+          src="${store.catalog_pdf_url}"
+          frameborder="0"
+          style="
+            width:100%;
+            height:100%;
+            border:none;
+            border-radius:18px;
+            background:#fff;
+          "
+        ></iframe>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById("closePdfModal").onclick = () => {
+      modal.remove();
+    };
+
+    modal.querySelector(".pdf-modal-overlay").onclick = () => {
+      modal.remove();
+    };
+  }
+
+};
 
 
     };
