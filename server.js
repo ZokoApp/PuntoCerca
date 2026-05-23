@@ -2255,7 +2255,7 @@ app.delete("/api/events/:id", authMiddleware, async (req, res) => {
 
 app.post(
   "/api/store-catalog",
-  authenticateToken,
+  authMiddleware,
   uploadPDF.single("catalog"),
   async (req, res) => {
 
