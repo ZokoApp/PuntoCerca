@@ -287,3 +287,83 @@ if(catalogModal){
   });
 
 }
+/* ================================
+   SUBIR PDF
+================================ */
+
+const catalogForm =
+  document.getElementById("catalogForm");
+
+if(catalogForm){
+
+  catalogForm.addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+
+    const fileInput =
+      document.getElementById("catalogPdf");
+
+    const file =
+      fileInput.files[0];
+
+    if(!file){
+
+      alert("Seleccioná un PDF");
+
+      return;
+    }
+
+    const submitBtn =
+      catalogForm.querySelector(".catalog-submit");
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Subiendo PDF...";
+
+    try{
+
+      const formData = new FormData();
+
+      formData.append("catalog", file);
+
+      const res = await fetch(
+        "/api/store-catalog",
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include"
+        }
+      );
+
+      const data = await res.json();
+
+      if(!res.ok){
+
+        throw new Error(
+          data.error || "Error subiendo PDF"
+        );
+
+      }
+
+      alert("Catálogo subido correctamente");
+
+      catalogModal.classList.add("hidden");
+
+      catalogForm.reset();
+
+    }catch(err){
+
+      console.error(err);
+
+      alert(err.message);
+
+    }finally{
+
+      submitBtn.disabled = false;
+      submitBtn.textContent =
+        "Guardar catálogo";
+
+    }
+
+  });
+
+}
