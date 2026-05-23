@@ -1038,55 +1038,51 @@ function renderStore(store){
 
     openCatalogBtn.onclick = () => {
 
-   openCatalogBtn.onclick = () => {
-
   let modal = document.getElementById("pdfViewerModal");
 
-  if (!modal) {
-
-    modal = document.createElement("div");
-
-    modal.id = "pdfViewerModal";
-
-    modal.innerHTML = `
-      <div class="pdf-modal-overlay"></div>
-
-      <div class="pdf-modal-content">
-
-        <button id="closePdfModal" class="pdf-close-btn">
-          ✕
-        </button>
-
-        <iframe
-          src="${store.catalog_pdf_url}"
-          frameborder="0"
-          style="
-            width:100%;
-            height:100%;
-            border:none;
-            border-radius:18px;
-            background:#fff;
-          "
-        ></iframe>
-
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    document.getElementById("closePdfModal").onclick = () => {
-      modal.remove();
-    };
-
-    modal.querySelector(".pdf-modal-overlay").onclick = () => {
-      modal.remove();
-    };
+  if (modal) {
+    modal.remove();
   }
 
+  modal = document.createElement("div");
+
+  modal.id = "pdfViewerModal";
+
+  modal.innerHTML = `
+    <div class="pdf-modal-overlay"></div>
+
+    <div class="pdf-modal-content">
+
+      <button id="closePdfModal" class="pdf-close-btn">
+        ✕
+      </button>
+
+      <iframe
+        src="${store.catalog_pdf_url}"
+        frameborder="0"
+        allowfullscreen
+        style="
+          width:100%;
+          height:100%;
+          border:none;
+          background:#fff;
+        "
+      ></iframe>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById("closePdfModal").onclick = () => {
+    modal.remove();
+  };
+
+  modal.querySelector(".pdf-modal-overlay").onclick = () => {
+    modal.remove();
+  };
+
 };
-
-
-    };
 
   }
 
