@@ -1015,6 +1015,57 @@ document.getElementById("storeAddress").innerText =
  document.getElementById("storeDescription").innerText =
   store.description || "";
 
+  /* ================================
+   CATALOGO PDF
+================================ */
+
+const catalogSection =
+  document.getElementById("catalogSection");
+
+const openCatalogBtn =
+  document.getElementById("openCatalogBtn");
+
+const closeCatalogBtn =
+  document.getElementById("closeCatalogBtn");
+
+const closeCatalogOverlay =
+  document.getElementById("closeCatalogOverlay");
+
+const catalogModal =
+  document.getElementById("catalogModal");
+
+const catalogFrame =
+  document.getElementById("catalogFrame");
+
+if(store.catalog_pdf_url){
+
+  catalogSection.classList.remove("hidden");
+
+  openCatalogBtn.onclick = () => {
+
+    catalogFrame.src =
+      store.catalog_pdf_url;
+
+    catalogModal.classList.remove("hidden");
+
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeCatalog = () => {
+
+    catalogModal.classList.add("hidden");
+
+    catalogFrame.src = "";
+
+    document.body.style.overflow = "";
+  };
+
+  closeCatalogBtn.onclick = closeCatalog;
+
+  closeCatalogOverlay.onclick = closeCatalog;
+
+}
+
   const stats = document.getElementById("storeStats");
 
 // estrellas visuales
