@@ -239,3 +239,51 @@ async function loadFollowingStores(){
     console.error("Error cargando seguidos", err);
   }
 }
+
+/* ================================
+   PDF CATALOG MODAL
+================================ */
+
+const catalogModal =
+  document.getElementById("catalogModal");
+
+const openCatalogModal =
+  document.getElementById("openCatalogModal");
+
+const closeCatalogModal =
+  document.getElementById("closeCatalogModal");
+
+if(openCatalogModal && catalogModal){
+
+  openCatalogModal.addEventListener("click", () => {
+
+    catalogModal.classList.remove("hidden");
+
+  });
+
+}
+
+if(closeCatalogModal && catalogModal){
+
+  closeCatalogModal.addEventListener("click", () => {
+
+    catalogModal.classList.add("hidden");
+
+  });
+
+}
+
+// cerrar clickeando afuera
+if(catalogModal){
+
+  catalogModal.addEventListener("click", (e) => {
+
+    if(e.target === catalogModal){
+
+      catalogModal.classList.add("hidden");
+
+    }
+
+  });
+
+}
