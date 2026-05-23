@@ -43,6 +43,25 @@ require('dotenv').config();
     storage,
     limits: { files: 5 }
   });
+// ================================
+// PDF STORAGE
+// ================================
+
+const pdfStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "puntocerca/catalogs",
+    resource_type: "raw",
+    format: "pdf",
+  },
+});
+
+const uploadPDF = multer({
+  storage: pdfStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  }
+});
 
 const eventStorage = new CloudinaryStorage({
   cloudinary,
