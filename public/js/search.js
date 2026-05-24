@@ -83,7 +83,16 @@ async function search(){
       return;
     }
 
-    data.forEach(item => {
+ const productsCount = data.filter(i => i.type === "product").length;
+const storesCount = data.filter(i => i.type !== "product").length;
+
+const productsCountEl = document.getElementById("productsCount");
+const storesCountEl = document.getElementById("storesCount");
+
+if (productsCountEl) productsCountEl.textContent = productsCount;
+if (storesCountEl) storesCountEl.textContent = storesCount;
+
+data.forEach(item => {
 
       const card = document.createElement("div");
 
@@ -184,7 +193,7 @@ async function search(){
             <h3 class="store-name">${item.name}</h3>
 
             <p class="store-meta">
-              📍 ${item.address || item.street || 'Sin dirección'}
+              ${item.address || item.street || 'Sin dirección'}
             </p>
 
             <p class="store-meta">
@@ -193,9 +202,9 @@ async function search(){
 
             <div class="store-rating">
               ${
-                item.rating_avg
-                  ? `⭐ ${Number(item.rating_avg).toFixed(1)} (${item.rating_count || 0})`
-                  : 'Sin valoraciones'
+               item.rating_avg
+  ? `★ ${Number(item.rating_avg).toFixed(1)} (${item.rating_count || 0})`
+  : 'Sin valoraciones'
               }
             </div>
 
