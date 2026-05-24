@@ -330,28 +330,42 @@ body.store-page{
   opacity:1;
 }
 
-.btn-primary{
-  color:#fff;
-  background:linear-gradient(135deg,var(--primary),var(--primary-light));
-  box-shadow:0 16px 35px rgba(255,106,0,.28);
-}
-
-.btn-follow{
-  color:#fff;
-  background:linear-gradient(135deg,#111827,#374151);
-  box-shadow:0 16px 35px rgba(17,24,39,.18);
-}
-
 .btn-whatsapp{
   color:#fff;
   background:linear-gradient(135deg,#25D366,#1ebc57);
-  box-shadow:0 16px 35px rgba(37,211,102,.25);
+  box-shadow:0 16px 35px rgba(37,211,102,.22);
+}
+
+.btn-primary{
+  color:var(--primary);
+  background:#fff;
+  border:2px solid rgba(255,106,0,.20);
+  box-shadow:0 8px 24px rgba(255,106,0,.10);
+}
+
+.btn-follow{
+  color:#374151;
+  background:#fff;
+  border:2px solid #e5e7eb;
+  box-shadow:0 8px 24px rgba(15,23,42,.06);
 }
 
 .btn-share{
-  color:#fff;
-  background:linear-gradient(135deg,#2563eb,#38bdf8);
-  box-shadow:0 16px 35px rgba(37,99,235,.25);
+  color:#374151;
+  background:#fff;
+  border:2px solid #e5e7eb;
+  box-shadow:0 8px 24px rgba(15,23,42,.06);
+}
+
+.btn-primary:hover{
+  background:#fff7ed;
+  border-color:rgba(255,106,0,.35);
+}
+
+.btn-follow:hover,
+.btn-share:hover{
+  background:#f9fafb;
+  border-color:#d1d5db;
 }
 
 /* =========================
