@@ -280,12 +280,95 @@ async function createNotification(userId, type, title, message, link = null) {
               to: email,
               subject: "Verifica tu cuenta - PuntoCerca",
               html: `
-                  <h2>Verifica tu cuenta</h2>
-                  <p>Haz click en el siguiente enlace:</p>
-                  <a href="${verificationLink}">
-                    Verificar Email
-                  </a>
-              `
+                  html: `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Segoe UI',sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#ea580c,#f97316);padding:40px 40px 30px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:900;letter-spacing:-0.5px;">
+                <span style="color:#fff3e0;">Punto</span>Cerca
+              </h1>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                Conectando comercios con personas
+              </p>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:40px;">
+
+              <h2 style="margin:0 0 12px;font-size:22px;color:#111827;font-weight:800;">
+                ¡Verificá tu cuenta! 👋
+              </h2>
+
+              <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">
+                Gracias por registrarte en <strong style="color:#ea580c;">PuntoCerca</strong>. 
+                Para activar tu cuenta y empezar a conectar con comercios cerca tuyo, 
+                hacé click en el botón de abajo.
+              </p>
+
+              <!-- BOTÓN -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:20px 0;">
+                    <a href="${verificationLink}"
+                      style="display:inline-block;background:linear-gradient(135deg,#ea580c,#f97316);color:#ffffff;text-decoration:none;font-size:16px;font-weight:800;padding:16px 40px;border-radius:999px;box-shadow:0 8px 20px rgba(234,88,12,0.35);">
+                      ✅ Verificar mi cuenta
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;text-align:center;">
+                O copiá este enlace en tu navegador:
+              </p>
+              <p style="margin:0 0 24px;font-size:12px;color:#d1d5db;text-align:center;word-break:break-all;">
+                ${verificationLink}
+              </p>
+
+              <!-- ALERTA -->
+              <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;">
+                <p style="margin:0;font-size:13px;color:#92400e;">
+                  ⚠️ Si no creaste una cuenta en PuntoCerca, ignorá este mensaje.
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
+              <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;">
+                © PuntoCerca · Todos los derechos reservados
+              </p>
+              <p style="margin:0;font-size:12px;color:#d1d5db;">
+                contacto@puntocerca.com.ar
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+`
           });
   
           res.status(201).json({
