@@ -249,7 +249,8 @@ const togglePassword = document.getElementById("togglePassword");
 const passwordInput = document.getElementById("password");
 
 if (togglePassword && passwordInput) {
- togglePassword.addEventListener("click", () => {
+  const eyeIcon = document.getElementById("eyeIcon");
+  togglePassword.addEventListener("click", () => {
   const isHidden = passwordInput.type === "password";
   passwordInput.type = isHidden ? "text" : "password";
   eyeIcon.setAttribute("stroke-width", "1.5");
