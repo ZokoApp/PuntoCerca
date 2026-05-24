@@ -63,7 +63,7 @@ function getStoreStatusInfo(store) {
     const openTime = oh * 60 + om;
     const closeTime = ch * 60 + cm;
 
-    // 🔥 CRUCE DE MEDIANOCHE (esto es lo que te estaba rompiendo TODO)
+  
     if (closeTime < openTime) {
       if (current >= openTime || current <= closeTime) {
         return {
@@ -160,7 +160,7 @@ setTimeout(() => {
 
   export async function loadStores(category = null, subcategory_id = null) {
 
-  // 🔥 si no viene del menú, leer selects (si existen)
+
   if (!category) {
     const select = document.getElementById("filterCategory");
     if (select && select.value) {
@@ -308,7 +308,7 @@ card.innerHTML = `
   </div>
 
   <div class="card-buttons">
-    <button class="btn-view">Ver tienda</button>
+    <button class="btn-view">Ver</button>
     <button class="btn-map">Ver en mapa</button>
   </div>
 `;
