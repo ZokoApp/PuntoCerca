@@ -3198,10 +3198,37 @@ html = html.replace(
               [user.id]
           );
   
-          res.send(`
-              <h2>Email verificado correctamente ✅</h2>
-              <a href="/login">Ir al login</a>
-          `);
+         res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email verificado - PuntoCerca</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background:#f4f4f4; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { background:#fff; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,0.10); padding:48px 40px; max-width:440px; width:90%; text-align:center; }
+    .icon { font-size:64px; margin-bottom:20px; }
+    .brand { font-size:24px; font-weight:900; margin-bottom:24px; }
+    .brand span { color:#ea580c; }
+    h1 { font-size:22px; color:#111827; font-weight:800; margin-bottom:12px; }
+    p { font-size:15px; color:#6b7280; line-height:1.7; margin-bottom:32px; }
+    a { display:inline-block; background:linear-gradient(135deg,#ea580c,#f97316); color:#fff; text-decoration:none; font-size:16px; font-weight:800; padding:14px 36px; border-radius:999px; box-shadow:0 8px 20px rgba(234,88,12,0.30); }
+    a:hover { opacity:0.9; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">✅</div>
+    <div class="brand"><span>Punto</span>Cerca</div>
+    <h1>¡Tu cuenta fue verificada!</h1>
+    <p>Ya podés iniciar sesión y empezar a descubrir comercios, productos y servicios cerca tuyo.</p>
+    <a href="/login">Iniciar sesión</a>
+  </div>
+</body>
+</html>
+`);
   
       } catch (error) {
           console.error(error);
