@@ -1,5 +1,20 @@
 import { CATEGORIES } from './data/categories.js';
 
+function showToast(message, type = "success") {
+  const colors = {
+    success: "bg-green-500",
+    error: "bg-red-500",
+    warning: "bg-yellow-500",
+    info: "bg-blue-500"
+  };
+  const toast = document.createElement("div");
+  toast.className = `${colors[type]} text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 mb-2`;
+  toast.innerHTML = `<span>${message}</span><button class="ml-auto font-bold">✕</button>`;
+  document.getElementById("toastContainer").appendChild(toast);
+  toast.querySelector("button").onclick = () => toast.remove();
+  setTimeout(() => toast.remove(), 4000);
+}
+
 const CATEGORY_MAP = CATEGORIES;
 let store = null;
 
@@ -45,7 +60,7 @@ document.querySelectorAll(".add-range").forEach(btn => {
   console.log("Modo creación de tienda");
   store = null; // 🔥 IMPORTANTE
 } else if (!res.ok) {
-  alert("Error cargando tienda");
+  showToast("Error cargando tienda", "error");
   return;
 } else {
   store = await res.json();
@@ -646,7 +661,7 @@ openMapBtn.addEventListener("click", async () => {
 
   } catch (err) {
     console.error(err);
-    alert("Error cargando Google Maps");
+    showToast("Error cargando el mapa", "error");
   }
 });
 
@@ -662,7 +677,7 @@ saveLocationBtn.addEventListener("click", () => {
 
     e.preventDefault();
     if (!placeSelected) {
-  alert("Seleccioná una dirección válida de la lista");
+  showToast("Seleccioná una dirección válida", "warning");
   return;
 }
 
@@ -718,17 +733,17 @@ if (store && store.id) {
       if (res.ok) {
   const savedStore = await res.json();
 
-  alert(store ? "Tienda actualizada 🚀" : "Tienda creada 🚀");
+  showToast(store ? "Tienda actualizada correctamente" : "Tienda creada correctamente", "success");
 
   window.location.href = `/${savedStore.slug}`;
 } else {
   const errorData = await res.json().catch(() => ({}));
-  alert(errorData.error || "Error al guardar");
+ showToast(errorData.error || "Error al guardar", "error");
 }
 
     } catch (err){
       console.error(err);
-      alert("Error de conexión");
+      showToast("Error de conexión", "error");
     }
 
    
