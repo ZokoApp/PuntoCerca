@@ -175,30 +175,40 @@ if (categoriesContainer) {
   ];
 
   const icons = {
-    "Gastronomía": "🍔",
-    "Alimentos": "🛒",
-    "Belleza": "💄",
-    "Salud": "➕",
-    "Servicios": "🛠",
-    "Automotor": "🚗",
-    "Hogar": "🏠"
-  };
+  "Gastronomía": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h18" /></svg>`,
+  "Alimentos": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>`,
+  "Belleza": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>`,
+  "Salud": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+  "Servicios": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" /></svg>`,
+  "Automotor": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>`,
+  "Hogar": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>`
+};
 
-  categoriesContainer.innerHTML = mainCategories.map(cat => `
-    <div 
-      onclick="selectCategory('${cat}')"
-      class="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer text-center">
+const colors = {
+  "Gastronomía": { bg: "bg-orange-100", text: "text-orange-600" },
+  "Alimentos":   { bg: "bg-green-100",  text: "text-green-600"  },
+  "Belleza":     { bg: "bg-pink-100",   text: "text-pink-600"   },
+  "Salud":       { bg: "bg-blue-100",   text: "text-blue-600"   },
+  "Servicios":   { bg: "bg-yellow-100", text: "text-yellow-600" },
+  "Automotor":   { bg: "bg-gray-100",   text: "text-gray-600"   },
+  "Hogar":       { bg: "bg-purple-100", text: "text-purple-600" }
+};
 
-      <div class="text-3xl mb-2">
-        ${icons[cat] || "📍"}
-      </div>
+categoriesContainer.innerHTML = mainCategories.map(cat => `
+  <div 
+    onclick="selectCategory('${cat}')"
+    class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition cursor-pointer text-center flex flex-col items-center gap-3">
 
-      <p class="font-medium text-gray-700">
-        ${cat}
-      </p>
-
+    <div class="w-14 h-14 rounded-2xl flex items-center justify-center ${colors[cat].bg} ${colors[cat].text}">
+      ${icons[cat]}
     </div>
-  `).join("");
+
+    <p class="font-semibold text-gray-700 text-sm">
+      ${cat}
+    </p>
+
+  </div>
+`).join("");
 }
 
 // =============================
