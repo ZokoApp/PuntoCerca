@@ -423,12 +423,23 @@ if (closeModalBtn && modal) {
 ================================ */
 
 async function loadUser(){
+  currentUser = null;
+
   try {
-    const res = await fetch("/api/me", { credentials: "include" });
+    const res = await fetch("/api/me", {
+      credentials: "include",
+      cache: "no-store"
+    });
+
     if(res.ok){
       currentUser = await res.json();
+    } else {
+      currentUser = null;
     }
-  } catch {}
+
+  } catch {
+    currentUser = null;
+  }
 }
 
 /* ================================
@@ -683,6 +694,12 @@ async function checkFollowing(storeId) {
 
   const data = await res.json();
   const btn = document.getElementById("followBtn");
+  // RESET fuerte Android
+if (followBtn) {
+  followBtn.style.display = "none";
+  followBtn.innerText = "Seguir";
+  followBtn.onclick = null;
+}
 
   if (btn) {
     btn.innerText = data.following ? "Siguiendo" : "Seguir";
@@ -1303,3 +1320,21 @@ function editEvent(id) {
 
 window.deleteEvent = deleteEvent;
 window.editEvent = editEvent;
+
+// FIX ANDROID BACK/FORWARD CACHE
+window.addEventListener("pageshow", async () => {
+
+  currentUser = null;
+  isOwner = false;
+
+  await loadUser();
+
+  if (storeData) {
+
+    isOwner =
+      currentUser &&
+      String(storeData.user_id) === String(currentUser.id);
+
+    handleUIByRole(storeData);
+  }
+});
