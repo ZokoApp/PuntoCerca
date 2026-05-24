@@ -280,7 +280,7 @@ async function createNotification(userId, type, title, message, link = null) {
               to: email,
               subject: "Verifica tu cuenta - PuntoCerca",
               html: `
-                  html: `
+              
 <!DOCTYPE html>
 <html lang="es">
 <head>
