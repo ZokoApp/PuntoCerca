@@ -287,7 +287,7 @@ async function createNotification(userId, type, title, message, link = null) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Segoe UI',sans-serif;">
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
 
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
     <tr>
