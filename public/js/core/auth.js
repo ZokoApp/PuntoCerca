@@ -206,3 +206,98 @@ document.addEventListener("DOMContentLoaded", () => {
   setupUserMenu();
   setupDashboardLink();
 });
+async function renderAuthUI() {
+  try {
+    const res = await fetch("/api/me", {
+      credentials: "include"
+    });
+
+    const navAuth = document.getElementById("navAuth");
+    const mobileAuth = document.getElementById("mobileAuth");
+
+    if (!navAuth || !mobileAuth) return;
+
+    // DESKTOP
+    if (res.ok) {
+      const user = await res.json();
+
+      navAuth.innerHTML = `
+        <a href="/" class="hover:text-orange-600">Inicio</a>
+
+        <a href="/dashboard" class="hover:text-orange-600">
+          Dashboard
+        </a>
+
+        <span class="font-semibold text-orange-600">
+          ${user.name || "Usuario"}
+        </span>
+
+        <button id="logoutBtn"
+          class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600">
+          Logout
+        </button>
+      `;
+
+      mobileAuth.innerHTML = `
+        <a href="/dashboard" class="hover:text-orange-600">
+          Dashboard
+        </a>
+
+        <button id="logoutBtnMobile"
+          class="bg-red-500 text-white px-3 py-1.5 rounded-full text-sm hover:bg-red-600">
+          Logout
+        </button>
+      `;
+
+      setTimeout(() => {
+        document.getElementById("logoutBtn")?.addEventListener("click", logout);
+        document.getElementById("logoutBtnMobile")?.addEventListener("click", logout);
+      }, 50);
+
+    } else {
+
+      navAuth.innerHTML = `
+        <a href="/" class="hover:text-orange-600">Inicio</a>
+
+        <a href="/login" class="hover:text-orange-600">
+          Login
+        </a>
+
+        <a href="/register.html"
+          class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700">
+          Registrate
+        </a>
+      `;
+
+      mobileAuth.innerHTML = `
+        <a href="/login" class="hover:text-orange-600">
+          Login
+        </a>
+
+        <a href="/register.html"
+          class="bg-orange-600 text-white px-3 py-1.5 rounded-full text-sm hover:bg-orange-700">
+          Registrate
+        </a>
+      `;
+    }
+
+  } catch (err) {
+    console.error("Error auth UI:", err);
+  }
+}
+
+async function logout() {
+  try {
+    await fetch("/api/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderAuthUI);
