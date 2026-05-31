@@ -41,6 +41,8 @@ const registerLink = document.getElementById("registerLink");
 
 const loginLinkMobile = document.getElementById("loginLinkMobile");
 const registerLinkMobile = document.getElementById("registerLinkMobile");
+  const userMenuMobile = document.getElementById("userMenuMobile");
+const userNameMobile = document.getElementById("userNameMobile");
 
   try {
     const response = await fetch("/api/me", {
@@ -60,19 +62,30 @@ const registerLinkMobile = document.getElementById("registerLinkMobile");
     // 🔥 LOGUEADO
     if (nameEl) nameEl.textContent = user.name;
 
+if (userNameMobile) {
+  userNameMobile.textContent = user.name;
+}
    if (loginLink) loginLink.style.display = "none";
 if (registerLink) registerLink.style.display = "none";
 
 if (loginLinkMobile) loginLinkMobile.style.display = "none";
 if (registerLinkMobile) registerLinkMobile.style.display = "none";
 
-    if (userMenu) userMenu.classList.remove("hidden");
+   if (userMenu) userMenu.classList.remove("hidden");
 
-  } catch (err) {
+if (userMenuMobile) {
+  userMenuMobile.classList.remove("hidden");
+}
+
+  }catch (err) {
     console.log("Error auth:", err);
 
     // fallback → mostrar como deslogueado
-    if (userMenu) userMenu.classList.add("hidden");
+   if (userMenu) userMenu.classList.add("hidden");
+
+if (userMenuMobile) {
+  userMenuMobile.classList.add("hidden");
+}
    if (loginLink) loginLink.style.display = "inline-block";
 if (registerLink) registerLink.style.display = "inline-block";
 
