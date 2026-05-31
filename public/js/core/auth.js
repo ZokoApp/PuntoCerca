@@ -300,4 +300,4 @@ async function logout() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", renderAuthUI);
+// document.addEventListener("DOMContentLoaded", renderAuthUI);
