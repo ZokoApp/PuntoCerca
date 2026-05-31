@@ -36,8 +36,11 @@ async function getCsrfToken() {
 async function checkAuth() {
   const userMenu = document.getElementById("userMenu");
   const nameEl = document.getElementById("userName");
-  const loginLink = document.getElementById("loginLink");
-  const registerLink = document.getElementById("registerLink");
+const loginLink = document.getElementById("loginLink");
+const registerLink = document.getElementById("registerLink");
+
+const loginLinkMobile = document.getElementById("loginLinkMobile");
+const registerLinkMobile = document.getElementById("registerLinkMobile");
 
   try {
     const response = await fetch("/api/me", {
@@ -57,8 +60,11 @@ async function checkAuth() {
     // 🔥 LOGUEADO
     if (nameEl) nameEl.textContent = user.name;
 
-    if (loginLink) loginLink.style.display = "none";
-    if (registerLink) registerLink.style.display = "none";
+   if (loginLink) loginLink.style.display = "none";
+if (registerLink) registerLink.style.display = "none";
+
+if (loginLinkMobile) loginLinkMobile.style.display = "none";
+if (registerLinkMobile) registerLinkMobile.style.display = "none";
 
     if (userMenu) userMenu.classList.remove("hidden");
 
@@ -67,8 +73,11 @@ async function checkAuth() {
 
     // fallback → mostrar como deslogueado
     if (userMenu) userMenu.classList.add("hidden");
-    if (loginLink) loginLink.style.display = "inline-block";
-    if (registerLink) registerLink.style.display = "inline-block";
+   if (loginLink) loginLink.style.display = "inline-block";
+if (registerLink) registerLink.style.display = "inline-block";
+
+if (loginLinkMobile) loginLinkMobile.style.display = "inline-block";
+if (registerLinkMobile) registerLinkMobile.style.display = "inline-block";
   }
 }
 
