@@ -44,8 +44,8 @@ loadStores();
 loadProducts();
 loadOffers();
 initSliders();
-initNotifications();
 loadEvents();
+
 // =============================
 // BUSCADOR
 // =============================
