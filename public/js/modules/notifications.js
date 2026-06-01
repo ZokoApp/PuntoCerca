@@ -4,7 +4,7 @@ let isOpen = false;
 // ===============================
 // INIT
 // ===============================
-export async function initNotifications() {
+window.initNotifications = async function initNotifications() {
 
   const btn = document.getElementById("notifBtn");
   const dropdown = document.getElementById("notifDropdown");
