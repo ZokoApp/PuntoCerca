@@ -23,11 +23,13 @@ window.initNotifications = async function() {
   try {
     const res = await fetch("/api/me", { credentials: "include" });
     if (!res.ok) {
-      if (btn) btn.parentElement.style.display = "none";
+      const wrapper = document.getElementById("notifWrapper");
+      if (wrapper) wrapper.style.display = "none";
       return;
     }
   } catch {
-    if (btn) btn.parentElement.style.display = "none";
+    const wrapper = document.getElementById("notifWrapper");
+    if (wrapper) wrapper.style.display = "none";
     return;
   }
 
