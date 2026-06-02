@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entregar pedido - PuntoCerca</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
+body { background:#f8fafc; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+
+.card {
+  background:white;
+  border-radius:24px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.10);
+  padding:40px 32px;
+  max-width:420px;
+  width:100%;
+  text-align:center;
+}
+
+.brand {
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:28px;
+  color:#111;
+}
+.brand span { color:#ea580c; }
+
+.status-icon {
+  font-size:56px;
+  margin-bottom:16px;
+}
+
+h1 {
+  font-size:22px;
+  font-weight:800;
+  color:#111827;
+  margin-bottom:8px;
+}
+
+.subtitle {
+  font-size:14px;
+  color:#6b7280;
+  margin-bottom:32px;
+  line-height:1.6;
+}
+
+.btn {
+  width:100%;
+  padding:18px;
+  border:none;
+  border-radius:16px;
+  font-size:17px;
+  font-weight:800;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  margin-bottom:12px;
+}
+
+.btn-start {
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:white;
+  box-shadow:0 8px 24px rgba(234,88,12,0.30);
+}
+
+.btn-start:hover {
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(234,88,12,0.38);
+}
+
+.btn-deliver {
+  background:linear-gradient(135deg,#16a34a,#22c55e);
+  color:white;
+  box-shadow:0 8px 24px rgba(22,163,74,0.28);
+  display:none;
+}
+
+.btn-deliver:hover {
+  transform:translateY(-2px);
+}
+
+.status-bar {
+  background:#f1f5f9;
+  border-radius:12px;
+  padding:14px 18px;
+  margin-bottom:20px;
+  font-size:13px;
+  color:#6b7280;
+  display:none;
+}
+
+.status-bar.active {
+  background:#ecfdf5;
+  color:#16a34a;
+  font-weight:700;
+}
+
+.gps-indicator {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#ea580c;
+  font-size:12px;
+  font-weight:700;
+  padding:6px 14px;
+  border-radius:999px;
+  margin-bottom:24px;
+  display:none;
+}
+
+.gps-dot {
+  width:8px;
+  height:8px;
+  background:#ea580c;
+  border-radius:50%;
+  animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.4); }
+}
+
+.delivered-state {
+  display:none;
+}
+
+.delivered-state h1 { color:#16a34a; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="brand"><span>Punto</span>Cerca</div>
+
+  <!-- ESTADO: pendiente -->
+  <div id="statePending">
+    <div class="status-icon">🛵</div>
+    <h1>Nuevo envío</h1>
+    <p class="subtitle">Tocá el botón cuando estés listo para iniciar el recorrido. El cliente podrá ver tu ubicación en tiempo real.</p>
+    <button class="btn btn-start" id="btnStart">Iniciar recorrido</button>
+  </div>
+
+  <!-- ESTADO: activo -->
+  <div id="stateActive" style="display:none;">
+    <div class="status-icon">📍</div>
+    <h1>En camino</h1>
+    <p class="subtitle">Tu ubicación se está compartiendo con el cliente.</p>
+
+    <div class="gps-indicator" id="gpsIndicator" style="display:inline-flex;">
+      <div class="gps-dot"></div>
+      GPS activo
+    </div>
+
+    <div class="status-bar active" id="statusBar" style="display:block;">
+      Compartiendo ubicación en tiempo real
+    </div>
+
+    <button class="btn btn-deliver" id="btnDeliver" style="display:block;">
+      Confirmar entrega
+    </button>
+  </div>
+
+  <!-- ESTADO: entregado -->
+  <div id="stateDelivered" style="display:none;" class="delivered-state">
+    <div class="status-icon">✅</div>
+    <h1>¡Entregado!</h1>
+    <p class="subtitle">El pedido fue entregado correctamente. Este link ya no está activo.</p>
+  </div>
+
+  <!-- ERROR -->
+  <div id="stateError" style="display:none;">
+    <div class="status-icon">⚠️</div>
+    <h1>Link inválido</h1>
+    <p class="subtitle">Este link de envío no existe o ya expiró.</p>
+  </div>
+
+</div>
+
+<script>
+const token = window.location.pathname.split('/').pop();
+let watchId = null;
+let isActive = false;
+
+// ===============================
+// INIT
+// ===============================
+async function init() {
+  try {
+    const res = await fetch(`/api/deliveries/repartidor/${token}`);
+    if (!res.ok) {
+      showState('error');
+      return;
+    }
+    const delivery = await res.json();
+
+    if (delivery.status === 'delivered') {
+      showState('delivered');
+    } else if (delivery.status === 'active') {
+      showState('active');
+      startGPS();
+    } else {
+      showState('pending');
+    }
+  } catch (err) {
+    showState('error');
+  }
+}
+
+// ===============================
+// ESTADOS
+// ===============================
+function showState(state) {
+  document.getElementById('statePending').style.display = 'none';
+  document.getElementById('stateActive').style.display = 'none';
+  document.getElementById('stateDelivered').style.display = 'none';
+  document.getElementById('stateError').style.display = 'none';
+
+  if (state === 'pending') document.getElementById('statePending').style.display = 'block';
+  if (state === 'active') document.getElementById('stateActive').style.display = 'block';
+  if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'block';
+  if (state === 'error') document.getElementById('stateError').style.display = 'block';
+}
+
+// ===============================
+// INICIAR RECORRIDO
+// ===============================
+document.getElementById('btnStart').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`/api/deliveries/start/${token}`, {
+      method: 'POST'
+    });
+
+    if (!res.ok) {
+      alert('Error iniciando recorrido');
+      return;
+    }
+
+    showState('active');
+    startGPS();
+
+  } catch (err) {
+    alert('Error de conexión');
+  }
+});
+
+// ===============================
+// GPS
+// ===============================
+function startGPS() {
+  if (!navigator.geolocation) {
+    alert('Tu dispositivo no soporta GPS');
+    return;
+  }
+
+  watchId = navigator.geolocation.watchPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+
+      try {
+        await fetch(`/api/deliveries/location/${token}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: latitude, lng: longitude })
+        });
+      } catch (err) {
+        console.error('Error enviando ubicación', err);
+      }
+    },
+    (err) => {
+      console.error('Error GPS:', err);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+}
+
+// ===============================
+// CONFIRMAR ENTREGA
+// ===============================
+document.getElementById('btnDeliver').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`/api/deliveries/deliver/${token}`, {
+      method: 'POST'
+    });
+
+    if (!res.ok) {
+      alert('Error confirmando entrega');
+      return;
+    }
+
+    if (watchId) navigator.geolocation.clearWatch(watchId);
+    showState('delivered');
+
+  } catch (err) {
+    alert('Error de conexión');
+  }
+});
+
+init();
+</script>
+</body>
+</html>
