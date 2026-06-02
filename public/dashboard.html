@@ -119,17 +119,84 @@
 
   
 
-<section class="panel-card" id="deliveriesSection">
-  <div class="panel-head panel-head--space">
-    <div>
-      <h2>Envíos en curso</h2>
-      <p>Generá links de seguimiento para tus repartidores</p>
+<!-- PUNTOENVÍO -->
+<section id="deliveriesSection" style="margin-bottom:24px;">
+
+  <!-- HEADER BANNER -->
+  <div style="
+    background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
+    border-radius:20px 20px 0 0;
+    padding:24px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  ">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="
+        width:46px;height:46px;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        border-radius:14px;
+        display:flex;align-items:center;justify-content:center;
+        flex-shrink:0;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+        </svg>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:white;font-size:20px;font-weight:900;letter-spacing:-0.03em;">Punto</span>
+          <span style="color:#f97316;font-size:20px;font-weight:900;letter-spacing:-0.03em;">Envío</span>
+          <span style="
+            background:rgba(249,115,22,0.2);
+            color:#fb923c;
+            font-size:10px;
+            font-weight:800;
+            padding:3px 8px;
+            border-radius:999px;
+            letter-spacing:0.05em;
+          ">BETA</span>
+        </div>
+        <p style="margin:2px 0 0;color:#9ca3af;font-size:13px;">Seguimiento en tiempo real para tus repartos</p>
+      </div>
     </div>
-    <button id="btnNewDelivery" class="btn-primary" type="button">
-      + Nuevo envío
+
+    <button id="btnNewDelivery" type="button" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;
+      border:none;
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow:0 6px 20px rgba(234,88,12,0.35);
+      transition:all 0.2s ease;
+      white-space:nowrap;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nuevo envío
     </button>
   </div>
-  <div id="deliveriesList" style="margin-top:16px;"></div>
+
+  <!-- BODY -->
+  <div style="
+    background:white;
+    border-radius:0 0 20px 20px;
+    border:1px solid #e5e7eb;
+    border-top:none;
+    padding:20px;
+  ">
+    <div id="deliveriesList"></div>
+  </div>
+
 </section>
 
 <!-- MODAL NUEVO ENVÍO -->
