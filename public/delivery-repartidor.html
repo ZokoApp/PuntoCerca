@@ -166,6 +166,12 @@ async function init() {
     if (!res.ok) { showState('error'); return; }
     const delivery = await res.json();
 
+    // guardar destino
+    if (delivery.dest_lat && delivery.dest_lng) {
+      destLat = parseFloat(delivery.dest_lat);
+      destLng = parseFloat(delivery.dest_lng);
+    }
+
     if (delivery.status === 'delivered') {
       showState('delivered');
     } else if (delivery.status === 'active') {
@@ -175,6 +181,21 @@ async function init() {
       showMap();
       document.getElementById('btnStart').style.display = 'block';
       document.getElementById('navStatus').textContent = 'Listo para iniciar';
+
+      // mostrar destino en el mapa aunque no haya iniciado
+      if (destLat && destLng) {
+        setTimeout(() => {
+          map.setView([destLat, destLng], 15);
+          L.marker([destLat, destLng], {
+            icon: L.divIcon({
+              html: `<div style="background:#16a34a;width:36px;height:36px;border-radius:50%;border:3px solid white;box-shadow:0 4px 12px rgba(22,163,74,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;">🏠</div>`,
+              iconSize: [36, 36],
+              iconAnchor: [18, 36],
+              className: ''
+            })
+          }).addTo(map).bindPopup(delivery.dest_address || 'Destino').openPopup();
+        }, 500);
+      }
     }
   } catch (err) {
     showState('error');
