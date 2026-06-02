@@ -52,7 +52,10 @@ async function renderAuthUI() {
       // Mobile
       if (loginLinkMobile) loginLinkMobile.style.display = "none";
       if (registerLinkMobile) registerLinkMobile.style.display = "none";
-      if (userMenuMobile) userMenuMobile.classList.remove("hidden");
+      if (userMenuMobile) {
+  userMenuMobile.classList.remove("hidden");
+  userMenuMobile.style.display = "flex";
+}
       if (userNameMobile) userNameMobile.textContent = user.name || "";
 
       // Obtener link tienda
