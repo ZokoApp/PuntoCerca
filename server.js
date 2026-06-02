@@ -3480,6 +3480,153 @@ storesResult = await pool.query(`
     res.status(500).json({ error: "Error en búsqueda" });
   }
 });
+
+/* ================================
+   DELIVERIES
+================================ */
+
+// CREAR ENVÍO (vendedor)
+app.post('/api/deliveries', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: "Tienda no encontrada" });
+    }
+
+    const storeId = storeRes.rows[0].id;
+    const tokenRepartidor = require('crypto').randomBytes(20).toString('hex');
+    const tokenCliente = require('crypto').randomBytes(20).toString('hex');
+
+    const result = await pool.query(`
+      INSERT INTO deliveries (store_id, token_repartidor, token_cliente)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `, [storeId, tokenRepartidor, tokenCliente]);
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error creando envío" });
+  }
+});
+
+// OBTENER ENVÍOS ACTIVOS (vendedor)
+app.get('/api/deliveries', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT d.* FROM deliveries d
+      JOIN stores s ON s.id = d.store_id
+      WHERE s.user_id = $1
+      AND d.expires_at > NOW()
+      AND d.status != 'delivered'
+      ORDER BY d.created_at DESC
+    `, [req.user.id]);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo envíos" });
+  }
+});
+
+// INICIAR RECORRIDO (repartidor)
+app.post('/api/deliveries/start/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE deliveries
+      SET status = 'active'
+      WHERE token_repartidor = $1
+      AND expires_at > NOW()
+      RETURNING *
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado o expirado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error iniciando envío" });
+  }
+});
+
+// ACTUALIZAR UBICACIÓN (repartidor)
+app.put('/api/deliveries/location/:token', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+
+    const result = await pool.query(`
+      UPDATE deliveries
+      SET lat = $1, lng = $2
+      WHERE token_repartidor = $3
+      AND status = 'active'
+      AND expires_at > NOW()
+      RETURNING *
+    `, [lat, lng, req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado" });
+    }
+
+    res.json({ ok: true });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando ubicación" });
+  }
+});
+
+// OBTENER UBICACIÓN (cliente - polling)
+app.get('/api/deliveries/track/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT status, lat, lng, created_at, expires_at
+      FROM deliveries
+      WHERE token_cliente = $1
+      AND expires_at > NOW()
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado o expirado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo ubicación" });
+  }
+});
+
+// CONFIRMAR ENTREGA (repartidor)
+app.post('/api/deliveries/deliver/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE deliveries
+      SET status = 'delivered'
+      WHERE token_repartidor = $1
+      RETURNING *
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado" });
+    }
+
+    res.json({ ok: true });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error confirmando entrega" });
+  }
+});
   
   /* ================================
      START
