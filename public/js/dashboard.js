@@ -372,6 +372,13 @@ if(catalogForm){
    DELIVERIES
 ================================ */
 
+let deliveryMap = null;
+let deliveryMarker = null;
+let selectedDestLat = null;
+let selectedDestLng = null;
+let selectedDestAddress = null;
+let googleMapsLoadedDelivery = false;
+
 async function loadDeliveries() {
   const container = document.getElementById("deliveriesList");
   if (!container) return;
@@ -392,13 +399,12 @@ async function loadDeliveries() {
     }
 
     container.innerHTML = deliveries.map(d => {
-
       const linkRepartidor = `${window.location.origin}/delivery/repartidor/${d.token_repartidor}`;
       const linkCliente = `${window.location.origin}/delivery/cliente/${d.token_cliente}`;
 
       const statusLabel = {
         pending: { text: "Pendiente", color: "#f59e0b", bg: "#fffbeb" },
-        active: { text: "En camino", color: "#16a34a", bg: "#ecfdf5" },
+        active:  { text: "En camino", color: "#16a34a", bg: "#ecfdf5" },
         delivered: { text: "Entregado", color: "#6b7280", bg: "#f9fafb" }
       }[d.status] || { text: d.status, color: "#6b7280", bg: "#f9fafb" };
 
@@ -408,10 +414,10 @@ async function loadDeliveries() {
 
       return `
         <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:16px;padding:20px;margin-bottom:14px;">
-          
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
             <div>
               <span style="font-size:12px;color:#9ca3af;">${created}</span>
+              ${d.dest_address ? `<p style="font-size:13px;font-weight:600;color:#374151;margin-top:2px;">📍 ${d.dest_address}</p>` : ''}
             </div>
             <span style="background:${statusLabel.bg};color:${statusLabel.color};font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;">
               ${statusLabel.text}
@@ -419,19 +425,14 @@ async function loadDeliveries() {
           </div>
 
           <div style="display:grid;gap:10px;">
-
             <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;">
               <div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;">Link del repartidor</div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkRepartidor}</span>
                 <button onclick="copyLink('${linkRepartidor}', this)"
-                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
-                  Copiar
-                </button>
+                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Copiar</button>
                 <button onclick="shareWhatsApp('${linkRepartidor}', 'repartidor')"
-                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
-                  WhatsApp
-                </button>
+                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">WhatsApp</button>
               </div>
             </div>
 
@@ -440,16 +441,11 @@ async function loadDeliveries() {
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkCliente}</span>
                 <button onclick="copyLink('${linkCliente}', this)"
-                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
-                  Copiar
-                </button>
+                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Copiar</button>
                 <button onclick="shareWhatsApp('${linkCliente}', 'cliente')"
-                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
-                  WhatsApp
-                </button>
+                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">WhatsApp</button>
               </div>
             </div>
-
           </div>
         </div>
       `;
@@ -475,7 +471,7 @@ window.copyLink = function(url, btn) {
   });
 };
 
-// COMPARTIR POR WHATSAPP
+// WHATSAPP
 window.shareWhatsApp = function(url, tipo) {
   const msg = tipo === 'repartidor'
     ? `Hola! Acá está tu link para iniciar el recorrido: ${url}`
@@ -483,29 +479,181 @@ window.shareWhatsApp = function(url, tipo) {
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-// NUEVO ENVÍO
+// ===============================
+// MODAL NUEVO ENVÍO
+// ===============================
+
 const btnNewDelivery = document.getElementById("btnNewDelivery");
+const deliveryModal = document.getElementById("deliveryModal");
+const closeDeliveryModal = document.getElementById("closeDeliveryModal");
+const btnConfirmDelivery = document.getElementById("btnConfirmDelivery");
+const deliveryAddress = document.getElementById("deliveryAddress");
+
 if (btnNewDelivery) {
   btnNewDelivery.addEventListener("click", async () => {
-    btnNewDelivery.disabled = true;
-    btnNewDelivery.textContent = "Generando...";
+    deliveryModal.style.display = "flex";
+    selectedDestLat = null;
+    selectedDestLng = null;
+    selectedDestAddress = null;
+    deliveryAddress.value = "";
+    document.getElementById("selectedAddressBox").style.display = "none";
+    btnConfirmDelivery.disabled = true;
+    btnConfirmDelivery.style.opacity = "0.5";
+
+    await initDeliveryMap();
+  });
+}
+
+if (closeDeliveryModal) {
+  closeDeliveryModal.addEventListener("click", () => {
+    deliveryModal.style.display = "none";
+  });
+}
+
+deliveryModal?.addEventListener("click", (e) => {
+  if (e.target === deliveryModal) deliveryModal.style.display = "none";
+});
+
+// INIT MAPA DEL MODAL
+async function initDeliveryMap() {
+  if (deliveryMap) {
+    setTimeout(() => {
+      deliveryMap.invalidateSize();
+    }, 100);
+    return;
+  }
+
+  // cargar Google Maps
+  const keyRes = await fetch("/api/google-maps-key");
+  const keyData = await keyRes.json();
+
+  if (!document.getElementById("gmapsDelivery")) {
+    await new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.id = "gmapsDelivery";
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${keyData.key}&libraries=places`;
+      script.async = true;
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
+  }
+
+  // inicializar Leaflet
+  if (!deliveryMap) {
+    deliveryMap = L.map('deliveryMap', {
+      zoomControl: true,
+      attributionControl: false
+    }).setView([-32.9442, -60.6505], 13);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(deliveryMap);
+
+    // click en el mapa
+    deliveryMap.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+      setDeliveryDestination(lat, lng, null);
+      await reverseGeocode(lat, lng);
+    });
+  }
+
+  setTimeout(() => deliveryMap.invalidateSize(), 200);
+
+  // autocomplete Google
+  const autocomplete = new google.maps.places.Autocomplete(deliveryAddress, {
+    types: ["address"],
+    componentRestrictions: { country: "ar" }
+  });
+
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (!place.geometry) return;
+
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    const address = place.formatted_address || place.name;
+
+    setDeliveryDestination(lat, lng, address);
+    deliveryMap.setView([lat, lng], 16);
+  });
+}
+
+function setDeliveryDestination(lat, lng, address) {
+  selectedDestLat = lat;
+  selectedDestLng = lng;
+  selectedDestAddress = address;
+
+  if (deliveryMarker) deliveryMap.removeLayer(deliveryMarker);
+
+  deliveryMarker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: `<div style="background:#ea580c;width:36px;height:36px;border-radius:50%;border:3px solid white;box-shadow:0 4px 12px rgba(234,88,12,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      className: ''
+    })
+  }).addTo(deliveryMap);
+
+  if (address) {
+    document.getElementById("selectedAddressBox").style.display = "block";
+    document.getElementById("selectedAddressText").textContent = address;
+    deliveryAddress.value = address;
+  }
+
+  btnConfirmDelivery.disabled = false;
+  btnConfirmDelivery.style.opacity = "1";
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        const address = results[0].formatted_address;
+        selectedDestAddress = address;
+        document.getElementById("selectedAddressBox").style.display = "block";
+        document.getElementById("selectedAddressText").textContent = address;
+        deliveryAddress.value = address;
+      }
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// CONFIRMAR Y CREAR ENVÍO
+if (btnConfirmDelivery) {
+  btnConfirmDelivery.addEventListener("click", async () => {
+    if (!selectedDestLat || !selectedDestLng) return;
+
+    btnConfirmDelivery.disabled = true;
+    btnConfirmDelivery.textContent = "Generando...";
 
     try {
       const res = await fetch("/api/deliveries", {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dest_lat: selectedDestLat,
+          dest_lng: selectedDestLng,
+          dest_address: selectedDestAddress
+        })
       });
 
       if (!res.ok) throw new Error();
 
       showToast("Envío creado correctamente", "success");
+      deliveryModal.style.display = "none";
       await loadDeliveries();
 
     } catch (err) {
       showToast("Error creando envío", "error");
     } finally {
-      btnNewDelivery.disabled = false;
-      btnNewDelivery.textContent = "+ Nuevo envío";
+      btnConfirmDelivery.disabled = false;
+      btnConfirmDelivery.textContent = "Generar links de envío";
+      btnConfirmDelivery.style.opacity = "1";
     }
   });
 }
