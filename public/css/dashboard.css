@@ -850,3 +850,130 @@ body.dashboard-page{
   cursor:pointer;
   box-shadow:0 14px 30px rgba(255,106,0,.25);
 }
+/* =========================
+   PUNTOENVÍO
+========================= */
+
+#btnNewDelivery:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(234,88,12,0.40) !important;
+}
+
+.delivery-item {
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:12px;
+  transition:0.2s;
+}
+
+.delivery-item:hover {
+  box-shadow:0 6px 20px rgba(0,0,0,0.07);
+}
+
+.delivery-item:last-child {
+  margin-bottom:0;
+}
+
+.delivery-status {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:999px;
+  letter-spacing:0.04em;
+}
+
+.delivery-status.pending {
+  background:#fff7ed;
+  color:#ea580c;
+}
+
+.delivery-status.active {
+  background:#ecfdf5;
+  color:#16a34a;
+}
+
+.delivery-status.delivered {
+  background:#f1f5f9;
+  color:#64748b;
+}
+
+.delivery-link-row {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.delivery-link-text {
+  flex:1;
+  font-size:12px;
+  color:#9ca3af;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width:0;
+}
+
+.delivery-btn-copy {
+  background:#f1f5f9;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  color:#374151;
+  transition:0.15s;
+  flex-shrink:0;
+}
+
+.delivery-btn-copy:hover {
+  background:#e2e8f0;
+}
+
+.delivery-btn-wa {
+  background:#25D366;
+  color:white;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  transition:0.15s;
+}
+
+.delivery-btn-wa:hover {
+  background:#1ebe5d;
+}
+
+.delivery-empty {
+  text-align:center;
+  padding:36px 20px;
+  color:#9ca3af;
+}
+
+.delivery-empty svg {
+  margin:0 auto 12px;
+  opacity:0.35;
+}
+
+.delivery-empty p {
+  font-size:14px;
+  margin:0 0 4px;
+  font-weight:600;
+  color:#6b7280;
+}
+
+.delivery-empty span {
+  font-size:13px;
+}
