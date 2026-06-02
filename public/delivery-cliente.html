@@ -8,297 +8,399 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
-body { background:#f8fafc; min-height:100vh; display:flex; flex-direction:column; }
+body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
 
 .navbar {
   background:white;
   border-bottom:1px solid #e5e7eb;
-  padding:14px 20px;
+  padding:12px 20px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  box-shadow:0 1px 8px rgba(0,0,0,0.05);
+  flex-shrink:0;
+  z-index:1000;
+  position:relative;
 }
-
-.brand { font-size:20px; font-weight:900; color:#111; text-decoration:none; }
+.brand { font-size:18px; font-weight:900; color:#111; text-decoration:none; letter-spacing:-0.03em; }
 .brand span { color:#ea580c; }
 
-.status-banner {
-  padding:12px 20px;
+.status-bar {
+  padding:10px 20px;
   text-align:center;
-  font-size:13px;
+  font-size:12px;
   font-weight:700;
+  display:none;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.status-bar.pending { background:#fff7ed; color:#ea580c; }
+.status-bar.active  { background:#f0fdf4; color:#16a34a; }
+.status-bar.delivered { background:#eff6ff; color:#2563eb; }
+
+#mapWrap {
+  flex:1;
+  position:relative;
+  display:none;
+}
+#map { width:100%; height:100%; }
+
+.dest-badge {
+  position:absolute;
+  top:14px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1000;
+  background:rgba(255,255,255,0.96);
+  border:1px solid #e5e7eb;
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:12px;
+  font-weight:600;
+  color:#374151;
+  box-shadow:0 4px 16px rgba(0,0,0,0.10);
+  white-space:nowrap;
+  max-width:calc(100% - 40px);
+  overflow:hidden;
+  text-overflow:ellipsis;
   display:none;
 }
 
-.status-banner.pending {
-  background:#fff7ed;
-  color:#ea580c;
-  display:block;
-}
-
-.status-banner.active {
-  background:#ecfdf5;
-  color:#16a34a;
-  display:block;
-}
-
-.status-banner.delivered {
-  background:#eff6ff;
-  color:#2563eb;
-  display:block;
-}
-
-#map {
+.state-wrap {
   flex:1;
-  min-height:calc(100vh - 180px);
-}
-
-.info-card {
-  background:white;
-  padding:16px 20px;
-  border-top:1px solid #e5e7eb;
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:12px;
+  justify-content:center;
+  padding:20px;
 }
-
-.info-card .store-name {
-  font-size:15px;
-  font-weight:700;
-  color:#111827;
-}
-
-.info-card .store-sub {
-  font-size:12px;
-  color:#9ca3af;
-  margin-top:2px;
-}
-
-.pulse-dot {
-  width:12px;
-  height:12px;
-  background:#16a34a;
-  border-radius:50%;
-  animation:pulse 1.2s infinite;
-  flex-shrink:0;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity:1; transform:scale(1); }
-  50% { opacity:0.5; transform:scale(1.5); }
-}
-
-/* ESTADOS ESPECIALES */
 .state-card {
-  max-width:400px;
-  margin:60px auto;
+  max-width:360px;
+  width:100%;
   background:white;
   border-radius:24px;
   padding:40px 32px;
   text-align:center;
-  box-shadow:0 8px 40px rgba(0,0,0,0.10);
+  box-shadow:0 8px 40px rgba(0,0,0,0.08);
+  border:1px solid #f1f5f9;
 }
+.state-icon {
+  width:64px;height:64px;
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
+.state-card h1 { font-size:20px;font-weight:800;color:#111827;margin-bottom:8px; }
+.state-card p { font-size:14px;color:#6b7280;line-height:1.6; }
 
-.state-card .icon { font-size:56px; margin-bottom:16px; }
-.state-card h1 { font-size:22px; font-weight:800; color:#111827; margin-bottom:8px; }
-.state-card p { font-size:14px; color:#6b7280; line-height:1.6; }
+@keyframes pulseDot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(1.6); }
+}
+@keyframes motoFloat {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-5px); }
+}
+@keyframes shadowAnim {
+  0%,100% { transform:translateX(-50%) scaleX(1); opacity:0.3; }
+  50% { transform:translateX(-50%) scaleX(0.65); opacity:0.12; }
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="/" class="brand"><span>Punto</span>Cerca</a>
-  <span style="font-size:13px;color:#9ca3af;">Seguimiento en vivo</span>
+  <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#9ca3af;" id="navRight">
+    <div style="width:7px;height:7px;border-radius:50%;background:#9ca3af;" id="navDot"></div>
+    <span id="navText">Cargando</span>
+  </div>
 </nav>
 
-<!-- BANNER DE ESTADO -->
-<div id="statusBanner" class="status-banner"></div>
+<div class="status-bar" id="statusBar"></div>
 
-<!-- MAPA -->
-<div id="map"></div>
-
-<!-- INFO INFERIOR -->
-<div class="info-card" id="infoCard" style="display:none;">
-  <div>
-    <div class="store-name" id="storeName">Cargando...</div>
-    <div class="store-sub" id="storeSubtitle">Pedido en camino</div>
-  </div>
-  <div class="pulse-dot" id="pulseDot"></div>
+<div id="mapWrap">
+  <div id="map"></div>
+  <div class="dest-badge" id="destBadge"></div>
 </div>
 
-<!-- ESTADOS ESPECIALES -->
-<div id="statePending" style="display:none;">
+<div id="statePending" style="display:none;" class="state-wrap">
   <div class="state-card">
-    <div class="icon">⏳</div>
-    <h1>Esperando al repartidor</h1>
-    <p>El comercio está preparando tu pedido. El mapa se activará cuando el repartidor inicie el recorrido.</p>
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h1>Preparando tu pedido</h1>
+    <p>El repartidor aún no inició el recorrido. Esta página se actualizará automáticamente.</p>
   </div>
 </div>
 
-<div id="stateDelivered" style="display:none;">
+<div id="stateDelivered" style="display:none;" class="state-wrap">
   <div class="state-card">
-    <div class="icon">✅</div>
+    <div class="state-icon" style="background:#f0fdf4;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
     <h1>¡Pedido entregado!</h1>
-    <p>Tu pedido fue entregado correctamente. Gracias por usar PuntoCerca.</p>
+    <p>Tu pedido llegó correctamente. ¡Gracias por usar PuntoCerca!</p>
   </div>
 </div>
 
-<div id="stateError" style="display:none;">
+<div id="stateError" style="display:none;" class="state-wrap">
   <div class="state-card">
-    <div class="icon">⚠️</div>
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    </div>
     <h1>Link inválido</h1>
-    <p>Este link de seguimiento no existe o ya expiró.</p>
+    <p>Este link no existe o ya expiró.</p>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 const token = window.location.pathname.split('/').pop();
+const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5ODMzMzUyYmRjYTQzM2M4OGE4MzY2MmQwZTI2NTZiIiwiaCI6Im11cm11cjY0In0=';
+
 let map = null;
 let marker = null;
+let destMarker = null;
+let routeLayer = null;
 let pollingInterval = null;
-let firstLoad = true;
+let mapInitialized = false;
+let lastLat = null;
+let lastLng = null;
 
-// ===============================
-// INIT
-// ===============================
-async function init() {
-  await poll();
+// ÍCONO MOTO
+function getMotoIcon() {
+  return L.divIcon({
+    html: `
+      <div style="position:relative;width:56px;height:64px;display:flex;flex-direction:column;align-items:center;">
+        <div style="
+          width:52px;height:52px;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          border-radius:50%;
+          border:3px solid white;
+          box-shadow:0 6px 20px rgba(234,88,12,0.40);
+          display:flex;align-items:center;justify-content:center;
+          animation:motoFloat 1.8s ease-in-out infinite;
+          position:relative;z-index:2;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div style="
+          width:28px;height:7px;
+          background:rgba(234,88,12,0.20);
+          border-radius:50%;
+          animation:shadowAnim 1.8s ease-in-out infinite;
+          margin-top:2px;
+        "></div>
+      </div>
+    `,
+    iconSize: [56, 64],
+    iconAnchor: [28, 52],
+    className: ''
+  });
 }
 
-// ===============================
+function getDestIcon() {
+  return L.divIcon({
+    html: `
+      <div style="
+        width:44px;height:44px;
+        background:white;
+        border-radius:50%;
+        border:3px solid #ea580c;
+        box-shadow:0 4px 16px rgba(234,88,12,0.25);
+        display:flex;align-items:center;justify-content:center;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    className: ''
+  });
+}
+
+// INIT
+async function init() {
+  await poll();
+  pollingInterval = setInterval(poll, 3000);
+}
+
 // POLLING
-// ===============================
 async function poll() {
   try {
     const res = await fetch(`/api/deliveries/track/${token}`);
-
-    if (!res.ok) {
-      showSpecialState('error');
-      return;
-    }
+    if (!res.ok) { stopPolling(); showState('error'); return; }
 
     const delivery = await res.json();
 
     if (delivery.status === 'delivered') {
-      clearInterval(pollingInterval);
-      showSpecialState('delivered');
+      stopPolling();
+      showState('delivered');
       return;
     }
 
     if (delivery.status === 'pending' || !delivery.lat || !delivery.lng) {
-      showSpecialState('pending');
-      // seguir polling por si inicia
-      if (!pollingInterval) {
-        pollingInterval = setInterval(poll, 4000);
-      }
+      showState('pending');
       return;
     }
 
-    // ACTIVO con coordenadas
-    showMap(delivery);
+    // ACTIVO
+    const lat = parseFloat(delivery.lat);
+    const lng = parseFloat(delivery.lng);
 
-    if (!pollingInterval) {
-      pollingInterval = setInterval(poll, 4000);
-    }
+    updateMap(lat, lng, delivery);
 
   } catch (err) {
     console.error('Error polling:', err);
   }
 }
 
-// ===============================
-// MAPA
-// ===============================
-function showMap(delivery) {
-  // ocultar estados especiales
+// ACTUALIZAR MAPA
+async function updateMap(lat, lng, delivery) {
+  // mostrar mapa
   document.getElementById('statePending').style.display = 'none';
-  document.getElementById('stateDelivered').style.display = 'none';
-  document.getElementById('stateError').style.display = 'none';
-  document.getElementById('map').style.display = 'block';
-  document.getElementById('infoCard').style.display = 'flex';
+  document.getElementById('mapWrap').style.display = 'block';
 
-  // banner
-  const banner = document.getElementById('statusBanner');
-  banner.className = 'status-banner active';
-  banner.textContent = '🟢 Repartidor en camino — ubicación en tiempo real';
+  // status bar
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar active';
+  bar.style.display = 'flex';
+  bar.innerHTML = `
+    <div style="width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulseDot 1.5s infinite;"></div>
+    Repartidor en camino — ubicación en tiempo real
+  `;
 
-  const lat = parseFloat(delivery.lat);
-  const lng = parseFloat(delivery.lng);
+  // nav
+  document.getElementById('navDot').style.cssText = 'width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulseDot 1.5s infinite;';
+  document.getElementById('navText').textContent = 'En camino';
 
-  if (!map) {
-    map = L.map('map', {
-      zoomControl: true,
-      attributionControl: false
-    }).setView([lat, lng], 16);
+  if (!mapInitialized) {
+    // crear mapa
+    map = L.map('map', { zoomControl: false, attributionControl: false })
+      .setView([lat, lng], 16);
 
-   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© CartoDB',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);  
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
 
-    const icon = L.divIcon({
-  html: `
-    <div style="
-      width:48px;height:48px;
-      background:linear-gradient(135deg,#ea580c,#f97316);
-      border-radius:50%;
-      border:3px solid white;
-      box-shadow:0 6px 20px rgba(234,88,12,0.38);
-      display:flex;align-items:center;justify-content:center;
-    ">
-      <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-      </svg>
-    </div>
-  `,
-  iconSize: [48, 48],
-  iconAnchor: [24, 24],
-  className: ''
-});
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
-    marker = L.marker([lat, lng], { icon }).addTo(map);
+    // marcador moto
+    marker = L.marker([lat, lng], { icon: getMotoIcon() }).addTo(map);
+
+    // destino
+    if (delivery.dest_lat && delivery.dest_lng) {
+      const dLat = parseFloat(delivery.dest_lat);
+      const dLng = parseFloat(delivery.dest_lng);
+
+      destMarker = L.marker([dLat, dLng], { icon: getDestIcon() }).addTo(map);
+
+      if (delivery.dest_address) {
+        const badge = document.getElementById('destBadge');
+        badge.textContent = '📍 ' + delivery.dest_address;
+        badge.style.display = 'block';
+      }
+
+      await drawRoute(lat, lng, dLat, dLng);
+    }
+
+    mapInitialized = true;
+    lastLat = lat;
+    lastLng = lng;
 
   } else {
-    marker.setLatLng([lat, lng]);
-    if (firstLoad) {
-      map.setView([lat, lng], 16);
+    // solo actualizar si cambió la posición
+    if (lat !== lastLat || lng !== lastLng) {
+      marker.setLatLng([lat, lng]);
+      lastLat = lat;
+      lastLng = lng;
+
+      // redibujar ruta
+      if (delivery.dest_lat && delivery.dest_lng) {
+        await drawRoute(lat, lng, parseFloat(delivery.dest_lat), parseFloat(delivery.dest_lng));
+      }
     }
   }
-
-  firstLoad = false;
 }
 
-// ===============================
-// ESTADOS ESPECIALES
-// ===============================
-function showSpecialState(state) {
-  document.getElementById('map').style.display = 'none';
-  document.getElementById('infoCard').style.display = 'none';
+// RUTA
+async function drawRoute(fromLat, fromLng, toLat, toLng) {
+  try {
+    const res = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`
+    );
+    const data = await res.json();
+    if (!data.features?.[0]) return;
+
+    const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+    if (routeLayer) map.removeLayer(routeLayer);
+    routeLayer = L.polyline(coords, {
+      color: '#ea580c',
+      weight: 4,
+      opacity: 0.8,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }).addTo(map);
+
+  } catch (err) {
+    console.error('Error ruta cliente:', err);
+  }
+}
+
+// ESTADOS
+function showState(state) {
+  document.getElementById('mapWrap').style.display = 'none';
   document.getElementById('statePending').style.display = 'none';
   document.getElementById('stateDelivered').style.display = 'none';
   document.getElementById('stateError').style.display = 'none';
 
-  const banner = document.getElementById('statusBanner');
+  const bar = document.getElementById('statusBar');
 
   if (state === 'pending') {
-    document.getElementById('statePending').style.display = 'block';
-    banner.className = 'status-banner pending';
-    banner.textContent = '⏳ Preparando tu pedido...';
+    document.getElementById('statePending').style.display = 'flex';
+    bar.className = 'status-bar pending';
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div style="width:7px;height:7px;border-radius:50%;background:#ea580c;"></div>
+      Preparando tu pedido...
+    `;
+    document.getElementById('navText').textContent = 'Preparando';
   }
 
   if (state === 'delivered') {
-    document.getElementById('stateDelivered').style.display = 'block';
-    banner.className = 'status-banner delivered';
-    banner.textContent = '✅ Pedido entregado';
+    document.getElementById('stateDelivered').style.display = 'flex';
+    bar.className = 'status-bar delivered';
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div style="width:7px;height:7px;border-radius:50%;background:#2563eb;"></div>
+      Pedido entregado
+    `;
+    document.getElementById('navText').textContent = 'Entregado';
   }
 
   if (state === 'error') {
-    document.getElementById('stateError').style.display = 'block';
-    banner.style.display = 'none';
+    document.getElementById('stateError').style.display = 'flex';
+    bar.style.display = 'none';
+  }
+}
+
+function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
   }
 }
 
