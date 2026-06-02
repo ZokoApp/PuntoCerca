@@ -5,186 +5,157 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entregar pedido - PuntoCerca</title>
 <link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
-body { background:#f8fafc; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+body { background:#f8fafc; min-height:100vh; display:flex; flex-direction:column; }
 
-.card {
+.navbar {
   background:white;
-  border-radius:24px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.10);
-  padding:40px 32px;
-  max-width:420px;
-  width:100%;
-  text-align:center;
+  border-bottom:1px solid #e5e7eb;
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 1px 8px rgba(0,0,0,0.05);
+  position:relative;
+  z-index:1000;
 }
-
-.brand {
-  font-size:22px;
-  font-weight:900;
-  margin-bottom:28px;
-  color:#111;
-}
+.brand { font-size:20px; font-weight:900; color:#111; text-decoration:none; }
 .brand span { color:#ea580c; }
 
-.status-icon {
-  font-size:56px;
-  margin-bottom:16px;
+#map {
+  flex:1;
+  min-height:calc(100vh - 180px);
+  display:none;
 }
 
-h1 {
-  font-size:22px;
-  font-weight:800;
-  color:#111827;
-  margin-bottom:8px;
-}
-
-.subtitle {
-  font-size:14px;
-  color:#6b7280;
-  margin-bottom:32px;
-  line-height:1.6;
+.bottom-card {
+  background:white;
+  border-top:1px solid #e5e7eb;
+  padding:16px 20px;
+  display:none;
+  flex-direction:column;
+  gap:10px;
+  z-index:1000;
+  position:relative;
 }
 
 .btn {
   width:100%;
-  padding:18px;
+  padding:16px;
   border:none;
-  border-radius:16px;
-  font-size:17px;
+  border-radius:14px;
+  font-size:16px;
   font-weight:800;
   cursor:pointer;
   transition:all 0.2s ease;
-  margin-bottom:12px;
 }
 
 .btn-start {
   background:linear-gradient(135deg,#ea580c,#f97316);
   color:white;
-  box-shadow:0 8px 24px rgba(234,88,12,0.30);
-}
-
-.btn-start:hover {
-  transform:translateY(-2px);
-  box-shadow:0 12px 30px rgba(234,88,12,0.38);
+  box-shadow:0 6px 20px rgba(234,88,12,0.28);
 }
 
 .btn-deliver {
   background:linear-gradient(135deg,#16a34a,#22c55e);
   color:white;
-  box-shadow:0 8px 24px rgba(22,163,74,0.28);
-  display:none;
+  box-shadow:0 6px 20px rgba(22,163,74,0.25);
 }
 
-.btn-deliver:hover {
-  transform:translateY(-2px);
-}
-
-.status-bar {
-  background:#f1f5f9;
-  border-radius:12px;
-  padding:14px 18px;
-  margin-bottom:20px;
-  font-size:13px;
-  color:#6b7280;
-  display:none;
-}
-
-.status-bar.active {
-  background:#ecfdf5;
-  color:#16a34a;
-  font-weight:700;
-}
-
-.gps-indicator {
+.gps-badge {
   display:inline-flex;
   align-items:center;
   gap:6px;
-  background:#fff7ed;
-  border:1px solid #fed7aa;
-  color:#ea580c;
+  background:#ecfdf5;
+  color:#16a34a;
   font-size:12px;
   font-weight:700;
   padding:6px 14px;
   border-radius:999px;
-  margin-bottom:24px;
-  display:none;
+  width:fit-content;
 }
 
 .gps-dot {
   width:8px;
   height:8px;
-  background:#ea580c;
+  background:#16a34a;
   border-radius:50%;
   animation:pulse 1.2s infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity:1; transform:scale(1); }
+  0%,100% { opacity:1; transform:scale(1); }
   50% { opacity:0.5; transform:scale(1.4); }
 }
 
-.delivered-state {
-  display:none;
+/* ESTADOS */
+.state-card {
+  max-width:400px;
+  margin:60px auto;
+  background:white;
+  border-radius:24px;
+  padding:40px 32px;
+  text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.10);
 }
-
-.delivered-state h1 { color:#16a34a; }
+.state-card .icon { font-size:56px; margin-bottom:16px; }
+.state-card h1 { font-size:22px; font-weight:800; color:#111827; margin-bottom:8px; }
+.state-card p { font-size:14px; color:#6b7280; line-height:1.6; margin-bottom:24px; }
 </style>
 </head>
 <body>
 
-<div class="card">
+<nav class="navbar">
+  <a href="/" class="brand"><span>Punto</span>Cerca</a>
+  <span id="navStatus" style="font-size:13px;color:#9ca3af;">Cargando...</span>
+</nav>
 
-  <div class="brand"><span>Punto</span>Cerca</div>
+<!-- MAPA -->
+<div id="map"></div>
 
-  <!-- ESTADO: pendiente -->
-  <div id="statePending">
-    <div class="status-icon">🛵</div>
-    <h1>Nuevo envío</h1>
-    <p class="subtitle">Tocá el botón cuando estés listo para iniciar el recorrido. El cliente podrá ver tu ubicación en tiempo real.</p>
-    <button class="btn btn-start" id="btnStart">Iniciar recorrido</button>
+<!-- BOTTOM CARD -->
+<div class="bottom-card" id="bottomCard">
+  <div id="gpsBadge" class="gps-badge" style="display:none;">
+    <div class="gps-dot"></div>
+    GPS activo — compartiendo ubicación
   </div>
-
-  <!-- ESTADO: activo -->
-  <div id="stateActive" style="display:none;">
-    <div class="status-icon">📍</div>
-    <h1>En camino</h1>
-    <p class="subtitle">Tu ubicación se está compartiendo con el cliente.</p>
-
-    <div class="gps-indicator" id="gpsIndicator" style="display:inline-flex;">
-      <div class="gps-dot"></div>
-      GPS activo
-    </div>
-
-    <div class="status-bar active" id="statusBar" style="display:block;">
-      Compartiendo ubicación en tiempo real
-    </div>
-
-    <button class="btn btn-deliver" id="btnDeliver" style="display:block;">
-      Confirmar entrega
-    </button>
-  </div>
-
-  <!-- ESTADO: entregado -->
-  <div id="stateDelivered" style="display:none;" class="delivered-state">
-    <div class="status-icon">✅</div>
-    <h1>¡Entregado!</h1>
-    <p class="subtitle">El pedido fue entregado correctamente. Este link ya no está activo.</p>
-  </div>
-
-  <!-- ERROR -->
-  <div id="stateError" style="display:none;">
-    <div class="status-icon">⚠️</div>
-    <h1>Link inválido</h1>
-    <p class="subtitle">Este link de envío no existe o ya expiró.</p>
-  </div>
-
+  <button class="btn btn-start" id="btnStart">Iniciar recorrido</button>
+  <button class="btn btn-deliver" id="btnDeliver" style="display:none;">✅ Confirmar entrega</button>
 </div>
 
+<!-- ESTADO: entregado -->
+<div id="stateDelivered" style="display:none;">
+  <div class="state-card">
+    <div class="icon">✅</div>
+    <h1>¡Entregado!</h1>
+    <p>El pedido fue entregado correctamente. Este link ya no está activo.</p>
+  </div>
+</div>
+
+<!-- ESTADO: error -->
+<div id="stateError" style="display:none;">
+  <div class="state-card">
+    <div class="icon">⚠️</div>
+    <h1>Link inválido</h1>
+    <p>Este link de envío no existe o ya expiró.</p>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 const token = window.location.pathname.split('/').pop();
+const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5ODMzMzUyYmRjYTQzM2M4OGE4MzY2MmQwZTI2NTZiIiwiaCI6Im11cm11cjY0In0='; 
+
+let map = null;
+let marker = null;
+let routeLayer = null;
 let watchId = null;
-let isActive = false;
+let currentLat = null;
+let currentLng = null;
+let destLat = null;
+let destLng = null;
 
 // ===============================
 // INIT
@@ -192,19 +163,18 @@ let isActive = false;
 async function init() {
   try {
     const res = await fetch(`/api/deliveries/repartidor/${token}`);
-    if (!res.ok) {
-      showState('error');
-      return;
-    }
+    if (!res.ok) { showState('error'); return; }
     const delivery = await res.json();
 
     if (delivery.status === 'delivered') {
       showState('delivered');
     } else if (delivery.status === 'active') {
-      showState('active');
+      showMap();
       startGPS();
     } else {
-      showState('pending');
+      showMap();
+      document.getElementById('btnStart').style.display = 'block';
+      document.getElementById('navStatus').textContent = 'Listo para iniciar';
     }
   } catch (err) {
     showState('error');
@@ -212,46 +182,82 @@ async function init() {
 }
 
 // ===============================
-// ESTADOS
+// MAPA
 // ===============================
-function showState(state) {
-  document.getElementById('statePending').style.display = 'none';
-  document.getElementById('stateActive').style.display = 'none';
-  document.getElementById('stateDelivered').style.display = 'none';
-  document.getElementById('stateError').style.display = 'none';
+function showMap() {
+  document.getElementById('map').style.display = 'block';
+  document.getElementById('bottomCard').style.display = 'flex';
 
-  if (state === 'pending') document.getElementById('statePending').style.display = 'block';
-  if (state === 'active') document.getElementById('stateActive').style.display = 'block';
-  if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'block';
-  if (state === 'error') document.getElementById('stateError').style.display = 'block';
+  if (map) return;
+
+  map = L.map('map', {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([-32.9442, -60.6505], 14);
+
+  // 🎨 Mapa gris estilo Uber
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
 }
 
 // ===============================
-// INICIAR RECORRIDO
+// ÍCONO REPARTIDOR
 // ===============================
-document.getElementById('btnStart').addEventListener('click', async () => {
+function getRepartidorIcon() {
+  return L.divIcon({
+    html: `<div style="
+      background:#ea580c;
+      width:46px;height:46px;
+      border-radius:50%;
+      border:4px solid white;
+      box-shadow:0 4px 16px rgba(234,88,12,0.45);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;">🛵</div>`,
+    iconSize: [46, 46],
+    iconAnchor: [23, 23],
+    className: ''
+  });
+}
+
+// ===============================
+// RUTA
+// ===============================
+async function drawRoute(fromLat, fromLng, toLat, toLng) {
   try {
-    const res = await fetch(`/api/deliveries/start/${token}`, {
-      method: 'POST'
-    });
+    const res = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`
+    );
+    const data = await res.json();
 
-    if (!res.ok) {
-      alert('Error iniciando recorrido');
-      return;
-    }
+    if (!data.features || !data.features[0]) return;
 
-    showState('active');
-    startGPS();
+    const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+    if (routeLayer) map.removeLayer(routeLayer);
+
+    routeLayer = L.polyline(coords, {
+      color: '#ea580c',
+      weight: 5,
+      opacity: 0.85,
+      lineJoin: 'round'
+    }).addTo(map);
 
   } catch (err) {
-    alert('Error de conexión');
+    console.error('Error dibujando ruta:', err);
   }
-});
+}
 
 // ===============================
 // GPS
 // ===============================
 function startGPS() {
+  document.getElementById('gpsBadge').style.display = 'inline-flex';
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnDeliver').style.display = 'block';
+  document.getElementById('navStatus').textContent = 'En camino';
+
   if (!navigator.geolocation) {
     alert('Tu dispositivo no soporta GPS');
     return;
@@ -260,7 +266,23 @@ function startGPS() {
   watchId = navigator.geolocation.watchPosition(
     async (position) => {
       const { latitude, longitude } = position.coords;
+      currentLat = latitude;
+      currentLng = longitude;
 
+      // actualizar marcador
+      if (!marker) {
+        marker = L.marker([latitude, longitude], { icon: getRepartidorIcon() }).addTo(map);
+        map.setView([latitude, longitude], 16);
+      } else {
+        marker.setLatLng([latitude, longitude]);
+      }
+
+      // actualizar ruta cada vez que cambia la posición
+      if (destLat && destLng) {
+        await drawRoute(latitude, longitude, destLat, destLng);
+      }
+
+      // enviar al servidor
       try {
         await fetch(`/api/deliveries/location/${token}`, {
           method: 'PUT',
@@ -271,38 +293,50 @@ function startGPS() {
         console.error('Error enviando ubicación', err);
       }
     },
-    (err) => {
-      console.error('Error GPS:', err);
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    }
+    (err) => console.error('Error GPS:', err),
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 }
+
+// ===============================
+// INICIAR RECORRIDO
+// ===============================
+document.getElementById('btnStart').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`/api/deliveries/start/${token}`, { method: 'POST' });
+    if (!res.ok) { alert('Error iniciando recorrido'); return; }
+    startGPS();
+  } catch (err) {
+    alert('Error de conexión');
+  }
+});
 
 // ===============================
 // CONFIRMAR ENTREGA
 // ===============================
 document.getElementById('btnDeliver').addEventListener('click', async () => {
   try {
-    const res = await fetch(`/api/deliveries/deliver/${token}`, {
-      method: 'POST'
-    });
-
-    if (!res.ok) {
-      alert('Error confirmando entrega');
-      return;
-    }
-
+    const res = await fetch(`/api/deliveries/deliver/${token}`, { method: 'POST' });
+    if (!res.ok) { alert('Error confirmando entrega'); return; }
     if (watchId) navigator.geolocation.clearWatch(watchId);
     showState('delivered');
-
   } catch (err) {
     alert('Error de conexión');
   }
 });
+
+// ===============================
+// ESTADOS
+// ===============================
+function showState(state) {
+  document.getElementById('map').style.display = 'none';
+  document.getElementById('bottomCard').style.display = 'none';
+  document.getElementById('stateDelivered').style.display = 'none';
+  document.getElementById('stateError').style.display = 'none';
+
+  if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'block';
+  if (state === 'error') document.getElementById('stateError').style.display = 'block';
+}
 
 init();
 </script>
