@@ -367,3 +367,145 @@ if(catalogForm){
   });
 
 }
+
+/* ================================
+   DELIVERIES
+================================ */
+
+async function loadDeliveries() {
+  const container = document.getElementById("deliveriesList");
+  if (!container) return;
+
+  try {
+    const res = await fetch("/api/deliveries", { credentials: "include" });
+    if (!res.ok) return;
+
+    const deliveries = await res.json();
+
+    if (!deliveries.length) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:32px;color:#9ca3af;font-size:14px;">
+          No hay envíos activos. Creá uno para comenzar.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = deliveries.map(d => {
+
+      const linkRepartidor = `${window.location.origin}/delivery/repartidor/${d.token_repartidor}`;
+      const linkCliente = `${window.location.origin}/delivery/cliente/${d.token_cliente}`;
+
+      const statusLabel = {
+        pending: { text: "Pendiente", color: "#f59e0b", bg: "#fffbeb" },
+        active: { text: "En camino", color: "#16a34a", bg: "#ecfdf5" },
+        delivered: { text: "Entregado", color: "#6b7280", bg: "#f9fafb" }
+      }[d.status] || { text: d.status, color: "#6b7280", bg: "#f9fafb" };
+
+      const created = new Date(d.created_at).toLocaleString("es-AR", {
+        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+      });
+
+      return `
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:16px;padding:20px;margin-bottom:14px;">
+          
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-size:12px;color:#9ca3af;">${created}</span>
+            </div>
+            <span style="background:${statusLabel.bg};color:${statusLabel.color};font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;">
+              ${statusLabel.text}
+            </span>
+          </div>
+
+          <div style="display:grid;gap:10px;">
+
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;">
+              <div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;">Link del repartidor</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkRepartidor}</span>
+                <button onclick="copyLink('${linkRepartidor}', this)"
+                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                  Copiar
+                </button>
+                <button onclick="shareWhatsApp('${linkRepartidor}', 'repartidor')"
+                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                  WhatsApp
+                </button>
+              </div>
+            </div>
+
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;">
+              <div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;">Link del cliente</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkCliente}</span>
+                <button onclick="copyLink('${linkCliente}', this)"
+                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                  Copiar
+                </button>
+                <button onclick="shareWhatsApp('${linkCliente}', 'cliente')"
+                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                  WhatsApp
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    console.error("Error cargando envíos", err);
+  }
+}
+
+// COPIAR LINK
+window.copyLink = function(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const original = btn.textContent;
+    btn.textContent = "¡Copiado!";
+    btn.style.background = "#ecfdf5";
+    btn.style.color = "#16a34a";
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = "#f1f5f9";
+      btn.style.color = "";
+    }, 2000);
+  });
+};
+
+// COMPARTIR POR WHATSAPP
+window.shareWhatsApp = function(url, tipo) {
+  const msg = tipo === 'repartidor'
+    ? `Hola! Acá está tu link para iniciar el recorrido: ${url}`
+    : `Hola! Podés seguir tu pedido en tiempo real acá: ${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
+// NUEVO ENVÍO
+const btnNewDelivery = document.getElementById("btnNewDelivery");
+if (btnNewDelivery) {
+  btnNewDelivery.addEventListener("click", async () => {
+    btnNewDelivery.disabled = true;
+    btnNewDelivery.textContent = "Generando...";
+
+    try {
+      const res = await fetch("/api/deliveries", {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (!res.ok) throw new Error();
+
+      showToast("Envío creado correctamente", "success");
+      await loadDeliveries();
+
+    } catch (err) {
+      showToast("Error creando envío", "error");
+    } finally {
+      btnNewDelivery.disabled = false;
+      btnNewDelivery.textContent = "+ Nuevo envío";
+    }
+  });
+}
