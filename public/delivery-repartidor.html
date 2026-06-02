@@ -17,23 +17,33 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
   display:flex;
   align-items:center;
   justify-content:space-between;
-  box-shadow:0 1px 8px rgba(0,0,0,0.05);
   position:relative;
   z-index:1000;
   flex-shrink:0;
 }
-.brand { font-size:20px; font-weight:900; color:#111; text-decoration:none; }
+.brand { font-size:18px; font-weight:900; color:#111; text-decoration:none; letter-spacing:-0.03em; }
 .brand span { color:#ea580c; }
-
-#map {
-  flex:1;
-  position:relative;
+.nav-status {
+  font-size:12px;
+  font-weight:700;
+  color:#9ca3af;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.nav-dot {
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#9ca3af;
+}
+.nav-dot.active {
+  background:#16a34a;
+  animation:pulseDot 1.5s infinite;
 }
 
-/* BOTÓN FLOTANTE */
 .fab-container {
   position:absolute;
-  bottom:24px;
+  bottom:28px;
   left:50%;
   transform:translateX(-50%);
   z-index:1000;
@@ -41,76 +51,55 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
   flex-direction:column;
   align-items:center;
   gap:10px;
-  width:calc(100% - 48px);
-  max-width:380px;
-}
-
-.fab-btn {
-  width:100%;
-  padding:18px;
-  border:none;
-  border-radius:18px;
-  font-size:17px;
-  font-weight:800;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  box-shadow:0 8px 28px rgba(0,0,0,0.20);
-  backdrop-filter:blur(8px);
-}
-
-.fab-start {
-  background:linear-gradient(135deg,#ea580c,#f97316);
-  color:white;
-}
-
-.fab-deliver {
-  background:linear-gradient(135deg,#16a34a,#22c55e);
-  color:white;
-}
-
-.fab-btn:active {
-  transform:scale(0.97);
+  width:calc(100% - 40px);
+  max-width:360px;
 }
 
 .gps-badge {
   display:inline-flex;
   align-items:center;
-  gap:6px;
-  background:rgba(236,253,245,0.95);
-  color:#16a34a;
+  gap:8px;
+  background:rgba(255,255,255,0.95);
+  color:#374151;
   font-size:12px;
-  font-weight:700;
+  font-weight:600;
   padding:8px 16px;
   border-radius:999px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
-  backdrop-filter:blur(8px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.10);
+  border:1px solid #e5e7eb;
 }
 
-.gps-dot {
-  width:8px;
-  height:8px;
-  background:#16a34a;
-  border-radius:50%;
-  animation:pulseDot 1.2s infinite;
+.fab-btn {
+  width:100%;
+  padding:17px;
+  border:none;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  letter-spacing:-0.01em;
 }
 
-@keyframes pulseDot {
-  0%,100% { opacity:1; transform:scale(1); }
-  50% { opacity:0.5; transform:scale(1.5); }
+.fab-start {
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:white;
+  box-shadow:0 8px 24px rgba(234,88,12,0.32);
 }
 
-/* MOTO ANIMADA */
-@keyframes motoFloat {
-  0%,100% { transform:translateY(0px); }
-  50% { transform:translateY(-4px); }
+.fab-deliver {
+  background:white;
+  color:#111827;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  border:1px solid #e5e7eb;
 }
 
-@keyframes shadow {
-  0%,100% { transform:translateX(-50%) scaleX(1); opacity:0.4; }
-  50% { transform:translateX(-50%) scaleX(0.75); opacity:0.2; }
-}
+.fab-btn:active { transform:scale(0.98); }
 
-/* ESTADOS */
 .state-wrap {
   flex:1;
   display:flex;
@@ -120,56 +109,94 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
 }
 
 .state-card {
-  max-width:380px;
+  max-width:360px;
   width:100%;
   background:white;
   border-radius:24px;
   padding:40px 32px;
   text-align:center;
-  box-shadow:0 8px 40px rgba(0,0,0,0.10);
+  box-shadow:0 8px 40px rgba(0,0,0,0.08);
+  border:1px solid #f1f5f9;
 }
-.state-card .icon { font-size:56px; margin-bottom:16px; }
-.state-card h1 { font-size:22px; font-weight:800; color:#111827; margin-bottom:8px; }
+.state-icon {
+  width:64px;height:64px;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 20px;
+}
+.state-card h1 { font-size:20px; font-weight:800; color:#111827; margin-bottom:8px; }
 .state-card p { font-size:14px; color:#6b7280; line-height:1.6; }
+
+@keyframes pulseDot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.6); }
+}
+@keyframes motoFloat {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-5px); }
+}
+@keyframes shadowAnim {
+  0%,100% { transform:translateX(-50%) scaleX(1); opacity:0.3; }
+  50% { transform:translateX(-50%) scaleX(0.65); opacity:0.12; }
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="/" class="brand"><span>Punto</span>Cerca</a>
-  <span id="navStatus" style="font-size:13px;color:#9ca3af;font-weight:600;">Cargando...</span>
+  <div class="nav-status" id="navStatus">
+    <div class="nav-dot" id="navDot"></div>
+    <span id="navStatusText">Cargando</span>
+  </div>
 </nav>
 
-<!-- MAPA -->
 <div id="mapWrap" style="flex:1;position:relative;display:none;">
   <div id="map" style="width:100%;height:100%;"></div>
 
-  <!-- BOTONES FLOTANTES -->
   <div class="fab-container" id="fabContainer">
     <div class="gps-badge" id="gpsBadge" style="display:none;">
-      <div class="gps-dot"></div>
-      GPS activo — compartiendo ubicación
+      <div class="nav-dot active"></div>
+      Ubicación activa
     </div>
-    <button class="fab-btn fab-start" id="btnStart">🛵 Iniciar recorrido</button>
-    <button class="fab-btn fab-deliver" id="btnDeliver" style="display:none;">✅ Confirmar entrega</button>
+    <button class="fab-btn fab-start" id="btnStart">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+      </svg>
+      Iniciar recorrido
+    </button>
+    <button class="fab-btn fab-deliver" id="btnDeliver" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Confirmar entrega
+    </button>
   </div>
 </div>
 
-<!-- ESTADO: entregado -->
 <div id="stateDelivered" style="display:none;" class="state-wrap">
   <div class="state-card">
-    <div class="icon">✅</div>
-    <h1>¡Entregado!</h1>
-    <p>El pedido fue entregado correctamente. Este link ya no está activo.</p>
+    <div class="state-icon" style="background:#f0fdf4;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h1>Pedido entregado</h1>
+    <p>El recorrido finalizó correctamente. Este link ya no está activo.</p>
   </div>
 </div>
 
-<!-- ESTADO: error -->
 <div id="stateError" style="display:none;" class="state-wrap">
   <div class="state-card">
-    <div class="icon">⚠️</div>
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    </div>
     <h1>Link inválido</h1>
-    <p>Este link de envío no existe o ya expiró.</p>
+    <p>Este link no existe o ya expiró.</p>
   </div>
 </div>
 
@@ -186,63 +213,64 @@ let watchId = null;
 let destLat = null;
 let destLng = null;
 
-// ===============================
-// ÍCONO MOTO ANIMADA
-// ===============================
+// ÍCONO MOTO SVG ANIMADO
 function getMotoIcon() {
   return L.divIcon({
     html: `
-      <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:56px;height:64px;display:flex;flex-direction:column;align-items:center;">
         <div style="
-          position:absolute;
-          bottom:2px;left:50%;
-          transform:translateX(-50%);
-          width:36px;height:8px;
-          background:rgba(234,88,12,0.25);
-          border-radius:50%;
-          animation:shadow 1.2s ease-in-out infinite;
-        "></div>
-        <div style="
-          width:50px;height:50px;
+          width:52px;height:52px;
           background:linear-gradient(135deg,#ea580c,#f97316);
           border-radius:50%;
           border:3px solid white;
-          box-shadow:0 6px 20px rgba(234,88,12,0.5);
+          box-shadow:0 6px 20px rgba(234,88,12,0.40);
           display:flex;align-items:center;justify-content:center;
-          font-size:26px;
-          animation:motoFloat 1.5s ease-in-out infinite;
+          animation:motoFloat 1.8s ease-in-out infinite;
           position:relative;z-index:2;
-        ">🛵</div>
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div style="
+          width:28px;height:7px;
+          background:rgba(234,88,12,0.20);
+          border-radius:50%;
+          animation:shadowAnim 1.8s ease-in-out infinite;
+          margin-top:2px;
+        "></div>
       </div>
     `,
-    iconSize: [60, 60],
-    iconAnchor: [30, 30],
+    iconSize: [56, 64],
+    iconAnchor: [28, 52],
     className: ''
   });
 }
 
+// ÍCONO DESTINO SVG
 function getDestIcon() {
   return L.divIcon({
     html: `
       <div style="
-        width:42px;height:42px;
-        background:linear-gradient(135deg,#16a34a,#22c55e);
+        width:44px;height:44px;
+        background:white;
         border-radius:50%;
-        border:3px solid white;
-        box-shadow:0 6px 20px rgba(22,163,74,0.45);
+        border:3px solid #ea580c;
+        box-shadow:0 4px 16px rgba(234,88,12,0.25);
         display:flex;align-items:center;justify-content:center;
-        font-size:20px;
-      ">🏠</div>
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      </div>
     `,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
     className: ''
   });
 }
 
-// ===============================
 // INIT
-// ===============================
 async function init() {
   try {
     const res = await fetch(`/api/deliveries/repartidor/${token}`);
@@ -261,14 +289,13 @@ async function init() {
       if (delivery.status === 'active') {
         startGPS();
       } else {
-        document.getElementById('navStatus').textContent = 'Listo para iniciar';
-        // mostrar destino antes de iniciar
+        setNavStatus('Listo para iniciar', false);
         if (destLat && destLng) {
           setTimeout(() => {
             map.setView([destLat, destLng], 15);
             destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
               .addTo(map)
-              .bindPopup(delivery.dest_address || 'Destino del cliente')
+              .bindPopup(delivery.dest_address || 'Destino')
               .openPopup();
           }, 400);
         }
@@ -279,168 +306,108 @@ async function init() {
   }
 }
 
-// ===============================
 // MAPA
-// ===============================
 function showMap() {
   document.getElementById('mapWrap').style.display = 'block';
-
-  map = L.map('map', {
-    zoomControl: false,
-    attributionControl: false
-  }).setView([-32.9442, -60.6505], 14);
-
+  map = L.map('map', { zoomControl: false, attributionControl: false })
+    .setView([-32.9442, -60.6505], 14);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 19
+    subdomains: 'abcd', maxZoom: 19
   }).addTo(map);
-
-  // zoom arriba a la derecha
   L.control.zoom({ position: 'topright' }).addTo(map);
 }
 
-// ===============================
 // RUTA
-// ===============================
 async function drawRoute(fromLat, fromLng) {
   if (!destLat || !destLng) return;
-
   try {
     const res = await fetch(
       `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${destLng},${destLat}`
     );
     const data = await res.json();
     if (!data.features?.[0]) return;
-
     const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-
     if (routeLayer) map.removeLayer(routeLayer);
-
     routeLayer = L.polyline(coords, {
-      color: '#ea580c',
-      weight: 5,
-      opacity: 0.85,
-      lineJoin: 'round',
-      lineCap: 'round'
+      color: '#ea580c', weight: 4, opacity: 0.8,
+      lineJoin: 'round', lineCap: 'round'
     }).addTo(map);
-
   } catch (err) {
     console.error('Error ruta:', err);
   }
 }
 
-// ===============================
 // GPS
-// ===============================
 function startGPS() {
   document.getElementById('gpsBadge').style.display = 'inline-flex';
   document.getElementById('btnStart').style.display = 'none';
-  document.getElementById('btnDeliver').style.display = 'block';
-  document.getElementById('navStatus').textContent = 'En camino 🟢';
+  document.getElementById('btnDeliver').style.display = 'flex';
+  setNavStatus('En camino', true);
 
-  if (!navigator.geolocation) {
-    alert('Tu dispositivo no soporta GPS');
-    return;
-  }
-
-  // mostrar destino
   if (destLat && destLng && !destMarker) {
     destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
-      .addTo(map)
-      .bindPopup('Destino del cliente');
+      .addTo(map).bindPopup('Destino del cliente');
   }
 
   let firstPos = true;
-
   watchId = navigator.geolocation.watchPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
-
+    async ({ coords: { latitude, longitude } }) => {
       if (!marker) {
         marker = L.marker([latitude, longitude], { icon: getMotoIcon() }).addTo(map);
       } else {
         marker.setLatLng([latitude, longitude]);
       }
-
-      if (firstPos) {
-        map.setView([latitude, longitude], 16);
-        firstPos = false;
-      }
-
-      // actualizar ruta
+      if (firstPos) { map.setView([latitude, longitude], 16); firstPos = false; }
       await drawRoute(latitude, longitude);
-
-      // enviar al servidor
       try {
         await fetch(`/api/deliveries/location/${token}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lat: latitude, lng: longitude })
         });
-      } catch (err) {
-        console.error('Error GPS server:', err);
-      }
+      } catch {}
     },
-    (err) => console.error('GPS error:', err),
+    (err) => console.error('GPS:', err),
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 }
 
-// ===============================
 // BOTONES
-// ===============================
 document.getElementById('btnStart').addEventListener('click', async () => {
+  const btn = document.getElementById('btnStart');
+  btn.textContent = 'Iniciando...';
+  btn.disabled = true;
   try {
     const res = await fetch(`/api/deliveries/start/${token}`, { method: 'POST' });
-    if (!res.ok) { alert('Error iniciando recorrido'); return; }
+    if (!res.ok) { alert('Error iniciando'); btn.textContent = 'Iniciar recorrido'; btn.disabled = false; return; }
     startGPS();
-  } catch (err) {
-    alert('Error de conexión');
-  }
+  } catch { alert('Error de conexión'); btn.textContent = 'Iniciar recorrido'; btn.disabled = false; }
 });
 
 document.getElementById('btnDeliver').addEventListener('click', async () => {
   const btn = document.getElementById('btnDeliver');
   btn.textContent = 'Confirmando...';
   btn.disabled = true;
-
   try {
     const res = await fetch(`/api/deliveries/deliver/${token}`, { method: 'POST' });
-    if (!res.ok) { alert('Error confirmando entrega'); btn.textContent = '✅ Confirmar entrega'; btn.disabled = false; return; }
+    if (!res.ok) { alert('Error confirmando'); btn.textContent = 'Confirmar entrega'; btn.disabled = false; return; }
     if (watchId) navigator.geolocation.clearWatch(watchId);
     showState('delivered');
-  } catch (err) {
-    alert('Error de conexión');
-    btn.textContent = '✅ Confirmar entrega';
-    btn.disabled = false;
-  }
+  } catch { alert('Error'); btn.textContent = 'Confirmar entrega'; btn.disabled = false; }
 });
 
-// ===============================
-// ESTADOS
-// ===============================
+function setNavStatus(text, active) {
+  document.getElementById('navStatusText').textContent = text;
+  document.getElementById('navDot').className = 'nav-dot' + (active ? ' active' : '');
+}
+
 function showState(state) {
   document.getElementById('mapWrap').style.display = 'none';
   document.getElementById('stateDelivered').style.display = 'none';
   document.getElementById('stateError').style.display = 'none';
-
   if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'flex';
   if (state === 'error') document.getElementById('stateError').style.display = 'flex';
 }
-
-// CSS animations en el head
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes motoFloat {
-    0%,100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-  }
-  @keyframes shadow {
-    0%,100% { transform: translateX(-50%) scaleX(1); opacity:0.4; }
-    50% { transform: translateX(-50%) scaleX(0.7); opacity:0.15; }
-  }
-`;
-document.head.appendChild(style);
 
 init();
 </script>
