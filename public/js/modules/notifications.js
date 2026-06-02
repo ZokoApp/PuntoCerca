@@ -34,6 +34,10 @@ window.initNotifications = async function() {
   }
 
   // cargar datos
+  const wrapper = document.getElementById("notifWrapper");
+  if (wrapper) wrapper.style.display = "block";
+
+  // cargar datos
   await loadNotifications(list, listMobile);
   await loadUnreadCount(countEl, countMobile);
 
