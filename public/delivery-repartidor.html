@@ -43,7 +43,7 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
 
 .fab-container {
   position:absolute;
-  bottom:28px;
+  bottom:40px;
   left:50%;
   transform:translateX(-50%);
   z-index:1000;
@@ -294,9 +294,11 @@ async function init() {
           setTimeout(() => {
             map.setView([destLat, destLng], 15);
             destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
-              .addTo(map)
-              .bindPopup(delivery.dest_address || 'Destino')
-              .openPopup();
+  .addTo(map)
+  .bindPopup(delivery.dest_address || 'Destino')
+  .openPopup();
+
+setTimeout(() => destMarker.closePopup(), 3000);
           }, 400);
         }
       }
