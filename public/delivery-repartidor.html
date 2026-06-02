@@ -42,11 +42,11 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
 }
 
 .fab-container {
-  position:absolute;
+  position:fixed;
   bottom:40px;
   left:50%;
   transform:translateX(-50%);
-  z-index:1000;
+  z-index:9999;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -155,8 +155,9 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
 
 <div id="mapWrap" style="flex:1;position:relative;display:none;">
   <div id="map" style="width:100%;height:100%;"></div>
+</div>
 
-  <div class="fab-container" id="fabContainer">
+<div class="fab-container" id="fabContainer" style="display:none;">
     <div class="gps-badge" id="gpsBadge" style="display:none;">
       <div class="nav-dot active"></div>
       Ubicación activa
@@ -174,7 +175,7 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
       Confirmar entrega
     </button>
   </div>
-</div>
+
 
 <div id="stateDelivered" style="display:none;" class="state-wrap">
   <div class="state-card">
@@ -311,6 +312,7 @@ setTimeout(() => destMarker.closePopup(), 3000);
 // MAPA
 function showMap() {
   document.getElementById('mapWrap').style.display = 'block';
+  document.getElementById('fabContainer').style.display = 'flex';
   map = L.map('map', { zoomControl: false, attributionControl: false })
     .setView([-32.9442, -60.6505], 14);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -405,6 +407,7 @@ function setNavStatus(text, active) {
 
 function showState(state) {
   document.getElementById('mapWrap').style.display = 'none';
+  document.getElementById('fabContainer').style.display = 'none';
   document.getElementById('stateDelivered').style.display = 'none';
   document.getElementById('stateError').style.display = 'none';
   if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'flex';
