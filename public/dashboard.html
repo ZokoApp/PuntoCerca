@@ -118,6 +118,7 @@
     </section>
 
     <!-- ENVÍOS EN TIEMPO REAL -->
+<!-- ENVÍOS EN TIEMPO REAL -->
 <section class="panel-card" id="deliveriesSection">
   <div class="panel-head panel-head--space">
     <div>
@@ -128,9 +129,44 @@
       + Nuevo envío
     </button>
   </div>
-
   <div id="deliveriesList" style="margin-top:16px;"></div>
 </section>
+
+<!-- MODAL NUEVO ENVÍO -->
+<div id="deliveryModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:24px;padding:32px;max-width:480px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="font-size:20px;font-weight:900;color:#111827;">Nuevo envío</h2>
+      <button id="closeDeliveryModal" style="background:#f3f4f6;border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:8px;">
+        Dirección del cliente
+      </label>
+      <input id="deliveryAddress" type="text" placeholder="Buscar dirección..."
+        style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;">
+      <p style="font-size:12px;color:#9ca3af;margin-top:6px;">Escribí la dirección que te pasó el cliente por WhatsApp</p>
+    </div>
+
+    <div id="deliveryMapContainer" style="height:220px;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:20px;">
+      <div id="deliveryMap" style="height:100%;width:100%;"></div>
+    </div>
+
+    <div id="selectedAddressBox" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+      <p style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:2px;">Destino confirmado</p>
+      <p id="selectedAddressText" style="font-size:13px;color:#374151;"></p>
+    </div>
+
+    <button id="btnConfirmDelivery" 
+      style="width:100%;padding:16px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(234,88,12,0.28);opacity:0.5;"
+      disabled>
+      Generar links de envío
+    </button>
+
+  </div>
+</div>
 
 <div class="dashboard-section">
   <h2>Tiendas que seguís</h2>
