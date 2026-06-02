@@ -1,69 +1,102 @@
 let notifications = [];
 let isOpen = false;
+let isOpenMobile = false;
 
 // ===============================
 // INIT
 // ===============================
-window.initNotifications = async function initNotifications() {
+window.initNotifications = async function() {
 
+  // ===== DESKTOP =====
   const btn = document.getElementById("notifBtn");
   const dropdown = document.getElementById("notifDropdown");
   const list = document.getElementById("notifList");
   const countEl = document.getElementById("notifCount");
 
-  if (!btn || !dropdown || !list || !countEl) return;
+  // ===== MOBILE =====
+  const btnMobile = document.getElementById("notifBtnMobile");
+  const dropdownMobile = document.getElementById("notifDropdownMobile");
+  const listMobile = document.getElementById("notifListMobile");
+  const countMobile = document.getElementById("notifCountMobile");
 
   // verificar sesión
   try {
     const res = await fetch("/api/me", { credentials: "include" });
     if (!res.ok) {
-      btn.parentElement.style.display = "none";
+      if (btn) btn.parentElement.style.display = "none";
       return;
     }
   } catch {
-    btn.parentElement.style.display = "none";
+    if (btn) btn.parentElement.style.display = "none";
     return;
   }
 
-  await loadNotifications(list);
-  await loadUnreadCount(countEl);
+  // cargar datos
+  await loadNotifications(list, listMobile);
+  await loadUnreadCount(countEl, countMobile);
 
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    isOpen = !isOpen;
-    dropdown.classList.toggle("hidden", !isOpen);
-  });
+  // ===== EVENTOS DESKTOP =====
+  if (btn && dropdown) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isOpen = !isOpen;
+      dropdown.classList.toggle("hidden", !isOpen);
+    });
 
-  document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target) && e.target !== btn) {
-      dropdown.classList.add("hidden");
-      isOpen = false;
-    }
-  });
-}
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && e.target !== btn) {
+        dropdown.classList.add("hidden");
+        isOpen = false;
+      }
+    });
+  }
+
+  // ===== EVENTOS MOBILE =====
+  if (btnMobile && dropdownMobile) {
+    btnMobile.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isOpenMobile = !isOpenMobile;
+      dropdownMobile.classList.toggle("hidden", !isOpenMobile);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!dropdownMobile.contains(e.target) && e.target !== btnMobile) {
+        dropdownMobile.classList.add("hidden");
+        isOpenMobile = false;
+      }
+    });
+  }
+};
 
 // ===============================
 // LOAD
 // ===============================
-async function loadNotifications(list) {
+async function loadNotifications(list, listMobile) {
   try {
     const res = await fetch("/api/notifications", { credentials: "include" });
     if (!res.ok) return;
     notifications = await res.json();
-    renderNotifications(list);
+    if (list) renderNotifications(list);
+    if (listMobile) renderNotifications(listMobile);
   } catch (err) {
     console.error("Error cargando notificaciones", err);
   }
 }
 
-async function loadUnreadCount(countEl) {
+async function loadUnreadCount(countEl, countMobile) {
   try {
     const res = await fetch("/api/notifications/unread-count", { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     if (data.count > 0) {
-      countEl.innerText = data.count;
-      countEl.classList.remove("hidden");
+      if (countEl) {
+        countEl.innerText = data.count;
+        countEl.classList.remove("hidden");
+      }
+      if (countMobile) {
+        countMobile.innerText = data.count;
+        countMobile.style.display = "flex";
+      }
     }
   } catch (err) {
     console.error(err);
