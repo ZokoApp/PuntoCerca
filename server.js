@@ -3494,7 +3494,6 @@ storesResult = await pool.query(`
    DELIVERIES
 ================================ */
 
-// CREAR ENVÍO (vendedor)
 app.post('/api/deliveries', authMiddleware, async (req, res) => {
   try {
     const storeRes = await pool.query(
@@ -3510,11 +3509,14 @@ app.post('/api/deliveries', authMiddleware, async (req, res) => {
     const tokenRepartidor = require('crypto').randomBytes(20).toString('hex');
     const tokenCliente = require('crypto').randomBytes(20).toString('hex');
 
+    const { dest_lat, dest_lng, dest_address } = req.body;
+
     const result = await pool.query(`
-      INSERT INTO deliveries (store_id, token_repartidor, token_cliente)
-      VALUES ($1, $2, $3)
+      INSERT INTO deliveries 
+        (store_id, token_repartidor, token_cliente, dest_lat, dest_lng, dest_address)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [storeId, tokenRepartidor, tokenCliente]);
+    `, [storeId, tokenRepartidor, tokenCliente, dest_lat || null, dest_lng || null, dest_address || null]);
 
     res.json(result.rows[0]);
 
@@ -3544,11 +3546,11 @@ app.get('/api/deliveries', authMiddleware, async (req, res) => {
   }
 });
 
-// VERIFICAR TOKEN REPARTIDOR
 app.get('/api/deliveries/repartidor/:token', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT status FROM deliveries
+      SELECT status, dest_lat, dest_lng, dest_address 
+      FROM deliveries
       WHERE token_repartidor = $1
       AND expires_at > NOW()
     `, [req.params.token]);
