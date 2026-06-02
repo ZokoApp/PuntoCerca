@@ -3028,7 +3028,8 @@ app.get('/delivery/cliente/:token', (req, res) => {
     "profile",
     "product",
     "stores",
-    "sitemap.xml"
+    "sitemap.xml",
+    "delivery"
   ];
 
  if (blocked.includes(slug)) {
@@ -3540,6 +3541,26 @@ app.get('/api/deliveries', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error obteniendo envíos" });
+  }
+});
+
+// VERIFICAR TOKEN REPARTIDOR
+app.get('/api/deliveries/repartidor/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT status FROM deliveries
+      WHERE token_repartidor = $1
+      AND expires_at > NOW()
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "No encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error" });
   }
 });
 
