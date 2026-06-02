@@ -398,57 +398,15 @@ async function loadDeliveries() {
       return;
     }
 
-    container.innerHTML = deliveries.map(d => {
-      const linkRepartidor = `${window.location.origin}/delivery/repartidor/${d.token_repartidor}`;
-      const linkCliente = `${window.location.origin}/delivery/cliente/${d.token_cliente}`;
-
-      const statusLabel = {
-        pending: { text: "Pendiente", color: "#f59e0b", bg: "#fffbeb" },
-        active:  { text: "En camino", color: "#16a34a", bg: "#ecfdf5" },
-        delivered: { text: "Entregado", color: "#6b7280", bg: "#f9fafb" }
-      }[d.status] || { text: d.status, color: "#6b7280", bg: "#f9fafb" };
-
-      const created = new Date(d.created_at).toLocaleString("es-AR", {
-        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
-      });
-
-      return `
-        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:16px;padding:20px;margin-bottom:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div>
-              <span style="font-size:12px;color:#9ca3af;">${created}</span>
-              ${d.dest_address ? `<p style="font-size:13px;font-weight:600;color:#374151;margin-top:2px;">📍 ${d.dest_address}</p>` : ''}
-            </div>
-            <span style="background:${statusLabel.bg};color:${statusLabel.color};font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;">
-              ${statusLabel.text}
-            </span>
-          </div>
-
-          <div style="display:grid;gap:10px;">
-            <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;">
-              <div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;">Link del repartidor</div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkRepartidor}</span>
-                <button onclick="copyLink('${linkRepartidor}', this)"
-                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Copiar</button>
-                <button onclick="shareWhatsApp('${linkRepartidor}', 'repartidor')"
-                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">WhatsApp</button>
-              </div>
-            </div>
-
-            <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;">
-              <div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;">Link del cliente</div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="font-size:12px;color:#6b7280;flex:1;word-break:break-all;">${linkCliente}</span>
-                <button onclick="copyLink('${linkCliente}', this)"
-                  style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Copiar</button>
-                <button onclick="shareWhatsApp('${linkCliente}', 'cliente')"
-                  style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">WhatsApp</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+    container.innerHTML = `
+  <div class="delivery-empty">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:40px;height:40px;display:block;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#9ca3af">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+    </svg>
+    <p>No hay envíos activos</p>
+    <span>Creá un nuevo envío para generar los links de seguimiento</span>
+  </div>
+`;
     }).join("");
 
   } catch (err) {
