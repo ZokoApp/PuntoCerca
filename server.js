@@ -3619,7 +3619,7 @@ app.put('/api/deliveries/location/:token', async (req, res) => {
 app.get('/api/deliveries/track/:token', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT status, lat, lng, created_at, expires_at
+      SELECT status, lat, lng, dest_lat, dest_lng, dest_address, created_at, expires_at
       FROM deliveries
       WHERE token_cliente = $1
       AND expires_at > NOW()
