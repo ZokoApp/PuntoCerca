@@ -2750,6 +2750,10 @@ app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
 app.get('/delivery/repartidor/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/delivery-repartidor.html'));
 });
+
+app.get('/delivery/cliente/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/delivery-cliente.html'));
+});
   
   app.put('/api/stores/:id',
     authMiddleware,
