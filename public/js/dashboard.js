@@ -7,8 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadStore();
   await loadProducts();
   await loadFollowers();
-
   loadFollowingStores();
+  loadDeliveries();
 });
 
 /* ================================
