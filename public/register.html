@@ -3,97 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro - PuntoCerca</title>
+<title>Crear cuenta - PuntoCerca</title>
 <link rel="stylesheet" href="/css/output.css">
 <link rel="icon" type="image/png" href="/img/favicon.png">
+<style>
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 70% 0%, rgba(234,88,12,0.07) 0%, transparent 60%), #f8fafc;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+</style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+<body>
 
-<!-- NAVBAR -->
-<nav class="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-white/20 shadow-sm">
-  <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-    <div class="text-2xl font-bold text-orange-600">PuntoCerca</div>
-    <a href="/" class="text-gray-700 hover:text-orange-600 transition">Inicio</a>
-  </div>
+<!-- NAVBAR MÍNIMO -->
+<nav style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box;">
+  <a href="/" style="text-decoration:none;">
+    <img src="/img/logo.png" style="height:40px;">
+  </a>
+  <a href="/login" style="font-size:14px;color:#6b7280;text-decoration:none;font-weight:500;">
+    ¿Ya tenés cuenta? <span style="color:#ea580c;font-weight:700;">Iniciá sesión</span>
+  </a>
 </nav>
 
 <!-- CONTENIDO -->
-<section class="flex-grow py-20">
-  <div class="max-w-3xl mx-auto px-6">
-    <div class="bg-white rounded-2xl shadow-xl p-10">
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:480px;">
 
-      <h2 class="text-3xl font-bold text-orange-600 mb-8">Crear Cuenta</h2>
+    <!-- CARD -->
+    <div style="background:white;border-radius:24px;padding:40px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08);border:1px solid #f1f5f9;">
 
-      <!-- ROLE SELECTOR -->
-      <div class="grid grid-cols-2 gap-4 mb-8">
-        <button type="button"
-          class="role-btn border-2 border-orange-500 bg-orange-50 rounded-xl py-4 font-semibold transition"
-          data-role="user">Usuario</button>
-        <button type="button"
-          class="role-btn border-2 border-gray-300 rounded-xl py-4 font-semibold transition hover:border-orange-400"
-          data-role="seller">Vendedor</button>
+      <!-- HEADER -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+          </svg>
+        </div>
+        <h1 style="font-size:22px;font-weight:900;color:#111827;letter-spacing:-0.03em;margin:0 0 6px;">Crear cuenta gratis</h1>
+        <p style="font-size:14px;color:#9ca3af;margin:0;">Únite a PuntoCerca hoy</p>
       </div>
 
-      <form id="registerForm" class="space-y-6">
+      <!-- ROLE SELECTOR -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+        <button type="button" id="roleUser" onclick="selectRole('user')"
+          style="padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;">
+          <div style="font-size:18px;margin-bottom:4px;">👤</div>
+          Usuario
+        </button>
+        <button type="button" id="roleSeller" onclick="selectRole('seller')"
+          style="padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;">
+          <div style="font-size:18px;margin-bottom:4px;">🏪</div>
+          Vendedor
+        </button>
+      </div>
 
-        <input type="text" id="name" placeholder="Nombre completo"
-          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
-          required>
+      <!-- DESCRIPCIÓN DEL ROL -->
+      <div id="roleDesc" style="background:#f8fafc;border-radius:10px;padding:10px 14px;margin-bottom:20px;font-size:13px;color:#6b7280;text-align:center;">
+        Explorá negocios, guardá favoritos y seguí tus pedidos.
+      </div>
 
-        <input type="email" id="email" placeholder="Email"
-          class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none"
-          required>
+      <!-- FORM -->
+      <form id="registerForm" style="display:flex;flex-direction:column;gap:14px;">
 
-        <div class="relative">
-          <input type="password" id="password" placeholder="Contraseña"
-            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none pr-12"
+        <div>
+          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Nombre completo</label>
+          <input type="text" id="name" placeholder="Tu nombre"
+            style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'"
+            onblur="this.style.borderColor='#e5e7eb'"
             required>
-          <button type="button" onclick="togglePass('password', 'eye1')"
-            style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
-            <svg id="eye1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
         </div>
 
-        <div class="relative">
-          <input type="password" id="confirmPassword" placeholder="Confirmar contraseña"
-            class="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-orange-400 outline-none pr-12"
+        <div>
+          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Email</label>
+          <input type="email" id="email" placeholder="tu@email.com"
+            style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'"
+            onblur="this.style.borderColor='#e5e7eb'"
             required>
-          <button type="button" onclick="togglePass('confirmPassword', 'eye2')"
-            style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
-            <svg id="eye2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
         </div>
 
-        <button type="submit"
-          class="w-full bg-orange-600 text-white py-4 rounded-full font-semibold hover:bg-orange-700 transition shadow-md hover:shadow-lg">
-          Registrarse
+        <div>
+          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Contraseña</label>
+          <div style="position:relative;">
+            <input type="password" id="password" placeholder="Mínimo 8 caracteres"
+              style="width:100%;padding:12px 44px 12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#ea580c'"
+              onblur="this.style.borderColor='#e5e7eb'"
+              required>
+            <button type="button" onclick="togglePass('password','eye1')"
+              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
+              <svg id="eye1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Confirmar contraseña</label>
+          <div style="position:relative;">
+            <input type="password" id="confirmPassword" placeholder="Repetí tu contraseña"
+              style="width:100%;padding:12px 44px 12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
+              onfocus="this.style.borderColor='#ea580c'"
+              onblur="this.style.borderColor='#e5e7eb'"
+              required>
+            <button type="button" onclick="togglePass('confirmPassword','eye2')"
+              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
+              <svg id="eye2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;box-shadow:0 6px 20px rgba(234,88,12,0.3);transition:all 0.2s;letter-spacing:-0.01em;"
+          onmouseover="this.style.transform='translateY(-1px)'"
+          onmouseout="this.style.transform='none'">
+          Crear cuenta
         </button>
 
       </form>
-    </div>
-  </div>
-</section>
 
-<!-- FOOTER -->
-<footer class="bg-gray-900 text-gray-300 py-6">
-  <div class="max-w-7xl mx-auto px-6 text-center text-sm">
-    ©️ 2026 PuntoCerca - Plataforma de comercios locales
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:12px;margin:20px 0 16px;">
+        <div style="flex:1;height:1px;background:#f1f5f9;"></div>
+        <span style="font-size:12px;color:#9ca3af;">¿Ya tenés cuenta?</span>
+        <div style="flex:1;height:1px;background:#f1f5f9;"></div>
+      </div>
+
+      <a href="/login" style="
+        display:block;text-align:center;padding:13px;
+        border:1.5px solid #e5e7eb;border-radius:12px;
+        font-size:14px;font-weight:700;color:#374151;text-decoration:none;transition:all 0.2s;"
+        onmouseover="this.style.borderColor='#ea580c';this.style.color='#ea580c'"
+        onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#374151'">
+        Iniciar sesión
+      </a>
+
+    </div>
+
+    <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:24px;">
+      © 2026 PuntoCerca · <a href="/privacy.html" style="color:#9ca3af;">Privacidad</a>
+    </p>
+
   </div>
-</footer>
+</div>
 
 <div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:999999;display:flex;flex-direction:column;gap:10px;"></div>
 
 <script>
-
 function showToast(message, type = "success") {
-  const bg = { success: "#22c55e", error: "#ef4444", warning: "#f59e0b", info: "#3b82f6" };
+  const bg = { success:"#22c55e", error:"#ef4444", warning:"#f59e0b", info:"#3b82f6" };
   const toast = document.createElement("div");
   toast.style.cssText = `background:${bg[type]};color:white;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;min-width:260px;`;
   toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:white;font-size:18px;cursor:pointer;">✕</button>`;
@@ -111,6 +179,25 @@ function togglePass(inputId, iconId) {
     : `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
 }
 
+let selectedRole = "user";
+
+function selectRole(role) {
+  selectedRole = role;
+  const userBtn = document.getElementById("roleUser");
+  const sellerBtn = document.getElementById("roleSeller");
+  const desc = document.getElementById("roleDesc");
+
+  if (role === "user") {
+    userBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;";
+    sellerBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;";
+    desc.textContent = "Explorá negocios, guardá favoritos y seguí tus pedidos.";
+  } else {
+    sellerBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;";
+    userBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;";
+    desc.textContent = "Publicá tu tienda, subí productos y usá PuntoEnvío para tus repartos.";
+  }
+}
+
 let csrfToken = null;
 
 async function getCsrfToken() {
@@ -119,22 +206,12 @@ async function getCsrfToken() {
   csrfToken = data.csrfToken;
 }
 
-let selectedRole = "user";
-
-document.querySelectorAll(".role-btn").forEach(btn => {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll(".role-btn").forEach(b => {
-      b.classList.remove("border-orange-500", "bg-orange-50");
-      b.classList.add("border-gray-300");
-    });
-    this.classList.add("border-orange-500", "bg-orange-50");
-    this.classList.remove("border-gray-300");
-    selectedRole = this.dataset.role;
-  });
-});
-
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
+
+  const btn = document.getElementById("submitBtn");
+  btn.textContent = "Creando cuenta...";
+  btn.disabled = true;
 
   if (!csrfToken) await getCsrfToken();
 
@@ -143,39 +220,47 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
   if (password !== confirmPassword) {
     showToast("Las contraseñas no coinciden", "warning");
+    btn.textContent = "Crear cuenta";
+    btn.disabled = false;
     return;
   }
 
   const data = {
     name: document.getElementById("name").value.trim(),
     email: document.getElementById("email").value.trim(),
-    password: password,
+    password,
     role: selectedRole
   };
 
-  const response = await fetch('/api/register', {
-    method: 'POST',
-    credentials: "include",
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': csrfToken
-    },
-    body: JSON.stringify(data)
-  });
+  try {
+    const response = await fetch("/api/register", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
+      body: JSON.stringify(data)
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  if (!response.ok) {
-    showToast(result.error || "Error en registro", "error");
-    return;
+    if (!response.ok) {
+      showToast(result.error || "Error en registro", "error");
+      btn.textContent = "Crear cuenta";
+      btn.disabled = false;
+      return;
+    }
+
+    showToast("¡Cuenta creada! Revisá tu email para confirmarla", "success");
+    setTimeout(() => window.location.href = "/login", 2500);
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error de conexión", "error");
+    btn.textContent = "Crear cuenta";
+    btn.disabled = false;
   }
-
-  showToast("Revisá tu email para confirmar tu cuenta", "success");
-  setTimeout(() => window.location.href = "/", 2000);
 });
 
 getCsrfToken();
-
 </script>
 
 </body>
