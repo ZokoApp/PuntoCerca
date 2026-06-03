@@ -532,3 +532,63 @@ function startLiveTimer(event) {
   update();
   setInterval(update, 1000);
 }
+// =============================
+// HERO ACTIONS
+// =============================
+
+window.heroSearch = function() {
+  const q = document.getElementById("heroSearchInput").value.trim();
+  if (q) window.location.href = `/search.html?q=${encodeURIComponent(q)}`;
+};
+
+document.getElementById("heroSearchInput")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") window.heroSearch();
+});
+
+window.heroAction = async function(action) {
+  try {
+    const res = await fetch("/api/me", { credentials: "include" });
+
+    if (!res.ok) {
+      // No logueado
+      if (action === 'explore') {
+        window.location.href = "/stores.html";
+      } else {
+        window.location.href = "/login";
+      }
+      return;
+    }
+
+    const user = await res.json();
+
+    if (action === 'explore') {
+      window.location.href = "/stores.html";
+
+    } else if (action === 'catalog') {
+      if (user.role === 'seller') {
+        // abrir modal catálogo si está en dashboard, sino ir al dashboard
+        if (window.location.pathname === '/dashboard') {
+          document.getElementById("openCatalogModal")?.click();
+        } else {
+          window.location.href = "/dashboard";
+        }
+      } else {
+        window.location.href = "/register.html";
+      }
+
+    } else if (action === 'envio') {
+      if (user.role === 'seller') {
+        if (window.location.pathname === '/dashboard') {
+          document.getElementById("btnNewDelivery")?.click();
+        } else {
+          window.location.href = "/dashboard";
+        }
+      } else {
+        window.location.href = "/register.html";
+      }
+    }
+
+  } catch (err) {
+    window.location.href = "/stores.html";
+  }
+};
