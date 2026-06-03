@@ -96,7 +96,12 @@ export function loadOffers(){
 
     container.innerHTML = "";
 
-    offers.forEach(offer => {
+if (!offers.length) {
+  document.getElementById("ofertas").style.display = "none";
+  return;
+}
+
+offers.forEach(offer => {
 
       const card = document.createElement("div");
       card.className = "product-card";
