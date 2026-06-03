@@ -181,48 +181,118 @@
 </header>
 <main>
 <!-- ================= HERO ================= -->
-<section class="pc-hero">
+<section id="pc-hero-new" style="background:white;padding:60px 24px 40px;border-bottom:1px solid #f1f5f9;">
+  <div style="max-width:1280px;margin:0 auto;">
 
-  <div class="pc-hero-bg">
-    <img src="/img/hero.png" alt="PuntoCerca">
-  </div>
+    <!-- TÍTULO -->
+    <div style="text-align:center;margin-bottom:48px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#fff7ed;border:1px solid #fed7aa;padding:6px 16px;border-radius:999px;margin-bottom:20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        <span style="font-size:13px;font-weight:700;color:#ea580c;">Cerca tuyo, siempre</span>
+      </div>
 
-  <div class="pc-hero-overlay"></div>
-
-  <div class="pc-hero-floating pc-float-1">🛍️</div>
-  <div class="pc-hero-floating pc-float-2">📍</div>
-  <div class="pc-hero-floating pc-float-3">⭐</div>
-
-  <div class="pc-hero-inner">
-
-    <div class="pc-hero-content">
-
-      <span class="pc-hero-badge">
-        📍 Cerca tuyo, siempre
-      </span>
-
-      <h1>
-        Negocios, productos y servicios cerca tuyo
+      <h1 style="font-size:clamp(2rem,5vw,3.8rem);font-weight:900;color:#111827;letter-spacing:-0.04em;line-height:1.05;margin:0 0 16px;">
+        Negocios, productos<br>y servicios cerca tuyo
       </h1>
 
-      <p>
-        Encontrá comercios reales, precios, ofertas y contacto directo por WhatsApp.
+      <p style="font-size:1.1rem;color:#6b7280;max-width:520px;margin:0 auto 40px;line-height:1.7;">
+        Encontrá comercios reales, precios y ofertas. Contacto directo por WhatsApp.
       </p>
 
-      <div class="pc-hero-actions">
-        <a href="/stores.html" class="pc-btn-main">
-          Explorar negocios
-        </a>
+      <!-- BARRA DE BÚSQUEDA HERO -->
+      <div style="max-width:560px;margin:0 auto 48px;position:relative;">
+        <input
+          id="heroSearchInput"
+          type="text"
+          placeholder="Buscar negocios, productos o servicios..."
+          style="width:100%;padding:16px 56px 16px 20px;border:2px solid #e5e7eb;border-radius:999px;font-size:15px;outline:none;box-shadow:0 4px 20px rgba(0,0,0,0.06);font-family:inherit;"
+          onfocus="this.style.borderColor='#ea580c'"
+          onblur="this.style.borderColor='#e5e7eb'"
+        />
+        <button
+          onclick="heroSearch()"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:linear-gradient(135deg,#ea580c,#f97316);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </button>
+      </div>
+    </div>
 
-        <a href="/map.html" class="pc-btn-secondary">
-          Ver en el mapa
-        </a>
+    <!-- 3 CARDS DE PROPUESTA DE VALOR -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;" id="heroCards">
+
+      <!-- CARD 1: Explorar negocios -->
+      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.08)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('explore')">
+        <div style="width:48px;height:48px;background:#fff7ed;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#ea580c">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-0.02em;">Explorá negocios</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Encontrá comercios, servicios y productos cerca tuyo en el mapa.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#ea580c;">
+          Ver negocios
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CARD 2: Catálogo digital -->
+      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.08)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('catalog')">
+        <div style="width:48px;height:48px;background:#fff7ed;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#ea580c">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-0.02em;">Catálogo digital</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Subí tu carta, menú o lista de precios en PDF. Tus clientes lo ven desde tu perfil.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#ea580c;" id="heroCatalogAction">
+          Subir catálogo
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CARD 3: PuntoEnvío -->
+      <div style="background:#111827;border:1px solid #1f2937;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.20)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('envio')">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <h3 style="font-size:17px;font-weight:800;color:white;margin:0;letter-spacing:-0.02em;">
+            <span style="color:white;">Punto</span><span style="color:#f97316;">Envío</span>
+          </h3>
+          <span style="background:rgba(249,115,22,0.2);color:#fb923c;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">BETA</span>
+        </div>
+        <p style="font-size:13px;color:#9ca3af;margin:0 0 20px;line-height:1.6;">Seguimiento en tiempo real para tus repartos. Sin apps, sin complicaciones.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#f97316;" id="heroEnvioAction">
+          Crear envío
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
       </div>
 
     </div>
-
   </div>
-
 </section>
 <!-- ================= CATEGORÍAS ================= -->
 <section class="pc-categories-section">
