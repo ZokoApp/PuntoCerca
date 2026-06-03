@@ -948,3 +948,26 @@ nav a{
     padding: 40px 20px 32px !important;
   }
 }
+/* Ocultar buscador hero en mobile */
+@media (max-width: 768px) {
+  #heroSearchInput,
+  #heroSearchInput + button {
+    display: none !important;
+  }
+
+  #heroCards {
+    grid-template-columns: 1fr !important;
+  }
+
+  #pc-hero-new {
+    padding: 32px 16px 24px !important;
+  }
+
+  #pc-hero-new h1 {
+    font-size: 2rem !important;
+  }
+
+  #pc-hero-new > div > div:nth-child(2) {
+    margin-bottom: 24px !important;
+  }
+}
