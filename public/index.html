@@ -181,7 +181,15 @@
 </header>
 <main>
 <!-- ================= HERO ================= -->
-<section id="pc-hero-new" style="background:white;padding:36px 24px 32px;border-bottom:1px solid #f1f5f9;">
+<section id="pc-hero-new" style="
+  background: radial-gradient(ellipse at 60% 0%, rgba(234,88,12,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse at 0% 100%, rgba(249,115,22,0.04) 0%, transparent 60%),
+              white;
+  padding:36px 24px 40px;
+  border-bottom:1px solid #f1f5f9;
+  position:relative;
+  overflow:hidden;
+">
   <div style="max-width:1280px;margin:0 auto;">
 
     <!-- TÍTULO -->
@@ -202,25 +210,7 @@
         Encontrá comercios reales, precios y ofertas. Contacto directo por WhatsApp.
       </p>
 
-      <!-- BARRA DE BÚSQUEDA HERO -->
-     <div style="max-width:560px;margin:0 auto 28px;position:relative;" class="hidden md:block">
-        <input
-          id="heroSearchInput"
-          type="text"
-          placeholder="Buscar negocios, productos o servicios..."
-          style="width:100%;padding:16px 56px 16px 20px;border:2px solid #e5e7eb;border-radius:999px;font-size:15px;outline:none;box-shadow:0 4px 20px rgba(0,0,0,0.06);font-family:inherit;"
-          onfocus="this.style.borderColor='#ea580c'"
-          onblur="this.style.borderColor='#e5e7eb'"
-        />
-        <button
-          onclick="heroSearch()"
-          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:linear-gradient(135deg,#ea580c,#f97316);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-        </button>
-      </div>
-    </div>
+     
 
     <!-- 3 CARDS DE PROPUESTA DE VALOR -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;" id="heroCards">
