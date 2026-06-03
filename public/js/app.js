@@ -421,9 +421,9 @@ async function loadEvents() {
   .slice(0, 10);
 
     if (!sortedEvents.length) {
-      container.innerHTML = `<p style="color:#888;">No hay eventos próximos</p>`;
-      return;
-    }
+  document.getElementById("eventos").style.display = "none";
+  return;
+}
 
     sortedEvents.forEach(event => {
 
