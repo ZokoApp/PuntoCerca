@@ -939,3 +939,12 @@ nav a{
     align-items: flex-start;
   }
 }
+@media (max-width: 768px) {
+  #heroCards {
+    grid-template-columns: 1fr !important;
+  }
+
+  #pc-hero-new {
+    padding: 40px 20px 32px !important;
+  }
+}
