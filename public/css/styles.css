@@ -971,9 +971,11 @@ nav a{
     margin-bottom: 24px !important;
   }
 }
-header.sticky {
-  position: sticky !important;
+header {
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   z-index: 9999 !important;
   background: white !important;
   box-shadow: 0 1px 12px rgba(0,0,0,0.08) !important;
