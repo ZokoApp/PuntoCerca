@@ -3549,7 +3549,8 @@ app.get('/api/deliveries', authMiddleware, async (req, res) => {
 app.get('/api/deliveries/repartidor/:token', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT status, dest_lat, dest_lng, dest_address 
+      SELECT status, dest_lat, dest_lng, dest_address,
+             repartidor_ip, repartidor_ua
       FROM deliveries
       WHERE token_repartidor = $1
       AND expires_at > NOW()
@@ -3559,7 +3560,28 @@ app.get('/api/deliveries/repartidor/:token', async (req, res) => {
       return res.status(404).json({ error: "No encontrado" });
     }
 
-    res.json(result.rows[0]);
+    const delivery = result.rows[0];
+
+    // obtener IP del request
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    const ua = req.headers['user-agent'] || '';
+
+    // si ya está bloqueado por otro dispositivo
+    if (delivery.repartidor_ip && delivery.repartidor_ip !== ip) {
+      return res.status(403).json({ error: "locked", message: "Este link ya está en uso por otro dispositivo" });
+    }
+
+    // si es la primera vez, registrar el dispositivo
+    if (!delivery.repartidor_ip) {
+      await pool.query(`
+        UPDATE deliveries 
+        SET repartidor_ip = $1, repartidor_ua = $2, repartidor_locked_at = NOW()
+        WHERE token_repartidor = $3
+      `, [ip, ua, req.params.token]);
+    }
+
+    res.json(delivery);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error" });
