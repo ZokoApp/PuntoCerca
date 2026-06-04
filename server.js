@@ -3592,10 +3592,13 @@ app.get('/api/deliveries/repartidor/:token', async (req, res) => {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
     const ua = req.headers['user-agent'] || '';
 
-    // si ya está bloqueado por otro dispositivo
-    if (delivery.repartidor_ip && delivery.repartidor_ip !== ip) {
-      return res.status(403).json({ error: "locked", message: "Este link ya está en uso por otro dispositivo" });
-    }
+   // bloqueado por otro dispositivo — comparar también user agent
+if (delivery.repartidor_ip && delivery.repartidor_ip !== ip) {
+  // si el user agent es el mismo, probablemente es el mismo dispositivo con IP cambiada
+  if (delivery.repartidor_ua !== ua) {
+    return res.status(403).json({ error: "locked" });
+  }
+}
 
     // si es la primera vez, registrar el dispositivo
     if (!delivery.repartidor_ip) {
