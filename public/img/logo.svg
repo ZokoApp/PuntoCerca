@@ -1,0 +1,16 @@
+<svg width="260" height="64" viewBox="0 0 260 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- CÍRCULO -->
+  <circle cx="32" cy="26" r="18" fill="#FF6A00"/>
+  <!-- PIN PUNTA -->
+  <path d="M32 44 C32 44 24 36 24 26 A8 8 0 0 1 40 26 C40 36 32 44 32 44Z" fill="#FF6A00"/>
+  <!-- PUNTO BLANCO INTERIOR -->
+  <circle cx="32" cy="26" r="6" fill="white"/>
+  <!-- TEXTO -->
+  <text x="62" y="42"
+        font-family="Inter, Poppins, Arial, sans-serif"
+        font-size="32"
+        font-weight="700"
+        letter-spacing="-1">
+    <tspan fill="#1F1F1F">Punto</tspan><tspan fill="#FF6A00">Cerca</tspan>
+  </text>
+</svg>
