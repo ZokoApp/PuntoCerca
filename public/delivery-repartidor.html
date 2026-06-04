@@ -205,7 +205,20 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
     </p>
   </div>
 </div>
-
+<div id="stateLocked" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#fef2f2;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#dc2626;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    </div>
+    <h1>Link en uso</h1>
+    <p>Este link ya fue abierto desde otro dispositivo y no puede usarse nuevamente.</p>
+    <p style="margin-top:12px;font-size:12px;color:#d1d5db;">
+      <span style="font-weight:800;color:#ea580c;">Punto</span><span style="font-weight:800;color:#9ca3af;">Envío</span> · por PuntoCerca
+    </p>
+  </div>
+</div>
 <div id="stateError" style="display:none;" class="state-wrap">
   <div class="state-card">
     <div class="state-icon" style="background:#fff7ed;">
@@ -347,7 +360,11 @@ function getDestIcon() {
 async function init() {
   try {
     const res = await fetch(`/api/deliveries/repartidor/${token}`);
-    if (!res.ok) { showState('error'); return; }
+    if (res.status === 403) {
+  showState('locked');
+  return;
+}
+if (!res.ok) { showState('error'); return; }
     const delivery = await res.json();
 
     if (delivery.dest_lat && delivery.dest_lng) {
@@ -527,8 +544,10 @@ function showState(state) {
   document.getElementById('fabContainer').style.display = 'none';
   document.getElementById('stateDelivered').style.display = 'none';
   document.getElementById('stateError').style.display = 'none';
+  document.getElementById('stateLocked').style.display = 'none';
   if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'flex';
   if (state === 'error') document.getElementById('stateError').style.display = 'flex';
+  if (state === 'locked') document.getElementById('stateLocked').style.display = 'flex';
 }
 
 init();
