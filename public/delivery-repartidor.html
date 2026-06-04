@@ -219,6 +219,40 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
     </p>
   </div>
 </div>
+  <div id="observacionesBanner" style="display:none;position:fixed;top:70px;left:0;right:0;z-index:2000;padding:0 16px;">
+  <div style="
+    background:#fff7ed;
+    border:1.5px solid #fed7aa;
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(234,88,12,0.15);
+  ">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <span style="font-size:12px;font-weight:800;color:#ea580c;text-transform:uppercase;letter-spacing:0.06em;">Instrucciones del vendedor</span>
+      </div>
+      <button onclick="cerrarObservaciones()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;padding:0;line-height:1;">✕</button>
+    </div>
+    <p id="observacionesTexto" style="font-size:14px;color:#374151;line-height:1.6;margin:0 0 12px;"></p>
+    <button onclick="confirmarLectura()" id="btnLeidoObservaciones" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;border:none;
+      padding:8px 16px;
+      border-radius:8px;
+      font-size:13px;font-weight:700;
+      cursor:pointer;
+      display:inline-flex;align-items:center;gap:6px;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+      Leído, entendido
+    </button>
+  </div>
+</div>
 <div id="stateError" style="display:none;" class="state-wrap">
   <div class="state-card">
     <div class="state-icon" style="background:#fff7ed;">
@@ -354,6 +388,27 @@ function getDestIcon() {
   });
 }
 
+  function mostrarObservaciones(texto) {
+  document.getElementById('observacionesTexto').textContent = texto;
+  document.getElementById('observacionesBanner').style.display = 'block';
+}
+
+function cerrarObservaciones() {
+  document.getElementById('observacionesBanner').style.display = 'none';
+}
+
+function confirmarLectura() {
+  const btn = document.getElementById('btnLeidoObservaciones');
+  btn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+    ¡Anotado!
+  `;
+  btn.style.background = 'linear-gradient(135deg,#16a34a,#22c55e)';
+  setTimeout(() => cerrarObservaciones(), 1500);
+}
+
 // ===============================
 // INIT
 // ===============================
@@ -388,8 +443,13 @@ async function init() {
       if (delivery.status === 'active') {
         startGPS();
       } else {
-        setNavStatus('Listo para iniciar', false);
-        if (destLat && destLng) {
+       setNavStatus('Listo para iniciar', false);
+
+if (delivery.observaciones) {
+  mostrarObservaciones(delivery.observaciones);
+}
+
+if (destLat && destLng) {
           setTimeout(() => {
             map.setView([destLat, destLng], 15);
             destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
