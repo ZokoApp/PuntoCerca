@@ -30,18 +30,20 @@ body {
   max-width: 1100px;
   margin: 0 auto;
   padding: 40px 24px 80px;
+}
+
+.form-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 32px;
+  gap: 0 24px;
   align-items: start;
 }
 
-.main .back-link,
-.main .page-title,
-.main .page-sub {
-  grid-column: 1 / -1;
-}
+.form-col { display: flex; flex-direction: column; }
 
+@media (max-width: 768px) {
+  .form-columns { grid-template-columns: 1fr; }
+}
 .main .submit-btn {
   grid-column: 1 / -1;
 }
@@ -341,177 +343,147 @@ body {
   <p class="page-sub">Completá los datos para publicar en tu tienda</p>
 
   <form id="productForm">
+  <div class="form-columns">
 
-    <!-- INFORMACIÓN BÁSICA -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-dot"></div>
-        Información básica
-      </div>
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="form-col">
 
-      <div class="form-field">
-        <label>Nombre del producto <span style="color:#ea580c;">*</span></label>
-        <input type="text" id="name" placeholder="Ej: Zapatillas Nike Air Max">
-      </div>
-
-      <div class="form-grid">
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Información básica</div>
         <div class="form-field">
-          <label>Marca</label>
-          <input type="text" id="brand" placeholder="Ej: Nike">
+          <label>Nombre del producto <span style="color:#ea580c;">*</span></label>
+          <input type="text" id="name" placeholder="Ej: Zapatillas Nike Air Max">
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Marca</label>
+            <input type="text" id="brand" placeholder="Ej: Nike">
+          </div>
+          <div class="form-field">
+            <label>Modelo</label>
+            <input type="text" id="model" placeholder="Ej: Air Max 90">
+          </div>
         </div>
         <div class="form-field">
-          <label>Modelo</label>
-          <input type="text" id="model" placeholder="Ej: Air Max 90">
+          <label>Descripción</label>
+          <textarea id="description" placeholder="Describí el producto..."></textarea>
         </div>
       </div>
 
-      <div class="form-field">
-        <label>Descripción</label>
-        <textarea id="description" placeholder="Describí el producto..."></textarea>
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Categoría</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Categoría <span style="color:#ea580c;">*</span></label>
+            <select id="category"><option value="">Seleccioná</option></select>
+          </div>
+          <div class="form-field">
+            <label>Subcategoría <span style="color:#ea580c;">*</span></label>
+            <select id="subcategory"><option value="">Seleccioná</option></select>
+          </div>
+        </div>
       </div>
+
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Precio</div>
+        <div class="form-field">
+          <label>Precio <span style="color:#ea580c;">*</span></label>
+          <div class="price-wrap">
+            <span class="price-symbol">$</span>
+            <input type="number" id="price" placeholder="0">
+          </div>
+          <label class="price-on-request">
+            <input type="checkbox" id="priceOnRequest">
+            Precio a consultar
+          </label>
+        </div>
+        <div class="offer-toggle">
+          <div>
+            <div class="offer-label">Producto en oferta</div>
+            <div class="offer-desc">Aparecerá destacado en la sección de ofertas</div>
+          </div>
+          <div class="toggle-switch" id="offerSwitch" onclick="toggleOffer()"></div>
+          <input type="checkbox" id="isOffer" style="display:none;">
+        </div>
+      </div>
+
     </div>
 
-    <!-- PRECIO -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-dot"></div>
-        Precio
-      </div>
+    <!-- COLUMNA DERECHA -->
+    <div class="form-col">
 
-      <div class="form-field">
-        <label>Precio <span style="color:#ea580c;">*</span></label>
-        <div class="price-wrap">
-          <span class="price-symbol">$</span>
-          <input type="number" id="price" placeholder="0">
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Imágenes</div>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="productImages" multiple accept="image/*" onchange="previewImages(this)">
+          <div class="upload-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+          <p class="upload-title">Subí hasta 5 imágenes</p>
+          <p class="upload-sub">JPG, PNG o WEBP · Máximo 5MB cada una</p>
         </div>
-        <label class="price-on-request">
-          <input type="checkbox" id="priceOnRequest">
-          Precio a consultar
-        </label>
-      </div>
-
-      <!-- OFERTA -->
-      <div class="offer-toggle">
-        <div>
-          <div class="offer-label">Producto en oferta</div>
-          <div class="offer-desc">Aparecerá destacado en la sección de ofertas</div>
+        <div class="upload-preview" id="uploadPreview"></div>
+        <div class="form-field" style="margin-top:12px;">
+          <label>O pegá una URL de imagen</label>
+          <input type="text" id="image_url" placeholder="https://...">
         </div>
-        <div class="toggle-switch" id="offerSwitch" onclick="toggleOffer()"></div>
-        <input type="checkbox" id="isOffer" style="display:none;">
-      </div>
-    </div>
-
-    <!-- CATEGORÍA -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-dot"></div>
-        Categoría
       </div>
 
-      <div class="form-grid">
-        <div class="form-field">
-          <label>Categoría <span style="color:#ea580c;">*</span></label>
-          <select id="category">
-            <option value="">Seleccioná</option>
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Atributos opcionales</div>
+
+        <div class="toggle-row" onclick="toggleAttr('checkSizes','sizesField',this)">
+          <span class="toggle-label">Talles</span>
+          <div class="toggle-switch" id="switchSizes"></div>
+          <input type="checkbox" id="checkSizes" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="sizesField">
+          <input type="text" id="sizes" placeholder="Ej: 38, 39, 40, 41, 42" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        </div>
+
+        <div class="toggle-row" onclick="toggleAttr('checkColors','colorsField',this)">
+          <span class="toggle-label">Colores</span>
+          <div class="toggle-switch" id="switchColors"></div>
+          <input type="checkbox" id="checkColors" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="colorsField">
+          <select id="colors" multiple style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;height:120px;">
+            <option>Negro</option><option>Blanco</option><option>Gris</option>
+            <option>Azul</option><option>Rojo</option><option>Verde</option>
+            <option>Amarillo</option><option>Rosa</option><option>Marrón</option><option>Beige</option>
           </select>
+          <p style="font-size:12px;color:#aaa;margin-top:6px;">Mantenés Ctrl o Cmd para seleccionar varios</p>
         </div>
-        <div class="form-field">
-          <label>Subcategoría <span style="color:#ea580c;">*</span></label>
-          <select id="subcategory">
-            <option value="">Seleccioná</option>
-          </select>
+
+        <div class="toggle-row" onclick="toggleAttr('checkSKU','skuField',this)">
+          <span class="toggle-label">Código SKU</span>
+          <div class="toggle-switch" id="switchSKU"></div>
+          <input type="checkbox" id="checkSKU" style="display:none;">
         </div>
-      </div>
-    </div>
-
-    <!-- IMÁGENES -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-dot"></div>
-        Imágenes
-      </div>
-
-      <div class="upload-area" id="uploadArea">
-        <input type="file" id="productImages" multiple accept="image/*" onchange="previewImages(this)">
-        <div class="upload-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-          </svg>
+        <div class="toggle-extra" id="skuField">
+          <input type="text" id="sku" placeholder="Código interno del producto" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
         </div>
-        <p class="upload-title">Subí hasta 5 imágenes</p>
-        <p class="upload-sub">JPG, PNG o WEBP · Máximo 5MB cada una</p>
-      </div>
 
-      <div class="upload-preview" id="uploadPreview"></div>
-
-      <div class="form-field" style="margin-top:12px;">
-        <label>O pegá una URL de imagen</label>
-        <input type="text" id="image_url" placeholder="https://...">
-      </div>
-    </div>
-
-    <!-- ATRIBUTOS OPCIONALES -->
-    <div class="card">
-      <div class="card-title">
-        <div class="card-title-dot"></div>
-        Atributos opcionales
-      </div>
-
-      <div class="toggle-row" onclick="toggleAttr('checkSizes', 'sizesField', this)">
-        <span class="toggle-label">Talles</span>
-        <div class="toggle-switch" id="switchSizes"></div>
-        <input type="checkbox" id="checkSizes" style="display:none;">
-      </div>
-      <div class="toggle-extra" id="sizesField">
-        <input type="text" id="sizes" placeholder="Ej: 38, 39, 40, 41, 42" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
-      </div>
-
-      <div class="toggle-row" onclick="toggleAttr('checkColors', 'colorsField', this)">
-        <span class="toggle-label">Colores</span>
-        <div class="toggle-switch" id="switchColors"></div>
-        <input type="checkbox" id="checkColors" style="display:none;">
-      </div>
-      <div class="toggle-extra" id="colorsField">
-        <select id="colors" multiple style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;height:120px;">
-          <option>Negro</option>
-          <option>Blanco</option>
-          <option>Gris</option>
-          <option>Azul</option>
-          <option>Rojo</option>
-          <option>Verde</option>
-          <option>Amarillo</option>
-          <option>Rosa</option>
-          <option>Marrón</option>
-          <option>Beige</option>
-        </select>
-        <p style="font-size:12px;color:#aaa;margin-top:6px;">Mantenés Ctrl o Cmd para seleccionar varios</p>
-      </div>
-
-      <div class="toggle-row" onclick="toggleAttr('checkSKU', 'skuField', this)">
-        <span class="toggle-label">Código SKU</span>
-        <div class="toggle-switch" id="switchSKU"></div>
-        <input type="checkbox" id="checkSKU" style="display:none;">
-      </div>
-      <div class="toggle-extra" id="skuField">
-        <input type="text" id="sku" placeholder="Código interno del producto" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
-      </div>
-
-      <div class="toggle-row" onclick="toggleAttr('checkMaterial', 'materialField', this)">
-        <span class="toggle-label">Material</span>
-        <div class="toggle-switch" id="switchMaterial"></div>
-        <input type="checkbox" id="checkMaterial" style="display:none;">
-      </div>
-      <div class="toggle-extra" id="materialField">
-        <input type="text" id="material" placeholder="Ej: Algodón, Cuero, Plástico" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        <div class="toggle-row" onclick="toggleAttr('checkMaterial','materialField',this)">
+          <span class="toggle-label">Material</span>
+          <div class="toggle-switch" id="switchMaterial"></div>
+          <input type="checkbox" id="checkMaterial" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="materialField">
+          <input type="text" id="material" placeholder="Ej: Algodón, Cuero, Plástico" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        </div>
       </div>
 
     </div>
+  </div>
 
-    <button type="submit" class="submit-btn" id="submitBtn">
-      Publicar producto
-    </button>
+  <button type="submit" class="submit-btn" id="submitBtn" style="margin-top:8px;">
+    Publicar producto
+  </button>
 
-  </form>
+</form>
 
 </main>
 
