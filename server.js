@@ -3129,16 +3129,16 @@ html = html.replace(
 app.get('/api/catalogo/:slug', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT catalog_url, name FROM stores 
+      SELECT catalog_pdf_url, name FROM stores 
       WHERE slug = $1
     `, [req.params.slug]);
 
-    if (!result.rows.length || !result.rows[0].catalog_url) {
+    if (!result.rows.length || !result.rows[0].catalog_pdf_url) {
       return res.status(404).json({ error: "Catálogo no encontrado" });
     }
 
     res.json({ 
-      catalog_url: result.rows[0].catalog_url,
+      catalog_url: result.rows[0].catalog_pdf_url,
       store_name: result.rows[0].name
     });
 
