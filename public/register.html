@@ -7,96 +7,402 @@
 <link rel="stylesheet" href="/css/output.css">
 <link rel="icon" type="image/png" href="/img/favicon.png">
 <style>
-  body {
-    min-height: 100vh;
-    background: radial-gradient(ellipse at 70% 0%, rgba(234,88,12,0.07) 0%, transparent 60%), #f8fafc;
-    display: flex;
-    flex-direction: column;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.register-wrap {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* LADO IZQUIERDO */
+.register-left {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+  border-right: 1px solid #ebebeb;
+}
+
+.register-left-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.register-tagline {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.register-tagline span {
+  color: #ea580c;
+}
+
+.register-desc {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.7;
+  margin-bottom: 40px;
+  max-width: 340px;
+}
+
+.register-features {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.register-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.register-feature-icon {
+  width: 36px;
+  height: 36px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.register-feature-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+}
+
+.register-feature-text span {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* LADO DERECHO */
+.register-right {
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+}
+
+.register-form-wrap {
+  width: 100%;
+  max-width: 400px;
+}
+
+.register-form-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.register-form-sub {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 28px;
+}
+
+/* ROLE SELECTOR */
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.role-option {
+  padding: 12px 16px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.role-option.active {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.role-option-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.role-option.active .role-option-title {
+  color: #ea580c;
+}
+
+.role-option-desc {
+  font-size: 11px;
+  color: #999;
+  display: block;
+  line-height: 1.4;
+}
+
+/* FORM */
+.form-field {
+  margin-bottom: 14px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111;
+  background: white;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-field input:focus {
+  border-color: #ea580c;
+}
+
+.form-field .input-wrap {
+  position: relative;
+}
+
+.form-field .eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bbb;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  background: #ea580c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.submit-btn:hover { background: #c2410c; }
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.form-divider div {
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.form-divider span {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.login-link {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  text-decoration: none;
+  background: white;
+  transition: all 0.15s;
+}
+
+.login-link:hover {
+  border-color: #ea580c;
+  color: #ea580c;
+}
+
+.form-footer {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.form-footer a { color: #aaa; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .register-wrap {
+    grid-template-columns: 1fr;
   }
+  .register-left {
+    display: none;
+  }
+  .register-right {
+    padding: 32px 20px;
+    background: white;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR MÍNIMO -->
-<nav style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box;">
-  <a href="/" style="text-decoration:none;">
-    <img src="/img/logo.png" style="height:40px;">
-  </a>
-  <a href="/login" style="font-size:14px;color:#6b7280;text-decoration:none;font-weight:500;">
-    ¿Ya tenés cuenta? <span style="color:#ea580c;font-weight:700;">Iniciá sesión</span>
-  </a>
-</nav>
+<div class="register-wrap">
 
-<!-- CONTENIDO -->
-<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
-  <div style="width:100%;max-width:480px;">
+  <!-- IZQUIERDA -->
+  <div class="register-left">
 
-    <!-- CARD -->
-    <div style="background:white;border-radius:24px;padding:40px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08);border:1px solid #f1f5f9;">
+    <!-- LOGO -->
+    <a href="/" style="text-decoration:none;">
+      <img src="/img/logo.png" style="height:36px;">
+    </a>
 
-      <!-- HEADER -->
-      <div style="text-align:center;margin-bottom:28px;">
-        <div style="width:52px;height:52px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-          </svg>
+    <!-- CONTENIDO -->
+    <div class="register-left-content">
+      <p class="register-tagline">
+        Tu negocio,<br>más <span>cerca</span><br>que nunca.
+      </p>
+
+      <p class="register-desc">
+        Publicá tu tienda, llegá a más clientes y gestioná tus repartos desde un solo lugar.
+      </p>
+
+      <div class="register-features">
+
+        <div class="register-feature">
+          <div class="register-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 2.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+            </svg>
+          </div>
+          <div class="register-feature-text">
+            <strong>Tienda online gratis</strong>
+            <span>Publicá productos, precios y horarios fácilmente.</span>
+          </div>
         </div>
-        <h1 style="font-size:22px;font-weight:900;color:#111827;letter-spacing:-0.03em;margin:0 0 6px;">Crear cuenta gratis</h1>
-        <p style="font-size:14px;color:#9ca3af;margin:0;">Únite a PuntoCerca hoy</p>
+
+        <div class="register-feature">
+          <div class="register-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+          </div>
+          <div class="register-feature-text">
+            <strong>Catálogo digital en PDF</strong>
+            <span>Subí tu menú o lista de precios para que lo vean tus clientes.</span>
+          </div>
+        </div>
+
+        <div class="register-feature">
+          <div class="register-feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+          </div>
+          <div class="register-feature-text">
+            <strong>PuntoEnvío</strong>
+            <span>Seguimiento en tiempo real para tus repartos, sin apps.</span>
+          </div>
+        </div>
+
       </div>
+    </div>
+
+    <!-- FOOTER IZQUIERDO -->
+    <p style="font-size:12px;color:#bbb;">© 2026 PuntoCerca</p>
+
+  </div>
+
+  <!-- DERECHA: FORMULARIO -->
+  <div class="register-right">
+    <div class="register-form-wrap">
+
+      <p class="register-form-title">Crear cuenta</p>
+      <p class="register-form-sub">Es gratis. Tardás menos de 2 minutos.</p>
 
       <!-- ROLE SELECTOR -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
-        <button type="button" id="roleUser" onclick="selectRole('user')"
-          style="padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;">
-          <div style="font-size:18px;margin-bottom:4px;">👤</div>
-          Usuario
+      <div class="role-selector">
+        <button type="button" class="role-option active" id="roleUser" onclick="selectRole('user')">
+          <span class="role-option-title">Usuario</span>
+          <span class="role-option-desc">Explorá y seguí negocios</span>
         </button>
-        <button type="button" id="roleSeller" onclick="selectRole('seller')"
-          style="padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;">
-          <div style="font-size:18px;margin-bottom:4px;">🏪</div>
-          Vendedor
+        <button type="button" class="role-option" id="roleSeller" onclick="selectRole('seller')">
+          <span class="role-option-title">Vendedor</span>
+          <span class="role-option-desc">Publicá tu negocio</span>
         </button>
-      </div>
-
-      <!-- DESCRIPCIÓN DEL ROL -->
-      <div id="roleDesc" style="background:#f8fafc;border-radius:10px;padding:10px 14px;margin-bottom:20px;font-size:13px;color:#6b7280;text-align:center;">
-        Explorá negocios, guardá favoritos y seguí tus pedidos.
       </div>
 
       <!-- FORM -->
-      <form id="registerForm" style="display:flex;flex-direction:column;gap:14px;">
+      <form id="registerForm">
 
-        <div>
-          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Nombre completo</label>
-          <input type="text" id="name" placeholder="Tu nombre"
-            style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
-            onfocus="this.style.borderColor='#ea580c'"
-            onblur="this.style.borderColor='#e5e7eb'"
-            required>
+        <div class="form-field">
+          <label>Nombre completo</label>
+          <input type="text" id="name" placeholder="Tu nombre" required>
         </div>
 
-        <div>
-          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Email</label>
-          <input type="email" id="email" placeholder="tu@email.com"
-            style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
-            onfocus="this.style.borderColor='#ea580c'"
-            onblur="this.style.borderColor='#e5e7eb'"
-            required>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="tu@email.com" required>
         </div>
 
-        <div>
-          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Contraseña</label>
-          <div style="position:relative;">
-            <input type="password" id="password" placeholder="Mínimo 8 caracteres"
-              style="width:100%;padding:12px 44px 12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
-              onfocus="this.style.borderColor='#ea580c'"
-              onblur="this.style.borderColor='#e5e7eb'"
-              required>
-            <button type="button" onclick="togglePass('password','eye1')"
-              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
+        <div class="form-field">
+          <label>Contraseña</label>
+          <div class="input-wrap">
+            <input type="password" id="password" placeholder="Mínimo 8 caracteres" style="padding-right:40px;" required>
+            <button type="button" class="eye-btn" onclick="togglePass('password','eye1')">
               <svg id="eye1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -105,16 +411,11 @@
           </div>
         </div>
 
-        <div>
-          <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Confirmar contraseña</label>
-          <div style="position:relative;">
-            <input type="password" id="confirmPassword" placeholder="Repetí tu contraseña"
-              style="width:100%;padding:12px 44px 12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;"
-              onfocus="this.style.borderColor='#ea580c'"
-              onblur="this.style.borderColor='#e5e7eb'"
-              required>
-            <button type="button" onclick="togglePass('confirmPassword','eye2')"
-              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;">
+        <div class="form-field">
+          <label>Confirmar contraseña</label>
+          <div class="input-wrap">
+            <input type="password" id="confirmPassword" placeholder="Repetí tu contraseña" style="padding-right:40px;" required>
+            <button type="button" class="eye-btn" onclick="togglePass('confirmPassword','eye2')">
               <svg id="eye2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -123,48 +424,35 @@
           </div>
         </div>
 
-        <button type="submit" id="submitBtn"
-          style="width:100%;padding:14px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;box-shadow:0 6px 20px rgba(234,88,12,0.3);transition:all 0.2s;letter-spacing:-0.01em;"
-          onmouseover="this.style.transform='translateY(-1px)'"
-          onmouseout="this.style.transform='none'">
-          Crear cuenta
-        </button>
+        <button type="submit" class="submit-btn" id="submitBtn">Crear cuenta</button>
 
       </form>
 
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:12px;margin:20px 0 16px;">
-        <div style="flex:1;height:1px;background:#f1f5f9;"></div>
-        <span style="font-size:12px;color:#9ca3af;">¿Ya tenés cuenta?</span>
-        <div style="flex:1;height:1px;background:#f1f5f9;"></div>
+      <div class="form-divider">
+        <div></div>
+        <span>¿Ya tenés cuenta?</span>
+        <div></div>
       </div>
 
-      <a href="/login" style="
-        display:block;text-align:center;padding:13px;
-        border:1.5px solid #e5e7eb;border-radius:12px;
-        font-size:14px;font-weight:700;color:#374151;text-decoration:none;transition:all 0.2s;"
-        onmouseover="this.style.borderColor='#ea580c';this.style.color='#ea580c'"
-        onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#374151'">
-        Iniciar sesión
-      </a>
+      <a href="/login" class="login-link">Iniciar sesión</a>
+
+      <p class="form-footer">
+        Al registrarte aceptás los <a href="/terms.html">términos</a> y la <a href="/privacy.html">política de privacidad</a>.
+      </p>
 
     </div>
-
-    <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:24px;">
-      © 2026 PuntoCerca · <a href="/privacy.html" style="color:#9ca3af;">Privacidad</a>
-    </p>
-
   </div>
+
 </div>
 
 <div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:999999;display:flex;flex-direction:column;gap:10px;"></div>
 
 <script>
 function showToast(message, type = "success") {
-  const bg = { success:"#22c55e", error:"#ef4444", warning:"#f59e0b", info:"#3b82f6" };
+  const bg = { success:"#22c55e", error:"#ef4444", warning:"#f59e0b" };
   const toast = document.createElement("div");
-  toast.style.cssText = `background:${bg[type]};color:white;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;min-width:260px;`;
-  toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:white;font-size:18px;cursor:pointer;">✕</button>`;
+  toast.style.cssText = `background:${bg[type]};color:white;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.12);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;min-width:260px;`;
+  toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>`;
   document.getElementById("toastContainer").appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
@@ -183,36 +471,23 @@ let selectedRole = "user";
 
 function selectRole(role) {
   selectedRole = role;
-  const userBtn = document.getElementById("roleUser");
-  const sellerBtn = document.getElementById("roleSeller");
-  const desc = document.getElementById("roleDesc");
-
-  if (role === "user") {
-    userBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;";
-    sellerBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;";
-    desc.textContent = "Explorá negocios, guardá favoritos y seguí tus pedidos.";
-  } else {
-    sellerBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #ea580c;background:#fff7ed;color:#ea580c;";
-    userBtn.style.cssText = "padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #e5e7eb;background:white;color:#6b7280;";
-    desc.textContent = "Publicá tu tienda, subí productos y usá PuntoEnvío para tus repartos.";
-  }
+  document.getElementById("roleUser").className = "role-option" + (role === "user" ? " active" : "");
+  document.getElementById("roleSeller").className = "role-option" + (role === "seller" ? " active" : "");
 }
 
 let csrfToken = null;
 
 async function getCsrfToken() {
-  const response = await fetch("/api/csrf-token", { credentials: "include" });
-  const data = await response.json();
+  const res = await fetch("/api/csrf-token", { credentials: "include" });
+  const data = await res.json();
   csrfToken = data.csrfToken;
 }
 
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
-
   const btn = document.getElementById("submitBtn");
   btn.textContent = "Creando cuenta...";
   btn.disabled = true;
-
   if (!csrfToken) await getCsrfToken();
 
   const password = document.getElementById("password").value;
@@ -225,35 +500,32 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     return;
   }
 
-  const data = {
-    name: document.getElementById("name").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    password,
-    role: selectedRole
-  };
-
   try {
-    const response = await fetch("/api/register", {
+    const res = await fetch("/api/register", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        password,
+        role: selectedRole
+      })
     });
 
-    const result = await response.json();
+    const result = await res.json();
 
-    if (!response.ok) {
+    if (!res.ok) {
       showToast(result.error || "Error en registro", "error");
       btn.textContent = "Crear cuenta";
       btn.disabled = false;
       return;
     }
 
-    showToast("¡Cuenta creada! Revisá tu email para confirmarla", "success");
+    showToast("Revisá tu email para confirmar tu cuenta", "success");
     setTimeout(() => window.location.href = "/login", 2500);
 
   } catch (err) {
-    console.error(err);
     showToast("Error de conexión", "error");
     btn.textContent = "Crear cuenta";
     btn.disabled = false;
