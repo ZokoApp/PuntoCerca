@@ -256,6 +256,7 @@ body {
   .login-wrap { grid-template-columns: 1fr; }
   .login-left { display: none; }
   .login-right { padding: 32px 20px; background: white; }
+  .mobile-brand { display: flex !important; }
 }
 </style>
 </head>
@@ -323,9 +324,14 @@ body {
 
   <!-- DERECHA -->
   <div class="login-right">
-    <div class="login-form-wrap">
+   <div class="login-form-wrap">
 
-      <p class="login-form-title">Bienvenido de vuelta</p>
+  <!-- LOGO MOBILE -->
+  <div class="mobile-brand" style="display:none;align-items:center;margin-bottom:28px;">
+    <img src="/img/logo.png" style="height:36px;">
+  </div>
+
+  <p class="login-form-title">Bienvenido de vuelta</p>
       <p class="login-form-sub">Ingresá a tu cuenta de PuntoCerca</p>
 
       <form id="loginForm">
