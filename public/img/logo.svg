@@ -1,11 +1,11 @@
-<svg width="260" height="64" viewBox="0 0 260 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="32" cy="24" r="14" fill="#FF6A00"/>
-  <circle cx="32" cy="24" r="6" fill="white"/>
-  <path d="M32 38 L26 28 Q32 44 38 28 Z" fill="#FF6A00"/>
-  <text x="54" y="36"
+<svg width="200" height="48" viewBox="0 0 200 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="24" cy="20" r="14" fill="#FF6A00"/>
+  <circle cx="24" cy="20" r="6" fill="white"/>
+  <path d="M17 28 Q24 42 31 28 Z" fill="#FF6A00"/>
+  <text x="46" y="30"
         font-family="Inter, Arial, sans-serif"
-        font-size="28"
-        font-weight="700"
+        font-size="26"
+        font-weight="800"
         letter-spacing="-1">
     <tspan fill="#1F1F1F">Punto</tspan><tspan fill="#FF6A00">Cerca</tspan>
   </text>
