@@ -361,10 +361,19 @@ async function init() {
   try {
     const res = await fetch(`/api/deliveries/repartidor/${token}`);
     if (res.status === 403) {
-  showState('locked');
-  return;
-}
-if (!res.ok) { showState('error'); return; }
+      const savedToken = sessionStorage.getItem('puntoenvio_token');
+      if (savedToken === token) {
+        // mismo dispositivo refrescando — continuar
+      } else {
+        showState('locked');
+        return;
+      }
+    }
+    if (!res.ok) { showState('error'); return; }
+
+    // guardar token para tolerar refrescos
+    sessionStorage.setItem('puntoenvio_token', token);
+
     const delivery = await res.json();
 
     if (delivery.dest_lat && delivery.dest_lng) {
