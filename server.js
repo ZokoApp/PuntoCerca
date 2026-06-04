@@ -3535,14 +3535,14 @@ app.post('/api/deliveries', authMiddleware, async (req, res) => {
     const tokenRepartidor = require('crypto').randomBytes(20).toString('hex');
     const tokenCliente = require('crypto').randomBytes(20).toString('hex');
 
-    const { dest_lat, dest_lng, dest_address } = req.body;
+    const { dest_lat, dest_lng, dest_address, observaciones } = req.body;
 
-    const result = await pool.query(`
-      INSERT INTO deliveries 
-        (store_id, token_repartidor, token_cliente, dest_lat, dest_lng, dest_address)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `, [storeId, tokenRepartidor, tokenCliente, dest_lat || null, dest_lng || null, dest_address || null]);
+const result = await pool.query(`
+  INSERT INTO deliveries 
+    (store_id, token_repartidor, token_cliente, dest_lat, dest_lng, dest_address, observaciones)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
+  RETURNING *
+`, [storeId, tokenRepartidor, tokenCliente, dest_lat || null, dest_lng || null, dest_address || null, observaciones || null]);
 
     res.json(result.rows[0]);
 
@@ -3575,11 +3575,11 @@ app.get('/api/deliveries', authMiddleware, async (req, res) => {
 app.get('/api/deliveries/repartidor/:token', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT status, dest_lat, dest_lng, dest_address,
-             repartidor_ip, repartidor_ua
-      FROM deliveries
-      WHERE token_repartidor = $1
-      AND expires_at > NOW()
+     SELECT status, dest_lat, dest_lng, dest_address, observaciones,
+       repartidor_ip, repartidor_ua
+FROM deliveries
+WHERE token_repartidor = $1
+AND expires_at > NOW()
     `, [req.params.token]);
 
     if (!result.rows.length) {
@@ -3663,6 +3663,29 @@ app.put('/api/deliveries/location/:token', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error actualizando ubicación" });
+  }
+});
+
+app.put('/api/deliveries/:id/observaciones', authMiddleware, async (req, res) => {
+  try {
+    const { observaciones } = req.body;
+
+    const result = await pool.query(`
+      UPDATE deliveries 
+      SET observaciones = $1
+      WHERE id = $2
+      AND store_id IN (SELECT id FROM stores WHERE user_id = $3)
+      RETURNING *
+    `, [observaciones, req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado" });
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error" });
   }
 });
 
