@@ -497,3 +497,10 @@ if (btnConfirmDelivery) {
    }
  });
 }
+
+body: JSON.stringify({
+  dest_lat: selectedDestLat,
+  dest_lng: selectedDestLng,
+  dest_address: selectedDestAddress,
+  observaciones: document.getElementById('deliveryObservaciones')?.value.trim() || null
+})
