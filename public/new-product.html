@@ -27,9 +27,29 @@ body {
 }
 
 .main {
-  max-width: 680px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 40px 24px 80px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 32px;
+  align-items: start;
+}
+
+.main .back-link,
+.main .page-title,
+.main .page-sub {
+  grid-column: 1 / -1;
+}
+
+.main .submit-btn {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
 }
 
 .page-title {
