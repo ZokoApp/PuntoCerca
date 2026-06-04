@@ -3125,6 +3125,32 @@ html = html.replace(
     res.status(500).send("Error");
   }
 });
+
+app.get('/api/catalogo/:slug', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT catalog_url, name FROM stores 
+      WHERE slug = $1
+    `, [req.params.slug]);
+
+    if (!result.rows.length || !result.rows[0].catalog_url) {
+      return res.status(404).json({ error: "Catálogo no encontrado" });
+    }
+
+    res.json({ 
+      catalog_url: result.rows[0].catalog_url,
+      store_name: result.rows[0].name
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error" });
+  }
+});
+
+app.get('/catalogo/:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'catalogo.html'));
+});
   app.get('/stores', (req, res) => {
     res.sendFile(__dirname + '/public/stores.html');
   });
