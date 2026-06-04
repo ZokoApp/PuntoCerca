@@ -414,20 +414,38 @@ function showMap() {
 // ===============================
 // RUTA
 // ===============================
+let lastRouteCall = 0;
+const ROUTE_THROTTLE_MS = 15000; // recalcular cada 15 segundos máximo
+
 async function drawRoute(fromLat, fromLng) {
   if (!destLat || !destLng) return;
+
+  const now = Date.now();
+  if (now - lastRouteCall < ROUTE_THROTTLE_MS) return;
+  lastRouteCall = now;
+
   try {
     const res = await fetch(
       `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${destLng},${destLat}`
     );
     const data = await res.json();
     if (!data.features?.[0]) return;
+
     const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-    if (routeLayer) map.removeLayer(routeLayer);
+
+    if (routeLayer) {
+      map.removeLayer(routeLayer);
+      routeLayer = null;
+    }
+
     routeLayer = L.polyline(coords, {
-      color: '#ea580c', weight: 4, opacity: 0.8,
-      lineJoin: 'round', lineCap: 'round'
+      color: '#ea580c',
+      weight: 5,
+      opacity: 0.9,
+      lineJoin: 'round',
+      lineCap: 'round'
     }).addTo(map);
+
   } catch (err) {
     console.error('Error ruta:', err);
   }
@@ -460,7 +478,13 @@ function startGPS() {
         marker.setLatLng([latitude, longitude]);
       }
 
-      if (firstPos) { map.setView([latitude, longitude], 16); firstPos = false; }
+     if (firstPos) {
+  map.setView([latitude, longitude], 17);
+  firstPos = false;
+} else {
+  // seguir suavemente al repartidor
+  map.panTo([latitude, longitude], { animate: true, duration: 1 });
+}
 
       await drawRoute(latitude, longitude);
 
