@@ -3640,16 +3640,50 @@ app.get('/api/deliveries/track/:token', async (req, res) => {
 // CONFIRMAR ENTREGA (repartidor)
 app.post('/api/deliveries/deliver/:token', async (req, res) => {
   try {
+    const { lat, lng } = req.body;
+
     const result = await pool.query(`
-      UPDATE deliveries
-      SET status = 'delivered'
-      WHERE token_repartidor = $1
-      RETURNING *
+      SELECT * FROM deliveries 
+      WHERE token_repartidor = $1 
+      AND status = 'active'
+      AND expires_at > NOW()
     `, [req.params.token]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ error: "Envío no encontrado" });
+      return res.status(404).json({ error: "Envío no encontrado o ya finalizado" });
     }
+
+    const delivery = result.rows[0];
+
+    // validar que tiene destino
+    if (!delivery.dest_lat || !delivery.dest_lng) {
+      return res.status(400).json({ error: "El envío no tiene destino definido" });
+    }
+
+    // validar GPS cercano al destino
+    if (!lat || !lng) {
+      return res.status(400).json({ error: "No se recibió ubicación GPS" });
+    }
+
+    const distancia = calcularDistancia(
+      parseFloat(lat), parseFloat(lng),
+      parseFloat(delivery.dest_lat), parseFloat(delivery.dest_lng)
+    );
+
+    const RANGO_METROS = 150;
+
+    if (distancia > RANGO_METROS) {
+      return res.status(400).json({ 
+        error: `Tenés que estar a menos de ${RANGO_METROS}m del destino para confirmar`,
+        distancia: Math.round(distancia)
+      });
+    }
+
+    await pool.query(`
+      UPDATE deliveries 
+      SET status = 'delivered', confirmed_at = NOW()
+      WHERE token_repartidor = $1
+    `, [req.params.token]);
 
     res.json({ ok: true });
 
@@ -3658,6 +3692,19 @@ app.post('/api/deliveries/deliver/:token', async (req, res) => {
     res.status(500).json({ error: "Error confirmando entrega" });
   }
 });
+
+// HAVERSINE — distancia entre dos coordenadas en metros
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
   
   /* ================================
      START
