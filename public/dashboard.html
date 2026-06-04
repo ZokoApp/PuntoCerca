@@ -97,6 +97,16 @@
   <span class="quick-action-title">📘 Cargar catálogo PDF</span>
   <span class="quick-action-text">Subí la carta, menú o catálogo de tu comercio</span>
 </button>
+
+<div class="quick-action" style="cursor:default;">
+  <span class="quick-action-title">QR de tu catálogo</span>
+  <span class="quick-action-text" style="margin-bottom:12px;">Escaneá para ver el catálogo</span>
+  <img id="catalogQR" style="display:none;width:140px;height:140px;border-radius:10px;margin:8px 0;">
+  <p id="catalogQRUrl" style="font-size:10px;color:#9ca3af;word-break:break-all;margin:6px 0;"></p>
+  <button onclick="descargarQR()" style="background:#111827;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;">
+    Descargar QR
+  </button>
+</div>
       </div>
     </section>
 
