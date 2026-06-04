@@ -94,6 +94,13 @@ body {
   margin-bottom: 2px;
 }
 
+  @media (max-width: 768px) {
+  .register-wrap { grid-template-columns: 1fr; }
+  .register-left { display: none; }
+  .register-right { padding: 32px 20px; background: white; }
+  .mobile-brand { display: flex !important; }
+}
+
 .register-feature-text span {
   font-size: 13px;
   color: #888;
@@ -372,9 +379,14 @@ body {
 
   <!-- DERECHA: FORMULARIO -->
   <div class="register-right">
-    <div class="register-form-wrap">
+   <div class="register-form-wrap">
 
-      <p class="register-form-title">Crear cuenta</p>
+  <!-- LOGO MOBILE -->
+  <div class="mobile-brand" style="display:none;align-items:center;margin-bottom:28px;">
+    <img src="/img/logo.png" style="height:36px;">
+  </div>
+
+  <p class="register-form-title">Crear cuenta</p>
       <p class="register-form-sub">Es gratis. Tardás menos de 2 minutos.</p>
 
       <!-- ROLE SELECTOR -->
