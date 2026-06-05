@@ -227,13 +227,12 @@ body.store-page{
     to{   opacity:1; transform:translateY(0);    }
   }
 
-  .store-owner-actions{
-    display:flex !important;
-    flex-direction:column !important;
-    align-items:stretch !important;
-    gap:0 !important;
-    width:100%;
-  }
+.store-owner-actions{
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:0 !important;
+  width:100%;
+}
 
   .store-nav__link{
     padding:14px 4px;
