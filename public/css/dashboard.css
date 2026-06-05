@@ -131,11 +131,12 @@ body.dashboard-page{
   gap:16px;
 }
 
-.quick-actions-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:16px;
-  margin-top:20px;
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+  align-items: start;
 }
 
 .quick-action{
