@@ -1,4 +1,3 @@
-
 /* =========================
    VARIABLES
 ========================= */
@@ -138,6 +137,121 @@ body.store-page{
   padding:10px 16px;
   border-radius:999px;
   cursor:pointer;
+}
+
+/* =========================
+   NAVBAR — HAMBURGUESA
+========================= */
+
+/* Botón: oculto en desktop */
+.store-nav__toggle{
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  gap:5px;
+  width:44px;
+  height:44px;
+  padding:8px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  border-radius:12px;
+  transition:background .2s;
+  flex-shrink:0;
+}
+
+.store-nav__toggle:hover{
+  background:rgba(0,0,0,.06);
+}
+
+.store-nav__toggle span{
+  display:block;
+  height:2px;
+  width:100%;
+  background:#111827;
+  border-radius:2px;
+  transition:transform .3s cubic-bezier(.22,1,.36,1),
+             opacity .2s,
+             background .2s;
+}
+
+/* Estado abierto → X */
+.store-nav__toggle.is-open span:nth-child(1){
+  transform:translateY(7px) rotate(45deg);
+}
+.store-nav__toggle.is-open span:nth-child(2){
+  opacity:0;
+  transform:scaleX(0);
+}
+.store-nav__toggle.is-open span:nth-child(3){
+  transform:translateY(-7px) rotate(-45deg);
+}
+
+/* Menú mobile */
+@media (max-width:768px){
+
+  .store-nav__inner{
+    padding:14px 20px;
+  }
+
+  .store-nav__toggle{
+    display:flex;
+  }
+
+  .store-nav__right{
+    /* Panel desplegable */
+    display:none;
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+    background:rgba(255,255,255,.98);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid #f1f5f9;
+    box-shadow:0 24px 50px rgba(15,23,42,.12);
+    padding:8px 20px 20px;
+    z-index:999;
+    animation:menuSlide .25s cubic-bezier(.22,1,.36,1);
+  }
+
+  .store-nav__right.is-open{
+    display:flex;
+  }
+
+  @keyframes menuSlide{
+    from{ opacity:0; transform:translateY(-8px); }
+    to{   opacity:1; transform:translateY(0);    }
+  }
+
+  .store-owner-actions{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:0 !important;
+    width:100%;
+  }
+
+  .store-nav__link{
+    padding:14px 4px;
+    border-bottom:1px solid #f3f4f6;
+    font-size:15px;
+  }
+
+  .store-nav__link:last-of-type{
+    border-bottom:none;
+  }
+
+  .store-nav__logout{
+    margin-top:12px;
+    width:100%;
+    text-align:center;
+    padding:12px;
+    font-size:15px;
+  }
 }
 
 /* =========================
@@ -292,6 +406,7 @@ body.store-page{
   letter-spacing:-0.01em;
   box-shadow:0 18px 40px rgba(0,0,0,.12);
 }
+
 /* =========================
    BUTTONS
 ========================= */
@@ -366,6 +481,44 @@ body.store-page{
 .btn-share:hover{
   background:#f9fafb;
   border-color:#d1d5db;
+}
+
+/* =========================
+   RATING
+========================= */
+.store-rating{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+
+.store-rating__stars{
+  display:flex;
+  align-items:center;
+  gap:1px;
+}
+
+/* Las estrellas se renderizan por JS —
+   estos estilos son el baseline */
+.store-rating__stars span{
+  font-size:26px;
+  cursor:pointer;
+  transition:transform .15s, color .15s;
+  user-select:none;
+  line-height:1;
+}
+
+.store-rating__stars span:hover{
+  transform:scale(1.2);
+}
+
+.store-rating__info{
+  margin:0;
+  font-size:13px;
+  color:var(--text-soft);
+  font-weight:500;
 }
 
 /* =========================
@@ -576,6 +729,7 @@ body.store-page{
   color:#111827;
   margin:0 0 14px;
 }
+
 .card-price{
   font-size:48px;
   font-weight:900;
@@ -584,11 +738,13 @@ body.store-page{
   color:var(--primary);
   margin:0 0 14px;
 }
+
 .card-rating{
   font-size:15px;
   color:#6b7280;
   margin-bottom:20px;
 }
+
 .card-btn{
   width:100%;
   height:58px;
@@ -603,6 +759,7 @@ body.store-page{
   transition:var(--transition);
   box-shadow:0 14px 30px rgba(255,106,0,.20);
 }
+
 .card-btn:hover{
   transform:translateY(-2px);
   box-shadow:0 20px 40px rgba(255,106,0,.28);
@@ -641,14 +798,8 @@ body.store-page{
 }
 
 @keyframes modalIn{
-  from{
-    opacity:0;
-    transform:translateY(30px) scale(.96);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
+  from{ opacity:0; transform:translateY(30px) scale(.96); }
+  to{   opacity:1; transform:translateY(0)     scale(1);  }
 }
 
 .modal-header{
@@ -733,102 +884,8 @@ body.store-page{
 }
 
 /* =========================
-   RESPONSIVE
-========================= */
-@media (max-width:768px){
-
-  .store-cover{
-    height:280px;
-  }
-
-  .store-logo{
-    width:130px;
-    height:130px;
-    left:50%;
-    transform:translateX(-50%);
-    bottom:-65px;
-  }
-
-  .store-main{
-    margin-top:90px;
-    padding:0 14px;
-  }
-
-  .store-card{
-    padding:24px 20px;
-    border-radius:24px;
-  }
-
-  .store-title{
-    text-align:center;
-  }
-
-  .store-category,
-  .store-meta,
-  .store-stats,
-  #storeStatus{
-    text-align:center;
-  }
-
-  .store-header{
-    flex-direction:column;
-    align-items:stretch;
-  }
-
- .store-header__actions{
-  width:100%;
-}
-
-   .store-header__actions .btn{
-  min-height:54px;
-  font-size:16px;
-}
-
-.products-grid{
-  grid-template-columns:1fr;
-  gap:24px;
-}
-
-.card-image{
-  height:220px;
-}
-
-.card-title{
-  font-size:24px;
-}
-
-.card-price{
-  font-size:38px;
-}
-
-.card-btn{
-  height:54px;
-  font-size:16px;
-}
-
-  .section-title{
-    font-size:24px;
-  }
-
-  .products-grid{
-    grid-template-columns:1fr;
-    gap:20px;
-  }
-
-  .store-map{
-    height:320px;
-  }
-
-  .store-nav__right,
-  .store-owner-actions{
-    gap:12px;
-  }
-}
-
-/* =========================
    CATALOGO PDF
 ========================= */
-
 .catalog-card{
   display:flex;
   justify-content:space-between;
@@ -837,11 +894,7 @@ body.store-page{
   padding:28px;
   border-radius:28px;
   background:
-    linear-gradient(
-      135deg,
-      rgba(255,106,0,.08),
-      rgba(255,154,60,.04)
-    );
+    linear-gradient(135deg, rgba(255,106,0,.08), rgba(255,154,60,.04));
   border:1px solid rgba(255,106,0,.10);
   box-shadow:0 18px 40px rgba(15,23,42,.06);
 }
@@ -901,35 +954,8 @@ body.store-page{
 }
 
 /* =========================
-   RESPONSIVE PDF
-========================= */
-
-@media (max-width:768px){
-
-  .catalog-card{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .catalog-card .btn{
-    width:100%;
-  }
-
-  .catalog-modal{
-    padding:10px;
-  }
-
-  .catalog-modal-content{
-    width:100%;
-    height:92vh;
-    border-radius:20px;
-  }
-
-}
-/* =========================
    PDF VIEWER MODAL
 ========================= */
-
 #pdfViewerModal{
   position:fixed;
   inset:0;
@@ -970,3 +996,108 @@ body.store-page{
   z-index:10;
 }
 
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width:768px){
+
+  .store-cover{
+    height:280px;
+  }
+
+  .store-logo{
+    width:130px;
+    height:130px;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:-65px;
+  }
+
+  .store-main{
+    margin-top:90px;
+    padding:0 14px;
+  }
+
+  .store-card{
+    padding:24px 20px;
+    border-radius:24px;
+  }
+
+  .store-title{
+    text-align:center;
+  }
+
+  .store-category,
+  .store-meta,
+  .store-stats,
+  #storeStatus{
+    text-align:center;
+  }
+
+  .store-rating{
+    justify-content:center;
+  }
+
+  .store-header{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .store-header__actions{
+    width:100%;
+  }
+
+  .store-header__actions .btn{
+    min-height:54px;
+    font-size:16px;
+  }
+
+  .products-grid{
+    grid-template-columns:1fr;
+    gap:24px;
+  }
+
+  .card-image{
+    height:220px;
+  }
+
+  .card-title{
+    font-size:24px;
+  }
+
+  .card-price{
+    font-size:38px;
+  }
+
+  .card-btn{
+    height:54px;
+    font-size:16px;
+  }
+
+  .section-title{
+    font-size:24px;
+  }
+
+  .store-map{
+    height:320px;
+  }
+
+  .catalog-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .catalog-card .btn{
+    width:100%;
+  }
+
+  .catalog-modal{
+    padding:10px;
+  }
+
+  .catalog-modal-content{
+    width:100%;
+    height:92vh;
+    border-radius:20px;
+  }
+}
