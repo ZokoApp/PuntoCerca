@@ -342,24 +342,42 @@ window.descargarQR = function() {
   a.click();
 };
 
-window.editarObservaciones = function(deliveryId, observacionesActuales) {
-  const nueva = prompt('Observaciones para el repartidor:', observacionesActuales);
-  if (nueva === null) return;
+let currentDeliveryId = null;
 
-  fetch(`/api/deliveries/${deliveryId}/observaciones`, {
+window.editarObservaciones = function(deliveryId, observacionesActuales) {
+  currentDeliveryId = deliveryId;
+  document.getElementById('obsModalTexto').value = observacionesActuales || '';
+  const modal = document.getElementById('obsModal');
+  modal.style.display = 'flex';
+};
+
+window.cerrarObsModal = function() {
+  document.getElementById('obsModal').style.display = 'none';
+  currentDeliveryId = null;
+};
+
+window.guardarObservaciones = function() {
+  const texto = document.getElementById('obsModalTexto').value.trim();
+
+  fetch(`/api/deliveries/${currentDeliveryId}/observaciones`, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ observaciones: nueva })
+    body: JSON.stringify({ observaciones: texto })
   })
   .then(res => {
     if (!res.ok) throw new Error();
     showToast('Observaciones actualizadas', 'success');
+    cerrarObsModal();
     loadDeliveries();
   })
   .catch(() => showToast('Error actualizando observaciones', 'error'));
 };
 
+// cerrar clickando afuera
+document.getElementById('obsModal')?.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('obsModal')) cerrarObsModal();
+});
 /* ================================
    MODAL NUEVO ENVÍO
 ================================ */
