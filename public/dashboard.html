@@ -317,6 +317,30 @@
   </div>
 
 </div>
+  <!-- MODAL OBSERVACIONES -->
+<div id="obsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0;">Observaciones</h3>
+      <button onclick="cerrarObsModal()" style="background:#f3f4f6;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Instrucciones para el repartidor</p>
+    <textarea id="obsModalTexto" placeholder="Ej: Llamar al timbre 3 veces, dejar con portero..."
+      style="width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:14px;outline:none;resize:none;height:100px;font-family:inherit;box-sizing:border-box;"
+      onfocus="this.style.borderColor='#ea580c'"
+      onblur="this.style.borderColor='#e0e0e0'">
+    </textarea>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="cerrarObsModal()" style="flex:1;padding:13px;background:#f3f4f6;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;color:#374151;">
+        Cancelar
+      </button>
+      <button onclick="guardarObservaciones()" style="flex:1;padding:13px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module" src="/js/dashboard.js"></script>
