@@ -266,6 +266,7 @@ body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; ov
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
 <script>
 const token = window.location.pathname.split('/').pop();
 const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5ODMzMzUyYmRjYTQzM2M4OGE4MzY2MmQwZTI2NTZiIiwiaCI6Im11cm11cjY0In0=';
@@ -474,7 +475,7 @@ if (destLat && destLng) {
 function showMap() {
   document.getElementById('mapWrap').style.display = 'block';
   document.getElementById('fabContainer').style.display = 'flex';
-  map = L.map('map', { zoomControl: false, attributionControl: false })
+  map = L.map('map', { zoomControl: false, attributionControl: false, rotate: true, bearing: 0, touchRotate: false })
     .setView([-32.9442, -60.6505], 14);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd', maxZoom: 19
@@ -534,11 +535,36 @@ async function drawRoute(fromLat, fromLng) {
     console.error('Error ruta:', err);
   }
 }
+// ===============================
+// BRÚJULA
+// ===============================
+function iniciarBrujula() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+ requiere permiso explícito
+    DeviceOrientationEvent.requestPermission()
+      .then(response => {
+        if (response === 'granted') {
+          window.addEventListener('deviceorientation', manejarOrientacion);
+        }
+      })
+      .catch(console.error);
+  } else {
+    // Android y resto
+    window.addEventListener('deviceorientation', manejarOrientacion);
+  }
+}
 
+function manejarOrientacion(e) {
+  if (!map) return;
+  const heading = e.webkitCompassHeading ?? (360 - e.alpha);
+  map.setBearing(heading);
+}
 // ===============================
 // GPS
 // ===============================
 function startGPS() {
+   iniciarBrujula();
   document.getElementById('gpsBadge').style.display = 'inline-flex';
   document.getElementById('btnStart').style.display = 'none';
   document.getElementById('btnDeliver').style.display = 'flex';
