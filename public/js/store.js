@@ -253,21 +253,21 @@ function updateStoreStatus(store) {
     const closeTime = ch * 60 + cm;
 
     // 🔥 horario normal
-if (openTime <= closeTime) {
-  if (current >= openTime && current <= closeTime) {
-    isOpenNow = true;
-    nextClose = range.close;
-    break;
-  }
-} 
-// 🔥 horario nocturno
-else {
-  if (current >= openTime || current <= closeTime) {
-    isOpenNow = true;
-    nextClose = range.close;
-    break;
-  }
-}
+    if (openTime <= closeTime) {
+      if (current >= openTime && current <= closeTime) {
+        isOpenNow = true;
+        nextClose = range.close;
+        break;
+      }
+    }
+    // 🔥 horario nocturno
+    else {
+      if (current >= openTime || current <= closeTime) {
+        isOpenNow = true;
+        nextClose = range.close;
+        break;
+      }
+    }
 
     if (current < openTime && !nextOpen) {
       nextOpen = range.open;
@@ -312,12 +312,12 @@ function renderStoreStatus(text, color) {
     </div>
   `;
 }
+
 /* ================================
    DETECTAR ID / SLUG
 ================================ */
 
 const pathParts = window.location.pathname.split("/");
-
 
 let storeId = null;
 let storeSlug = null;
@@ -327,88 +327,84 @@ if (pathParts[1] === "store") {
 } else if (pathParts[1] && isNaN(pathParts[1])) {
   storeSlug = pathParts[1].split("?")[0];
 }
+
 /* ================================
    INIT
 ================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+  const overlay = document.querySelector(".modal-overlay");
 
-const overlay = document.querySelector(".modal-overlay");
+  if (overlay) {
+    overlay.onclick = () => {
+      document.getElementById("storeCommentsModal").classList.add("hidden");
+    };
+  }
 
-if (overlay) {
-  overlay.onclick = () => {
-    document.getElementById("storeCommentsModal").classList.add("hidden");
-  };
-}
   const goLoginBtn = document.getElementById("goLoginBtn");
 
-if (goLoginBtn) {
-  goLoginBtn.onclick = () => {
-    window.location.href = "/login";
-  };
-}
+  if (goLoginBtn) {
+    goLoginBtn.onclick = () => {
+      window.location.href = "/login";
+    };
+  }
 
   // 🟣 MODAL COMENTARIOS
-const openModalBtn = document.getElementById("openStoreCommentsModal");
-const closeModalBtn = document.getElementById("closeStoreCommentsModal");
-const modal = document.getElementById("storeCommentsModal");
+  const openModalBtn = document.getElementById("openStoreCommentsModal");
+  const closeModalBtn = document.getElementById("closeStoreCommentsModal");
+  const modal = document.getElementById("storeCommentsModal");
 
-if (openModalBtn && modal) {
-  openModalBtn.onclick = () => {
-    modal.classList.remove("hidden");
-  };
-}
-  // 🔔 AUTO ABRIR MODAL DESDE NOTIFICACIÓN
- const hash = window.location.hash;
-
-if (hash.startsWith("#comment-")) {
-
-  const commentId = hash.replace("#comment-", "");
-
-  const tryOpen = () => {
-    if (openModalBtn && modal) {
-
+  if (openModalBtn && modal) {
+    openModalBtn.onclick = () => {
       modal.classList.remove("hidden");
+    };
+  }
 
-      setTimeout(() => {
+  // 🔔 AUTO ABRIR MODAL DESDE NOTIFICACIÓN
+  const hash = window.location.hash;
 
-        const commentEl = document.getElementById(`comment-${commentId}`);
+  if (hash.startsWith("#comment-")) {
 
-        if (commentEl) {
+    const commentId = hash.replace("#comment-", "");
 
-          // 🔥 scroll
-          commentEl.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
+    const tryOpen = () => {
+      if (openModalBtn && modal) {
 
-          // 🔥 highlight
-          commentEl.style.background = "#fff3cd";
-          commentEl.style.transition = "0.3s";
+        modal.classList.remove("hidden");
 
-          setTimeout(() => {
-            commentEl.style.background = "";
-          }, 2000);
+        setTimeout(() => {
 
-        }
+          const commentEl = document.getElementById(`comment-${commentId}`);
 
-      }, 400);
+          if (commentEl) {
 
-    } else {
-      setTimeout(tryOpen, 100);
-    }
-  };
+            commentEl.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  tryOpen();
-}
+            commentEl.style.background = "#fff3cd";
+            commentEl.style.transition = "0.3s";
 
-if (closeModalBtn && modal) {
-  closeModalBtn.onclick = () => {
-    modal.classList.add("hidden");
-  };
-}
-  
+            setTimeout(() => {
+              commentEl.style.background = "";
+            }, 2000);
+          }
+
+        }, 400);
+
+      } else {
+        setTimeout(tryOpen, 100);
+      }
+    };
+
+    tryOpen();
+  }
+
+  if (closeModalBtn && modal) {
+    closeModalBtn.onclick = () => {
+      modal.classList.add("hidden");
+    };
+  }
+
   await loadUser();
   await loadStore();
 
@@ -422,7 +418,7 @@ if (closeModalBtn && modal) {
    USER
 ================================ */
 
-async function loadUser(){
+async function loadUser() {
   currentUser = null;
 
   try {
@@ -431,7 +427,7 @@ async function loadUser(){
       cache: "no-store"
     });
 
-    if(res.ok){
+    if (res.ok) {
       currentUser = await res.json();
     } else {
       currentUser = null;
@@ -446,70 +442,65 @@ async function loadUser(){
    STORE
 ================================ */
 
-async function loadStore(){
+async function loadStore() {
 
   try {
 
     let storeRes;
 
-if (storeId) {
-  storeRes = await fetch(`/api/stores/${storeId}`);
-} else if (storeSlug) {
-  storeRes = await fetch(`/api/stores/slug/${storeSlug}`);
-} else {
-  console.error("Ruta inválida");
-  return;
-}
+    if (storeId) {
+      storeRes = await fetch(`/api/stores/${storeId}`);
+    } else if (storeSlug) {
+      storeRes = await fetch(`/api/stores/slug/${storeSlug}`);
+    } else {
+      console.error("Ruta inválida");
+      return;
+    }
+
     const store = await storeRes.json();
 
- // =============================
-// SEO + LOCATION (PEGAR AQUÍ)
-// =============================
+    // =============================
+    // SEO + LOCATION
+    // =============================
 
-// helper
-const getProvinceFromStreet = (street) => {
-  if (!street) return null;
+    const getProvinceFromStreet = (street) => {
+      if (!street) return null;
+      const parts = street.split(",");
+      return parts.length >= 2 ? parts[parts.length - 2].trim() : null;
+    };
 
-  const parts = street.split(",");
-  return parts.length >= 2 ? parts[parts.length - 2].trim() : null;
-};
+    const province = store.province || getProvinceFromStreet(store.street);
 
-// location real
-const province = store.province || getProvinceFromStreet(store.street);
+    const location =
+      store.city && province
+        ? `${store.city}, ${province}`
+        : store.city || province || "Argentina";
 
-const location =
-  store.city && province
-    ? `${store.city}, ${province}`
-    : store.city || province || "Argentina";
+    document.title = `${store.name} en ${location} | PuntoCerca`;
 
-// TITLE
-document.title = `${store.name} en ${location} | PuntoCerca`;
+    const seoContent = document.getElementById("seoContent");
 
-    // 🔥 SEO visible para Google (contenido real)
-const seoContent = document.getElementById("seoContent");
+    if (seoContent) {
+      seoContent.innerText = `
+        ${store.name} ubicado en ${location}.
+        ${store.description || "Negocio local"}.
+        ${store.street ? `Dirección: ${store.street}.` : ""}
+        Encontrá productos, precios y contacto directo en PuntoCerca.
+      `;
+    }
 
-if (seoContent) {
-  seoContent.innerText = `
-    ${store.name} ubicado en ${location}.
-    ${store.description || "Negocio local"}.
-    ${store.street ? `Dirección: ${store.street}.` : ""}
-    Encontrá productos, precios y contacto directo en PuntoCerca.
-  `;
-}
+    let metaDesc = document.querySelector("meta[name='description']");
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.name = "description";
+      document.head.appendChild(metaDesc);
+    }
 
-// DESCRIPTION
-let metaDesc = document.querySelector("meta[name='description']");
-if (!metaDesc) {
-  metaDesc = document.createElement("meta");
-  metaDesc.name = "description";
-  document.head.appendChild(metaDesc);
-}
-
-metaDesc.content = `
-  ${store.name} en ${location}.
-  ${store.description || "Negocio local con contacto directo por WhatsApp"}.
-  ${store.street ? `Dirección: ${store.street}.` : ""}
-`;
+    metaDesc.content = `
+      ${store.name} en ${location}.
+      ${store.description || "Negocio local con contacto directo por WhatsApp"}.
+      ${store.street ? `Dirección: ${store.street}.` : ""}
+    `;
 
     if (!store || store.error) {
       console.error("Error cargando tienda:", store);
@@ -519,7 +510,7 @@ metaDesc.content = `
     storeData = store;
     loadStoreEvents(store.id);
 
-    if(currentUser && store.user_id === currentUser.id){
+    if (currentUser && store.user_id === currentUser.id) {
       isOwner = true;
     }
 
@@ -527,14 +518,13 @@ metaDesc.content = `
     setupMap(store);
     handleUIByRole(store);
 
-    // REVIEWS
+    // REVIEWS — reemplaza el render inicial con datos frescos + voto del usuario
     loadStoreRating(store.id);
 
     // COMENTARIOS
     await loadUser();
     loadStoreComments(store.id);
 
-    // UI comentario
     const loginMsg = document.getElementById("storeLoginMessage");
     const commentBox = document.getElementById("storeCommentBox");
 
@@ -553,52 +543,50 @@ metaDesc.content = `
       }
     }, 100);
 
-    if(currentUser && !isOwner){
+    if (currentUser && !isOwner) {
       checkFollowing(store.id);
     }
 
-  } catch (err){
+  } catch (err) {
     console.error("Error cargando tienda", err);
   }
 }
+
 /* ================================
    UI POR ROL
 ================================ */
 
-function handleUIByRole(store){
+function handleUIByRole(store) {
 
   const whatsappBtn = document.getElementById("whatsappBtn");
   const mapBtn = document.getElementById("mapButton");
   const followBtn = document.getElementById("followBtn");
 
-  if(isOwner){
+  if (isOwner) {
 
-    // NAV OWNER
     const ownerActions = document.getElementById("ownerActions");
-    if(ownerActions) ownerActions.style.display = "flex";
+    if (ownerActions) ownerActions.style.display = "flex";
 
     const logoutBtn = document.getElementById("logoutBtn");
-    if(logoutBtn){
+    if (logoutBtn) {
       logoutBtn.onclick = async () => {
-        await fetch("/api/logout", { method:"POST", credentials:"include" });
+        await fetch("/api/logout", { method: "POST", credentials: "include" });
         window.location.href = "/";
       };
     }
 
-    // OCULTAR VISITANTE
-    if(whatsappBtn) whatsappBtn.style.display = "none";
-    if(mapBtn) mapBtn.style.display = "none";
-    if(followBtn) followBtn.style.display = "none";
+    if (whatsappBtn) whatsappBtn.style.display = "none";
+    if (mapBtn) mapBtn.style.display = "none";
+    if (followBtn) followBtn.style.display = "none";
 
-    // 👉 CONTROL ABIERTO/CERRADO
     const ownerControl = document.getElementById("ownerStatusControl");
 
-    if(ownerControl){
+    if (ownerControl) {
       ownerControl.style.display = "block";
 
       const select = document.getElementById("storeStatusSelect");
 
-      if(select){
+      if (select) {
         select.value = store.is_open ? "true" : "false";
 
         select.onchange = async () => {
@@ -612,12 +600,9 @@ function handleUIByRole(store){
               body: JSON.stringify({ is_open: newValue })
             });
 
-            if(res.ok){
+            if (res.ok) {
               store.is_open = newValue;
               updateStoreStatus(store);
-            
-               
-
             } else {
               alert("Error actualizando estado");
             }
@@ -626,20 +611,17 @@ function handleUIByRole(store){
             alert("Error de conexión");
           }
         };
-         
       }
     }
 
   } else {
 
-    // VISITANTE
-
-    if(whatsappBtn){
+    if (whatsappBtn) {
       whatsappBtn.style.display = "inline-block";
 
-      if(currentUser){
-        if(store.phone){
-          whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g,'')}`;
+      if (currentUser) {
+        if (store.phone) {
+          whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g, "")}`;
         }
       } else {
         whatsappBtn.onclick = (e) => {
@@ -649,35 +631,34 @@ function handleUIByRole(store){
       }
     }
 
-    if(mapBtn){
+    if (mapBtn) {
       mapBtn.onclick = () => {
-        document.getElementById("storeMap").scrollIntoView({ behavior:'smooth' });
+        document.getElementById("storeMap").scrollIntoView({ behavior: "smooth" });
       };
     }
 
     if (followBtn) {
 
-  if (!currentUser) {
-    followBtn.style.display = "none";
-    return;
-  }
+      if (!currentUser) {
+        followBtn.style.display = "none";
+        return;
+      }
 
-  // usuario logueado
-  followBtn.style.display = "inline-block";
+      followBtn.style.display = "inline-block";
 
-  followBtn.onclick = async () => {
-    const isFollowing = followBtn.innerText === "Siguiendo";
+      followBtn.onclick = async () => {
+        const isFollowing = followBtn.innerText === "Siguiendo";
 
-    await fetch(`/api/follow${isFollowing ? "/" + store.id : ""}`, {
-      method: isFollowing ? "DELETE" : "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: isFollowing ? null : JSON.stringify({ store_id: store.id })
-    });
+        await fetch(`/api/follow${isFollowing ? "/" + store.id : ""}`, {
+          method: isFollowing ? "DELETE" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: isFollowing ? null : JSON.stringify({ store_id: store.id })
+        });
 
-    followBtn.innerText = isFollowing ? "Seguir" : "Siguiendo";
-  };
-}
+        followBtn.innerText = isFollowing ? "Seguir" : "Siguiendo";
+      };
+    }
   }
 }
 
@@ -694,20 +675,19 @@ async function checkFollowing(storeId) {
 
   const data = await res.json();
   const btn = document.getElementById("followBtn");
-  // RESET fuerte Android
-if (followBtn) {
-  followBtn.style.display = "none";
-  followBtn.innerText = "Seguir";
-  followBtn.onclick = null;
-}
 
+  // RESET fuerte Android
   if (btn) {
+    btn.style.display = "none";
+    btn.innerText = "Seguir";
+    btn.onclick = null;
     btn.innerText = data.following ? "Siguiendo" : "Seguir";
+    btn.style.display = "inline-block";
   }
 }
 
 /* ================================
-   STORE REVIEWS (RATING + COMMENTS)
+   RATING
 ================================ */
 
 async function loadStoreRating(storeId) {
@@ -722,11 +702,9 @@ async function loadStoreRating(storeId) {
 
     const avg = parseFloat(data.avg) || 0;
     const count = Number(data.count) || 0;
-    const userRating = data.user_rating;
+    const userRating = data.user_rating ?? null;
 
-   
-    const ratingToShow = userRating !== null ? userRating : avg;
-
+    // ★ Actualiza con datos frescos del servidor (sobreescribe el render inicial)
     renderStoreStars(avg, userRating);
     updateStoreRatingInfo(avg, count, userRating);
 
@@ -735,23 +713,42 @@ async function loadStoreRating(storeId) {
   }
 }
 
-function renderStoreStars(avg = 0, userRating = 0) {
+// ★ CAMBIO 1: usa "★" unicode con color en lugar de emoji ⭐
+//             agrega hover que ilumina/apaga de forma fluida
+function renderStoreStars(avg = 0, userRating = null) {
   const container = document.getElementById("storeRatingStars");
   if (!container) return;
 
   container.innerHTML = "";
 
+  const currentActive = userRating !== null ? userRating : Math.round(avg);
+
   for (let i = 1; i <= 5; i++) {
     const star = document.createElement("span");
 
-    const active = userRating !== null
-  ? i <= userRating
-  : i <= Math.round(avg);
-
-    star.innerHTML = active ? "⭐" : "☆";
+    star.textContent = "★";
+    star.style.color = i <= currentActive ? "#f59e0b" : "#d1d5db";
     star.style.cursor = "pointer";
-    star.style.fontSize = "22px";
-    star.style.marginRight = "4px";
+    star.style.fontSize = "26px";
+    star.style.transition = "transform .15s, color .15s";
+    star.style.userSelect = "none";
+
+    // Hover: iluminar hasta esta estrella
+    star.onmouseenter = () => {
+      container.querySelectorAll("span").forEach((s, idx) => {
+        s.style.color     = idx < i ? "#f59e0b" : "#d1d5db";
+        s.style.transform = idx < i ? "scale(1.2)" : "scale(1)";
+      });
+    };
+
+    // Hover out: volver al estado guardado
+    star.onmouseleave = () => {
+      const cur = userRating !== null ? userRating : Math.round(avg);
+      container.querySelectorAll("span").forEach((s, idx) => {
+        s.style.color     = idx < cur ? "#f59e0b" : "#d1d5db";
+        s.style.transform = "scale(1)";
+      });
+    };
 
     star.onclick = () => {
       if (!currentUser) {
@@ -765,15 +762,17 @@ function renderStoreStars(avg = 0, userRating = 0) {
   }
 }
 
-function updateStoreRatingInfo(avg, count, userRating = 0) {
+// ★ CAMBIO 2: texto consistente con "★" y sin emoji
+function updateStoreRatingInfo(avg, count, userRating = null) {
   const el = document.getElementById("storeRatingInfo");
   if (!el) return;
 
-  let text = `⭐ ${avg.toFixed(1)} (${count} votos)`;
+  const votosLabel = count === 1 ? "voto" : "votos";
+  let text = `★ ${avg.toFixed(1)} (${count} ${votosLabel})`;
 
   if (userRating !== null) {
-  text += ` • Tu voto: ${userRating}⭐`;
-}
+    text += ` · Tu voto: ${userRating}★`;
+  }
 
   el.innerText = text;
 }
@@ -795,14 +794,16 @@ async function rateStore(value) {
       return;
     }
 
-    renderStoreStars(parseFloat(data.avg) || 0, value);
-    updateStoreRatingInfo(parseFloat(data.avg) || 0, Number(data.count) || 0, value);
+    const newAvg   = parseFloat(data.avg)  || 0;
+    const newCount = Number(data.count)    || 0;
+
+    renderStoreStars(newAvg, value);
+    updateStoreRatingInfo(newAvg, newCount, value);
 
   } catch (err) {
     console.error(err);
   }
 }
-
 
 /* ================================
    COMMENTS
@@ -832,7 +833,6 @@ async function sendStoreComment() {
 
     input.value = "";
 
-    // 🔥 recargar usuario + comentarios
     await loadUser();
     loadStoreComments(storeData.id);
 
@@ -848,11 +848,11 @@ async function loadStoreComments(storeId) {
 
     const comments = await res.json();
     const container = document.getElementById("storeCommentsContainer");
-const countEl = document.getElementById("commentsCount");
+    const countEl   = document.getElementById("commentsCount");
 
-if (countEl) {
-  countEl.innerText = comments.length;
-}
+    if (countEl) {
+      countEl.innerText = comments.length;
+    }
 
     if (!container) return;
 
@@ -863,55 +863,48 @@ if (countEl) {
       return;
     }
 
-   comments.forEach(c => {
+    comments.forEach(c => {
 
-  const isMine = currentUser && String(currentUser.id) === String(c.user_id);
+      const isMine = currentUser && String(currentUser.id) === String(c.user_id);
 
- const div = document.createElement("div");
-div.id = `comment-${c.id}`;
+      const div = document.createElement("div");
+      div.id = `comment-${c.id}`;
 
-  div.innerHTML = `
-    <div style="
-      display:flex;
-      gap:10px;
-      margin-bottom:15px;
-      padding:10px;
-      border-radius:10px;
-      background:#f9fafb;
-    ">
-      <img 
-        src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
-        style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
-      />
+      div.innerHTML = `
+        <div style="
+          display:flex;
+          gap:10px;
+          margin-bottom:15px;
+          padding:10px;
+          border-radius:10px;
+          background:#f9fafb;
+        ">
+          <img
+            src="${c.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(c.name)}"
+            style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+          />
 
-      <div style="flex:1;">
-        <strong>${c.name}</strong>
-        <div style="font-size:12px;color:#888;">
-          ${new Date(c.created_at).toLocaleDateString()}
-        </div>
+          <div style="flex:1;">
+            <strong>${c.name}</strong>
+            <div style="font-size:12px;color:#888;">
+              ${new Date(c.created_at).toLocaleDateString()}
+            </div>
 
-        <p style="margin:5px 0;">
-          ${c.content}
-        </p>
+            <p style="margin:5px 0;">${c.content}</p>
 
-        ${
-          isMine
-          ? `
-          <div style="display:flex; gap:10px; margin-top:5px;">
-            <button onclick="deleteComment(${c.id})" style="color:red;">
-              Eliminar
-            </button>
+            ${
+              isMine
+              ? `<div style="display:flex; gap:10px; margin-top:5px;">
+                   <button onclick="deleteComment(${c.id})" style="color:red;">Eliminar</button>
+                 </div>`
+              : ""
+            }
           </div>
-          `
-          : ""
-        }
+        </div>
+      `;
 
-      </div>
-    </div>
-  `;
-
-  container.appendChild(div);
-});
+      container.appendChild(div);
+    });
 
   } catch (err) {
     console.error("Error cargando comentarios:", err);
@@ -922,14 +915,14 @@ div.id = `comment-${c.id}`;
    MAPA
 ================================ */
 
-function setupMap(store){
+function setupMap(store) {
 
   const lat = store.lat || -34.6037;
   const lng = store.lng || -58.3816;
 
-  const map = L.map('storeMap').setView([lat, lng], 16);
+  const map = L.map("storeMap").setView([lat, lng], 16);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
     maxZoom: 19
   }).addTo(map);
 
@@ -956,179 +949,95 @@ function getSubcategoryNames(ids) {
     .filter(Boolean);
 }
 
-function renderStore(store){
+function renderStore(store) {
 
-  if(store.error){
+  if (store.error) {
     alert("Tienda no encontrada");
     return;
   }
 
-  /* ================================
-     COVER
-  ================================= */
-
+  /* COVER */
   const cover = document.getElementById("storeCover");
 
   if (store.cover_url) {
-
-    cover.style.backgroundImage =
-      `url('${store.cover_url}')`;
-
-    cover.style.backgroundSize = "cover";
+    cover.style.backgroundImage    = `url('${store.cover_url}')`;
+    cover.style.backgroundSize     = "cover";
     cover.style.backgroundPosition = "center";
-    cover.style.backgroundRepeat = "no-repeat";
-
+    cover.style.backgroundRepeat   = "no-repeat";
   } else {
-
-    cover.style.background =
-      "linear-gradient(135deg,#ff6a00,#ff8c42)";
+    cover.style.background = "linear-gradient(135deg,#ff6a00,#ff8c42)";
   }
 
-  /* ================================
-     LOGO
-  ================================= */
-
-  if(store.logo_url){
-
-    document.getElementById("storeLogo")
-      .style.backgroundImage =
-      `url('${store.logo_url}')`;
-
+  /* LOGO */
+  if (store.logo_url) {
+    document.getElementById("storeLogo").style.backgroundImage = `url('${store.logo_url}')`;
   }
 
-  /* ================================
-     INFO
-  ================================= */
-
-  document.getElementById("storeName").innerText =
-    store.name;
+  /* INFO */
+  document.getElementById("storeName").innerText = store.name;
 
   updateStoreStatus(store);
 
-  const subNames =
-    getSubcategoryNames(store.subcategory_ids);
-
+  const subNames = getSubcategoryNames(store.subcategory_ids);
   document.getElementById("storeCategory").innerText =
-    subNames.length > 0
-      ? subNames.join(" • ")
-      : "";
+    subNames.length > 0 ? subNames.join(" • ") : "";
 
   const addressParts = [];
-
-  if (store.street) {
-    addressParts.push(store.street);
-  }
-
-  if (store.local) {
-    addressParts.push(`Local ${store.local}`);
-  }
-
-  if (store.apartment) {
-    addressParts.push(`Piso/Dpto ${store.apartment}`);
-  }
-
-  const fullAddress = addressParts.join(" · ");
+  if (store.street)    addressParts.push(store.street);
+  if (store.local)     addressParts.push(`Local ${store.local}`);
+  if (store.apartment) addressParts.push(`Piso/Dpto ${store.apartment}`);
 
   document.getElementById("storeAddress").innerText =
-    fullAddress || "Sin dirección";
+    addressParts.join(" · ") || "Sin dirección";
 
   document.getElementById("storeDescription").innerText =
     store.description || "";
 
-  /* ================================
-     CATALOGO PDF
-  ================================= */
+  /* CATALOGO PDF */
+  const catalogSection = document.getElementById("catalogSection");
+  const openCatalogBtn = document.getElementById("openCatalogBtn");
 
-  const catalogSection =
-    document.getElementById("catalogSection");
-
-  const openCatalogBtn =
-    document.getElementById("openCatalogBtn");
-
-  if (
-    store.catalog_pdf_url &&
-    catalogSection &&
-    openCatalogBtn
-  ){
+  if (store.catalog_pdf_url && catalogSection && openCatalogBtn) {
 
     catalogSection.classList.remove("hidden");
 
     openCatalogBtn.onclick = () => {
 
-  let modal = document.getElementById("pdfViewerModal");
+      let modal = document.getElementById("pdfViewerModal");
+      if (modal) modal.remove();
 
-  if (modal) {
-    modal.remove();
-  }
+      modal = document.createElement("div");
+      modal.id = "pdfViewerModal";
 
-  modal = document.createElement("div");
+      modal.innerHTML = `
+        <div class="pdf-modal-overlay"></div>
+        <div class="pdf-modal-content">
+          <button id="closePdfModal" class="pdf-close-btn">✕</button>
+          <embed
+            src="${store.catalog_pdf_url}"
+            type="application/pdf"
+            width="100%"
+            height="100%"
+            style="border:none;border-radius:20px;background:#fff;"
+          />
+        </div>
+      `;
 
-  modal.id = "pdfViewerModal";
+      document.body.appendChild(modal);
 
-  modal.innerHTML = `
-    <div class="pdf-modal-overlay"></div>
-
-    <div class="pdf-modal-content">
-
-      <button id="closePdfModal" class="pdf-close-btn">
-        ✕
-      </button>
-
-      <embed
-  src="${store.catalog_pdf_url}"
-  type="application/pdf"
-  width="100%"
-  height="100%"
-  style="
-    border:none;
-    border-radius:20px;
-    background:#fff;
-  "
-/>
-
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  document.getElementById("closePdfModal").onclick = () => {
-    modal.remove();
-  };
-
-  modal.querySelector(".pdf-modal-overlay").onclick = () => {
-    modal.remove();
-  };
-
-};
-
+      document.getElementById("closePdfModal").onclick = () => modal.remove();
+      modal.querySelector(".pdf-modal-overlay").onclick = () => modal.remove();
+    };
   }
 
   /* ================================
-     STATS
-  ================================= */
+     STATS — solo seguidores
+     Las estrellas las maneja el bloque
+     de RATING más abajo (renderStoreStars)
+  ================================ */
+  const stats = document.getElementById("storeStats");
 
-  const stats =
-    document.getElementById("storeStats");
-
-  function renderStars(avg){
-
-    const rating = Math.round(avg || 0);
-
-    let stars = "";
-
-    for(let i = 1; i <= 5; i++){
-
-      stars += i <= rating
-        ? "★"
-        : "☆";
-
-    }
-
-    return stars;
-  }
-
-  if(stats){
-
+  if (stats) {
     stats.innerHTML = `
       <div style="
         display:flex;
@@ -1138,43 +1047,29 @@ function renderStore(store){
         font-size:14px;
         flex-wrap:wrap;
       ">
-
-        <span style="color:#f59e0b;">
-          ${renderStars(Number(store.rating_avg))}
-        </span>
-
-        <span style="color:#666;">
-          (${store.rating_count || 0})
-        </span>
-
-        <span
-          id="followersCount"
-          style="color:#666;"
-        ></span>
-
+        <span id="followersCount" style="color:#666;"></span>
       </div>
     `;
 
     fetch(`/api/store-followers/${store.id}`)
       .then(res => res.json())
       .then(data => {
-
-        const followersEl =
-          document.getElementById("followersCount");
-
-        if(followersEl){
-
-          followersEl.innerText =
-            `${data.count} seguidores`;
-
+        const followersEl = document.getElementById("followersCount");
+        if (followersEl) {
+          followersEl.innerText = `${data.count} seguidores`;
         }
-
       });
-
   }
 
+  // ★ Render inicial inmediato con datos del store
+  //    (loadStoreRating() lo sobreescribirá con datos frescos + voto del usuario)
+  renderStoreStars(Number(store.rating_avg) || 0, null);
+  updateStoreRatingInfo(Number(store.rating_avg) || 0, Number(store.rating_count) || 0, null);
 }
 
+/* ================================
+   DELETE COMMENT
+================================ */
 
 async function deleteComment(commentId) {
   if (!confirm("¿Eliminar comentario?")) return;
@@ -1197,18 +1092,21 @@ async function deleteComment(commentId) {
   }
 }
 
+/* ================================
+   EVENTS
+================================ */
+
 async function loadStoreEvents(storeId) {
   try {
 
     const res = await fetch(`/api/stores/${storeId}/events`);
 
-if (!res.ok) {
-  console.error("ERROR HTTP:", res.status);
-  return;
-}
+    if (!res.ok) {
+      console.error("ERROR HTTP:", res.status);
+      return;
+    }
 
-const events = await res.json();
-
+    const events = await res.json();
     const container = document.getElementById("storeEvents");
 
     if (!events.length) {
@@ -1216,89 +1114,61 @@ const events = await res.json();
       return;
     }
 
-   container.innerHTML = events.map(event => {
+    container.innerHTML = events.map(event => {
 
-  const now = new Date();
-  const start = new Date(event.start_at);
-  const end = new Date(event.end_at);
+      const now   = new Date();
+      const start = new Date(event.start_at);
+      const end   = new Date(event.end_at);
 
-  let status = "Próximo";
+      const status = (now >= start && now <= end) ? "En curso" : "Próximo";
 
-  if (now >= start && now <= end) {
-    status = "En curso";
-  }
+      return `
+        <div
+          onclick="window.location.href='/event.html?id=${event.id}'"
+          style="
+            position:relative;
+            width:220px;
+            min-width:220px;
+            border-radius:14px;
+            overflow:hidden;
+            background:#fff;
+            box-shadow:0 5px 15px rgba(0,0,0,0.1);
+            cursor:pointer;
+          "
+        >
+          ${
+            isOwner ? `
+              <div style="position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:10;">
+                <button onclick="event.stopPropagation();editEvent(${event.id})"
+                  style="background:#fff;padding:4px 8px;border-radius:6px;">✏️</button>
+                <button onclick="event.stopPropagation();deleteEvent(${event.id})"
+                  style="background:#fff;padding:4px 8px;border-radius:6px;color:red;">🗑</button>
+              </div>
+            ` : ""
+          }
 
-  return `
-  <div 
-    onclick="window.location.href='/event.html?id=${event.id}'"
-    style="
-      position:relative;
-      width:220px;
-      min-width:220px;
-      border-radius:14px;
-      overflow:hidden;
-      background:#fff;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-      cursor:pointer;
-    "
-  >
+          <img src="${event.image_url}" style="width:100%;height:130px;object-fit:cover;" />
 
-    ${
-      isOwner ? `
-      <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px; z-index:10;">
-        <button onclick="event.stopPropagation(); editEvent(${event.id})" style="background:#fff;padding:4px 8px;border-radius:6px;">✏️</button>
-        <button onclick="event.stopPropagation(); deleteEvent(${event.id})" style="background:#fff;padding:4px 8px;border-radius:6px;color:red;">🗑</button>
-      </div>
-      ` : ""
-    }
+          <div style="padding:10px">
+            <div style="font-size:12px;color:#16a34a;font-weight:600;margin-bottom:4px;">
+              ${status === "En curso" ? "🔥 En curso" : "⏳ Próximo"}
+            </div>
+            <h3 style="font-size:14px;font-weight:600;margin:0 0 5px 0;">${event.title}</h3>
+            <p style="font-size:12px;color:#666;margin:0;">
+              ${new Date(event.start_at).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      `;
 
-    <img 
-      src="${event.image_url}" 
-      style="width:100%; height:130px; object-fit:cover;"
-    />
+    }).join("");
 
-    <div style="padding:10px">
-
-      <div style="
-        font-size:12px;
-        color:#16a34a;
-        font-weight:600;
-        margin-bottom:4px;
-      ">
-        ${status === "En curso" ? "🔥 En curso" : "⏳ Próximo"}
-      </div>
-
-      <h3 style="
-        font-size:14px;
-        font-weight:600;
-        margin:0 0 5px 0;
-      ">
-        ${event.title}
-      </h3>
-
-      <p style="
-        font-size:12px;
-        color:#666;
-        margin:0;
-      ">
-        ${new Date(event.start_at).toLocaleString()}
-      </p>
-
-    </div>
-
-  </div>
-  `;
-
-}).join("");
-
-  
   } catch (err) {
     console.error("ERROR EVENTS:", err);
   }
 }
 
-
- async function deleteEvent(id) {
+async function deleteEvent(id) {
   if (!confirm("¿Eliminar evento?")) return;
 
   const res = await fetch(`/api/events/${id}`, {
@@ -1318,19 +1188,22 @@ function editEvent(id) {
   window.location.href = `/edit-event.html?id=${id}`;
 }
 
-window.deleteEvent = deleteEvent;
-window.editEvent = editEvent;
+window.deleteEvent   = deleteEvent;
+window.editEvent     = editEvent;
+window.deleteComment = deleteComment;
 
-// FIX ANDROID BACK/FORWARD CACHE
+/* ================================
+   FIX ANDROID BACK/FORWARD CACHE
+================================ */
+
 window.addEventListener("pageshow", async () => {
 
   currentUser = null;
-  isOwner = false;
+  isOwner     = false;
 
   await loadUser();
 
   if (storeData) {
-
     isOwner =
       currentUser &&
       String(storeData.user_id) === String(currentUser.id);
