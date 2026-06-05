@@ -280,6 +280,7 @@ let destLat = null;
 let destLng = null;
 let currentLat = null;
 let currentLng = null;
+let ultimasObservaciones = null;
 
 // ===============================
 // DISTANCIA HAVERSINE
@@ -446,6 +447,7 @@ async function init() {
        setNavStatus('Listo para iniciar', false);
 
 if (delivery.observaciones) {
+  ultimasObservaciones = delivery.observaciones;
   mostrarObservaciones(delivery.observaciones);
 }
 
@@ -485,7 +487,20 @@ function showMap() {
 // ===============================
 let lastRouteCall = 0;
 const ROUTE_THROTTLE_MS = 15000; // recalcular cada 15 segundos máximo
-
+async function checkObservaciones() {
+  try {
+    const res = await fetch(`/api/deliveries/repartidor/${token}`);
+    if (!res.ok) return;
+    const delivery = await res.json();
+    const nuevas = delivery.observaciones || null;
+    if (nuevas && nuevas !== ultimasObservaciones) {
+      ultimasObservaciones = nuevas;
+      mostrarObservaciones(nuevas);
+    }
+  } catch (err) {
+    console.error('Error chequeando observaciones:', err);
+  }
+}
 async function drawRoute(fromLat, fromLng) {
   if (!destLat || !destLng) return;
 
@@ -574,6 +589,9 @@ function startGPS() {
     (err) => console.error('GPS:', err),
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
+
+  // polling observaciones cada 30 segundos
+  setInterval(checkObservaciones, 30000);
 }
 
 // ===============================
