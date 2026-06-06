@@ -158,6 +158,7 @@ export const CATEGORIES = {
 
   "Eventos": [
     { id: 43, name: "Salón de eventos" },
+     { id: 114, name: "SUM" },
          { id: 99, name: "Show en vivo" },
     { id: 44, name: "Catering" },
     { id: 45, name: "Fotografía" }
