@@ -153,6 +153,7 @@ export const CATEGORIES = {
     { id: 39, name: "Abogado" },
     { id: 40, name: "Contador" },
     { id: 41, name: "Arquitecto" },
+    { id: 118, name: "Productores de Seguros" },
     { id: 42, name: "Marketing" }
   ],
 
