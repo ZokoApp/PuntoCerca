@@ -100,7 +100,7 @@ export const CATEGORIES = {
   { id: 22, name: "Reparaciones" },
   { id: 61, name: "Cerrajeria" },
     { id: 103, name: "Flete" },
-    { id: 114, name: "Sublimados" },
+    { id: 116, name: "Sublimados" },
     { id: 106, name: "Rotulaciones" },
      { id: 111, name: "Sodas y Aguas" },
 
@@ -158,7 +158,7 @@ export const CATEGORIES = {
 
   "Eventos": [
     { id: 43, name: "Salón de eventos" },
-     { id: 114, name: "SUM" },
+     { id: 117, name: "SUM" },
          { id: 99, name: "Show en vivo" },
     { id: 44, name: "Catering" },
     { id: 45, name: "Fotografía" }
