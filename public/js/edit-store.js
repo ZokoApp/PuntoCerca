@@ -387,7 +387,7 @@ let googleMapsLoaded = false;
 
 let selectedLat = store ? Number(store.lat) : null;
 let selectedLng = store ? Number(store.lng) : null;
-  let placeSelected = false;
+let placeSelected = !!(store && store.lat && store.lng);
 
 const mapModal = document.getElementById("mapModal");
 const openMapBtn = document.getElementById("openMap");
