@@ -79,6 +79,23 @@ const uploadEvent = multer({
     files: 1
   }
 });
+
+// ================================
+// PIZARRA STORAGE
+// ================================
+
+const pizarraStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "puntocerca/pizarras",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
+
+const uploadPizarra = multer({
+  storage: pizarraStorage,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 }
+});
   /* ================================
      TOKEN CONFIG
   ================================ */
@@ -3779,6 +3796,110 @@ function calcularDistancia(lat1, lng1, lat2, lng2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
 }
+
+/* ================================
+   PIZARRA
+================================ */
+
+function getMidnightArgentina() {
+  const now = new Date();
+  const argNow = new Date(now.getTime() + (-3 * 60 * 60 * 1000));
+  const nextMidnight = new Date(Date.UTC(
+    argNow.getUTCFullYear(),
+    argNow.getUTCMonth(),
+    argNow.getUTCDate() + 1,
+    0, 0, 0, 0
+  ));
+  return new Date(nextMidnight.getTime() + (3 * 60 * 60 * 1000));
+}
+
+// SUBIR / REEMPLAZAR PIZARRA DEL DÍA
+app.post('/api/pizarra', authMiddleware, uploadPizarra.single('image'), async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Imagen requerida' });
+    }
+
+    // Reemplazar pizarra anterior si existe
+    await pool.query('DELETE FROM pizarras WHERE store_id = $1', [storeId]);
+
+    const result = await pool.query(`
+      INSERT INTO pizarras (store_id, image_url, caption, expires_at)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [
+      storeId,
+      req.file.path,
+      req.body.caption || null,
+      getMidnightArgentina()
+    ]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('ERROR PIZARRA POST:', err.message, err.stack);
+    res.status(500).json({ error: 'Error subiendo pizarra' });
+  }
+});
+
+// OBTENER PIZARRA ACTIVA DE UNA TIENDA
+app.get('/api/pizarra/:store_id', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM pizarras
+      WHERE store_id = $1
+      AND expires_at > NOW()
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [req.params.store_id]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Sin pizarra hoy' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('ERROR PIZARRA GET:', err.message);
+    res.status(500).json({ error: 'Error obteniendo pizarra' });
+  }
+});
+
+// ELIMINAR PIZARRA
+app.delete('/api/pizarra', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    await pool.query(
+      'DELETE FROM pizarras WHERE store_id = $1',
+      [storeRes.rows[0].id]
+    );
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR PIZARRA DELETE:', err.message);
+    res.status(500).json({ error: 'Error eliminando pizarra' });
+  }
+});
   
   /* ================================
      START
