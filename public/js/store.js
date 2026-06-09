@@ -1405,28 +1405,55 @@ async function loadStoreVideos(storeId) {
     const slides = videos
       .map(v => buildStoreEmbed(v.url, v.platform))
       .filter(Boolean)
-      .map(embed => `
-        <div style="flex-shrink:0;width:320px;">
-          ${embed}
-        </div>
-      `).join('');
+      .map(embed => `<div style="flex-shrink:0;width:320px;">${embed}</div>`)
+      .join('');
 
     container.innerHTML = `
-      <h3 style="font-size:16px;font-weight:700;color:#111827;
+      <div style="display:flex;align-items:center;justify-content:space-between;
         margin-bottom:14px;padding:0 4px;">
-        🎬 Videos del local
-      </h3>
-      <div style="
-        display:flex;overflow-x:auto;gap:16px;
-        padding:4px 4px 12px;scrollbar-width:none;
-        -webkit-overflow-scrolling:touch;
-      ">
-        ${slides}
+        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0;">
+          🎬 Videos del local
+        </h3>
+        <a href="/${storeData?.slug}/videos" style="
+          font-size:13px;font-weight:600;color:#ea580c;
+          text-decoration:none;border:1px solid #fed7aa;
+          border-radius:8px;padding:5px 12px;
+        ">Ver todos (${videos.length}) →</a>
       </div>
-      <style>
-        #storeVideosSection div::-webkit-scrollbar { display:none; }
-      </style>
+
+      <div style="position:relative;padding:0 20px;">
+        <button onclick="scrollVideos(-1)" style="
+          position:absolute;left:0;top:40%;transform:translateY(-50%);
+          z-index:10;background:white;border:1px solid #e5e7eb;
+          border-radius:50%;width:36px;height:36px;cursor:pointer;
+          font-size:20px;display:flex;align-items:center;justify-content:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.1);color:#374151;
+        ">‹</button>
+
+        <div id="storeVideosSlider" style="
+          display:flex;overflow-x:auto;gap:16px;
+          padding:4px 0 12px;scrollbar-width:none;
+          -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
+        ">
+          ${slides}
+        </div>
+
+        <button onclick="scrollVideos(1)" style="
+          position:absolute;right:0;top:40%;transform:translateY(-50%);
+          z-index:10;background:white;border:1px solid #e5e7eb;
+          border-radius:50%;width:36px;height:36px;cursor:pointer;
+          font-size:20px;display:flex;align-items:center;justify-content:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.1);color:#374151;
+        ">›</button>
+      </div>
+
+      <style>#storeVideosSlider::-webkit-scrollbar{display:none}</style>
     `;
+
+    window.scrollVideos = function(dir) {
+      const slider = document.getElementById('storeVideosSlider');
+      if (slider) slider.scrollBy({ left: dir * 340, behavior: 'smooth' });
+    };
 
     if (videos.some(v => v.platform === 'instagram')) {
       if (window.instgrm) {
