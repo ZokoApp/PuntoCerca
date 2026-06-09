@@ -1404,41 +1404,7 @@ function closePizarraStory() {
   }
 }
 
-function buildStoreEmbed(url) {
-  const yt = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-  );
-  if (yt) {
-    return `
-      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;">
-        <iframe
-          src="https://www.youtube.com/embed/${yt[1]}"
-          style="position:absolute;inset:0;width:100%;height:100%;border:none;"
-          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
-          allowfullscreen
-        ></iframe>
-      </div>`;
-  }
 
-  const ig = url.match(/instagram\.com\/(p|reel|reels|tv)\/([a-zA-Z0-9_-]+)/);
-  if (ig) {
-    return `
-      <div style="display:flex;justify-content:center;">
-        <blockquote
-          class="instagram-media"
-          data-instgrm-permalink="${url}"
-          data-instgrm-version="14"
-          style="
-            background:#fff;border:0;border-radius:12px;
-            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
-            max-width:540px;min-width:280px;width:100%;
-          "
-        ></blockquote>
-      </div>`;
-  }
-
-  return null;
-}
 /* ================================
    VIDEOS — PERFIL PÚBLICO
 ================================ */
