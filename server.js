@@ -3966,16 +3966,7 @@ app.post('/api/store-videos', authMiddleware, async (req, res) => {
 
     const storeId = storeRes.rows[0].id;
 
-    // Máximo 6 videos por tienda
-    const countRes = await pool.query(
-      'SELECT COUNT(*) FROM store_videos WHERE store_id = $1',
-      [storeId]
-    );
-
-    if (parseInt(countRes.rows[0].count) >= 6) {
-      return res.status(400).json({ error: 'Máximo 6 videos por tienda' });
-    }
-
+    
     const result = await pool.query(
       `INSERT INTO store_videos (store_id, url, platform)
        VALUES ($1, $2, $3) RETURNING *`,
