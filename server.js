@@ -585,8 +585,7 @@ app.get("/api/stores/:id/events", async (req, res) => {
   apartment,
   reference_notes,
   lat,
-  lng,
-  video_url
+  lng
 } = req.body;
   
   let opening_hours = null;
@@ -2854,7 +2853,6 @@ app.get('/delivery/cliente/:token', (req, res) => {
        cover_url = COALESCE($14, cover_url),
        subcategory_ids = COALESCE($15, subcategory_ids),
        opening_hours = COALESCE($16, opening_hours),
-       video_url = $17
      WHERE id = $18 AND user_id = $19
      RETURNING *`,
    [
@@ -2874,7 +2872,6 @@ app.get('/delivery/cliente/:token', (req, res) => {
     cover_url,
     subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
     opening_hours,
-    video_url?.trim() || null,
     req.params.id,
     req.user.id
   ]
