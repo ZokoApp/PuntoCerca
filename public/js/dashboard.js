@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadFollowingStores();
   loadDeliveries();
   loadPizarra();
+  loadStoreVideos();
 });
 
 /* ================================
@@ -729,6 +730,102 @@ window.deletePizarra = async function() {
 
   } catch (err) {
     console.error(err);
+    showToast('Error de conexión', 'error');
+  }
+};
+/* ================================
+   VIDEOS
+================================ */
+
+async function loadStoreVideos() {
+  if (!myStore) return;
+  const container = document.getElementById('storeVideosList');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`/api/store-videos/${myStore.id}`);
+    if (!res.ok) return;
+
+    const videos = await res.json();
+
+    if (!videos.length) {
+      container.innerHTML = `
+        <p style="color:#9ca3af;font-size:14px;text-align:center;padding:12px 0;">
+          Todavía no agregaste videos. Máximo 6.
+        </p>`;
+      return;
+    }
+
+    container.innerHTML = videos.map(v => `
+      <div style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 14px;background:#f8fafc;
+        border-radius:12px;margin-bottom:8px;
+        border:1px solid #e5e7eb;
+      ">
+        <span style="font-size:20px;">${v.platform === 'youtube' ? '▶️' : '📸'}</span>
+        <a href="${v.url}" target="_blank" style="
+          flex:1;font-size:13px;color:#374151;
+          text-decoration:none;overflow:hidden;
+          text-overflow:ellipsis;white-space:nowrap;
+        ">${v.url}</a>
+        <button onclick="deleteStoreVideo(${v.id})" style="
+          background:none;border:none;color:#dc2626;
+          cursor:pointer;font-size:18px;padding:4px;
+          flex-shrink:0;
+        ">✕</button>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.error('Error cargando videos', err);
+  }
+}
+
+window.addStoreVideo = async function() {
+  const input = document.getElementById('newVideoUrl');
+  const url = input?.value.trim();
+  if (!url) return;
+
+  try {
+    const res = await fetch('/api/store-videos', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Error agregando video', 'error');
+      return;
+    }
+
+    input.value = '';
+    showToast('Video agregado', 'success');
+    loadStoreVideos();
+
+  } catch (err) {
+    showToast('Error de conexión', 'error');
+  }
+};
+
+window.deleteStoreVideo = async function(id) {
+  if (!confirm('¿Eliminar este video?')) return;
+
+  try {
+    const res = await fetch(`/api/store-videos/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!res.ok) { showToast('Error eliminando', 'error'); return; }
+
+    showToast('Video eliminado', 'success');
+    loadStoreVideos();
+
+  } catch (err) {
     showToast('Error de conexión', 'error');
   }
 };
