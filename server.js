@@ -573,19 +573,21 @@ app.get("/api/stores/:id/events", async (req, res) => {
     try {
   
       const { 
-    name, 
-    description, 
-    phone, 
-    city, 
-    category, 
-    subcategory_ids,
-    street,
-    local,
-    apartment,
-    reference_notes,
-    lat,
-    lng
-  } = req.body;
+  name, 
+  description, 
+  phone, 
+  city, 
+  category, 
+  subcategory_id,
+  subcategory_ids,
+  street,
+  local,
+  apartment,
+  reference_notes,
+  lat,
+  lng,
+  video_url
+} = req.body;
   
   let opening_hours = null;
   
@@ -2851,8 +2853,9 @@ app.get('/delivery/cliente/:token', (req, res) => {
        logo_url = COALESCE($13, logo_url),
        cover_url = COALESCE($14, cover_url),
        subcategory_ids = COALESCE($15, subcategory_ids),
-  opening_hours = COALESCE($16, opening_hours)
-  WHERE id = $17 AND user_id = $18
+       opening_hours = COALESCE($16, opening_hours),
+       video_url = $17
+     WHERE id = $18 AND user_id = $19
      RETURNING *`,
    [
     name,
@@ -2871,6 +2874,7 @@ app.get('/delivery/cliente/:token', (req, res) => {
     cover_url,
     subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
     opening_hours,
+    video_url?.trim() || null,
     req.params.id,
     req.user.id
   ]
