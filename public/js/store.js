@@ -514,9 +514,10 @@ async function loadStore() {
       isOwner = true;
     }
 
-    renderStore(store);
-    setupMap(store);
-    handleUIByRole(store);
+   renderStore(store);
+setupMap(store);
+handleUIByRole(store);
+loadPizarraForProfile(store.id);
 
     // REVIEWS — reemplaza el render inicial con datos frescos + voto del usuario
     loadStoreRating(store.id);
@@ -1211,3 +1212,170 @@ window.addEventListener("pageshow", async () => {
     handleUIByRole(storeData);
   }
 });
+
+/* ================================
+   PIZARRA — RING + HISTORIA
+================================ */
+
+let pizarraStoryTimer = null;
+
+async function loadPizarraForProfile(storeId) {
+  try {
+    const res = await fetch(`/api/pizarra/${storeId}`);
+    if (!res.ok) return;
+
+    const pizarra = await res.json();
+
+    const logoEl = document.getElementById('storeLogo');
+    if (!logoEl) return;
+
+    // Anillo naranja estilo Instagram
+    logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 6px #ea580c';
+    logoEl.style.cursor = 'pointer';
+    logoEl.style.transition = 'box-shadow 0.2s ease';
+
+    logoEl.onmouseenter = () => {
+      logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 7px #f97316';
+    };
+    logoEl.onmouseleave = () => {
+      logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 6px #ea580c';
+    };
+
+    logoEl.onclick = () => openPizarraStory(pizarra);
+
+  } catch (err) {
+    console.error('Error pizarra perfil:', err);
+  }
+}
+
+function openPizarraStory(pizarra) {
+  const existing = document.getElementById('pizarraStoryModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'pizarraStoryModal';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:99999;
+    background:black;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    animation:pizarraFadeIn 0.25s ease;
+  `;
+
+  const DURATION = 8000;
+
+  modal.innerHTML = `
+    <style>
+      @keyframes pizarraFadeIn {
+        from { opacity:0; transform:scale(0.97); }
+        to   { opacity:1; transform:scale(1); }
+      }
+    </style>
+
+    <!-- BARRA DE PROGRESO -->
+    <div style="
+      position:absolute;top:12px;left:12px;right:12px;
+      height:3px;background:rgba(255,255,255,0.25);
+      border-radius:999px;overflow:hidden;
+    ">
+      <div id="pizarraProgressBar" style="
+        height:100%;width:0%;background:white;
+        border-radius:999px;
+        transition:width ${DURATION}ms linear;
+      "></div>
+    </div>
+
+    <!-- HEADER -->
+    <div style="
+      position:absolute;top:24px;left:14px;right:14px;
+      display:flex;align-items:center;justify-content:space-between;
+    ">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="
+          width:38px;height:38px;border-radius:50%;
+          border:2px solid white;
+          background:url('${storeData?.logo_url || ''}') center/cover no-repeat, #ea580c;
+          flex-shrink:0;
+        "></div>
+        <div>
+          <div style="color:white;font-size:13px;font-weight:700;line-height:1.2;">
+            ${storeData?.name || ''}
+          </div>
+          <div style="color:rgba(255,255,255,0.65);font-size:11px;">
+            🖊️ La Pizarra de Hoy
+          </div>
+        </div>
+      </div>
+      <button id="closePizarraBtn" style="
+        background:rgba(255,255,255,0.15);
+        border:none;border-radius:50%;
+        width:34px;height:34px;
+        color:white;font-size:18px;
+        cursor:pointer;display:flex;
+        align-items:center;justify-content:center;
+        line-height:1;
+      ">✕</button>
+    </div>
+
+    <!-- IMAGEN -->
+    <img
+      src="${pizarra.image_url}"
+      style="
+        max-width:100%;
+        max-height:100vh;
+        object-fit:contain;
+        border-radius:4px;
+      "
+    />
+
+    ${pizarra.caption ? `
+      <div style="
+        position:absolute;bottom:36px;left:20px;right:20px;
+        background:rgba(0,0,0,0.65);
+        backdrop-filter:blur(8px);
+        border-radius:14px;padding:14px 18px;
+        color:white;font-size:15px;
+        text-align:center;line-height:1.5;
+      ">
+        ${pizarra.caption}
+      </div>
+    ` : ''}
+  `;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+
+  // Arrancar barra de progreso
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const bar = document.getElementById('pizarraProgressBar');
+      if (bar) bar.style.width = '100%';
+    });
+  });
+
+  // Auto-cerrar
+  pizarraStoryTimer = setTimeout(closePizarraStory, DURATION);
+
+  // Botón cerrar
+  document.getElementById('closePizarraBtn').onclick = closePizarraStory;
+
+  // Cerrar tocando fuera de la imagen
+  modal.onclick = (e) => {
+    if (e.target === modal) closePizarraStory();
+  };
+}
+
+function closePizarraStory() {
+  const modal = document.getElementById('pizarraStoryModal');
+  if (modal) {
+    modal.style.animation = 'none';
+    modal.style.opacity = '0';
+    modal.style.transition = 'opacity 0.2s ease';
+    setTimeout(() => modal.remove(), 200);
+  }
+  document.body.style.overflow = '';
+  if (pizarraStoryTimer) {
+    clearTimeout(pizarraStoryTimer);
+    pizarraStoryTimer = null;
+  }
+}
