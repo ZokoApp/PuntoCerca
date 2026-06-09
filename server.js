@@ -3212,6 +3212,19 @@ app.get('/catalogo/:slug', (req, res) => {
     }
   
   });
+
+app.get('/:slug/videos', async (req, res) => {
+  const slug = req.params.slug;
+  try {
+    const result = await pool.query(
+      'SELECT id FROM stores WHERE slug = $1', [slug]
+    );
+    if (!result.rows.length) return res.status(404).send('Tienda no encontrada');
+    res.sendFile(path.join(__dirname, 'public/store-videos.html'));
+  } catch (err) {
+    res.status(500).send('Error');
+  }
+});
   
   app.get('/store/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/store.html'));
