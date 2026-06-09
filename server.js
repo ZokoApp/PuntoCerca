@@ -3845,8 +3845,7 @@ app.post('/api/pizarra', authMiddleware, uploadPizarra.single('image'), async (r
       return res.status(400).json({ error: 'Imagen requerida' });
     }
 
-    // Reemplazar pizarra anterior si existe
-    await pool.query('DELETE FROM pizarras WHERE store_id = $1', [storeId]);
+   
 
     const result = await pool.query(`
       INSERT INTO pizarras (store_id, image_url, caption, expires_at)
@@ -3870,19 +3869,18 @@ app.post('/api/pizarra', authMiddleware, uploadPizarra.single('image'), async (r
 // OBTENER PIZARRA ACTIVA DE UNA TIENDA
 app.get('/api/pizarra/:store_id', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT * FROM pizarras
-      WHERE store_id = $1
-      AND expires_at > NOW()
-      ORDER BY created_at DESC
-      LIMIT 1
-    `, [req.params.store_id]);
+   const result = await pool.query(`
+  SELECT * FROM pizarras
+  WHERE store_id = $1
+  AND expires_at > NOW()
+  ORDER BY created_at ASC
+`, [req.params.store_id]);
 
-    if (!result.rows.length) {
-      return res.status(404).json({ error: 'Sin pizarra hoy' });
-    }
+if (!result.rows.length) {
+  return res.status(404).json({ error: 'Sin pizarra hoy' });
+}
 
-    res.json(result.rows[0]);
+res.json(result.rows);
 
   } catch (err) {
     console.error('ERROR PIZARRA GET:', err.message);
@@ -4003,7 +4001,28 @@ app.delete('/api/store-videos/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error eliminando video' });
   }
 });
-  
+  // ELIMINAR PIZARRA INDIVIDUAL
+app.delete('/api/pizarra/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM pizarras
+       WHERE id = $1
+       AND store_id IN (SELECT id FROM stores WHERE user_id = $2)
+       RETURNING *`,
+      [req.params.id, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Pizarra no encontrada' });
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR PIZARRA DELETE ID:', err.message);
+    res.status(500).json({ error: 'Error eliminando pizarra' });
+  }
+});
   /* ================================
      START
   ================================ */
