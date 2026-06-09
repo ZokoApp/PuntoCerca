@@ -557,6 +557,10 @@ if (btnConfirmDelivery) {
    PIZARRA
 ================================ */
 
+/* ================================
+   PIZARRA
+================================ */
+
 function getTimeRemaining(expiresAt) {
   const diff = new Date(expiresAt) - new Date();
   if (diff <= 0) return 'Expirada';
@@ -580,7 +584,8 @@ async function loadPizarra() {
 
     if (!res.ok) return;
 
-    renderPizarraActive(container, await res.json());
+    const pizarras = await res.json();
+    renderPizarraActive(container, pizarras);
 
   } catch (err) {
     console.error('Error cargando pizarra', err);
@@ -588,50 +593,57 @@ async function loadPizarra() {
   }
 }
 
-function renderPizarraActive(container, pizarra) {
-  container.innerHTML = `
-    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
-      <img
-        src="${pizarra.image_url}"
-        style="width:180px;height:180px;object-fit:cover;border-radius:16px;border:2px solid #e5e7eb;flex-shrink:0;"
-      />
-      <div style="flex:1;min-width:180px;">
-        <div style="
-          display:inline-flex;align-items:center;gap:6px;
-          background:#f0fdf4;border:1px solid #bbf7d0;
-          border-radius:999px;padding:6px 14px;
-          font-size:12px;font-weight:700;color:#16a34a;
-          margin-bottom:14px;
-        ">
-          <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;
-            display:inline-block;animation:pulseDot 1.5s infinite;"></span>
-          Activa · ${getTimeRemaining(pizarra.expires_at)}
-        </div>
-
-        ${pizarra.caption ? `
-          <p style="font-size:14px;color:#374151;line-height:1.6;
-            background:#f8fafc;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-            "${pizarra.caption}"
-          </p>
-        ` : ''}
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button onclick="triggerPizarraUpload()" style="
-            background:linear-gradient(135deg,#ea580c,#f97316);
-            color:white;border:none;padding:10px 20px;
-            border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
-          ">📷 Cambiar pizarra</button>
-
-          <button onclick="deletePizarra()" style="
-            background:white;color:#dc2626;
-            border:1px solid #fecaca;padding:10px 20px;
-            border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
-          ">Eliminar</button>
-        </div>
+function renderPizarraActive(container, pizarras) {
+  const items = pizarras.map(p => `
+    <div style="
+      display:flex;gap:12px;align-items:center;
+      padding:10px 12px;background:#f8fafc;
+      border-radius:12px;border:1px solid #e5e7eb;margin-bottom:8px;
+    ">
+      <img src="${p.image_url}"
+        style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0;">
+      <div style="flex:1;min-width:0;">
+        ${p.caption ? `<p style="font-size:13px;color:#374151;margin-bottom:6px;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">"${p.caption}"</p>` : ''}
+        <span style="font-size:11px;color:#16a34a;font-weight:700;">
+          ● ${getTimeRemaining(p.expires_at)}
+        </span>
       </div>
+      <button onclick="deleteSinglePizarra(${p.id})" style="
+        background:none;border:none;color:#dc2626;
+        cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;
+      ">✕</button>
     </div>
-    <input type="file" id="pizarraFileInput" accept="image/*"
-      style="display:none;" onchange="uploadPizarra(this)">
+  `).join('');
+
+  container.innerHTML = `
+    <div style="
+      display:inline-flex;align-items:center;gap:6px;
+      background:#f0fdf4;border:1px solid #bbf7d0;
+      border-radius:999px;padding:6px 14px;
+      font-size:12px;font-weight:700;color:#16a34a;margin-bottom:16px;
+    ">
+      <span style="width:7px;height:7px;border-radius:50%;
+        background:#16a34a;display:inline-block;"></span>
+      ${pizarras.length} estado${pizarras.length > 1 ? 's' : ''} activo${pizarras.length > 1 ? 's' : ''} hoy
+    </div>
+
+    ${items}
+
+    <div style="margin-top:14px;border-top:1px solid #f1f5f9;padding-top:14px;">
+      <input id="pizarraCaption" type="text"
+        placeholder="Texto opcional para el próximo estado..."
+        style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;
+          border-radius:10px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+      <label for="pizarraFileInput" style="
+        display:block;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        color:white;padding:12px;border-radius:12px;
+        font-size:14px;font-weight:800;cursor:pointer;text-align:center;
+      ">📷 Agregar estado</label>
+      <input type="file" id="pizarraFileInput" accept="image/*"
+        style="display:none;" onchange="uploadPizarra(this)">
+    </div>
   `;
 }
 
@@ -640,27 +652,22 @@ function renderPizarraUpload(container) {
     <div style="border:2px dashed #e5e7eb;border-radius:16px;padding:32px;text-align:center;">
       <div style="font-size:40px;margin-bottom:12px;">🖊️</div>
       <p style="font-size:15px;font-weight:700;color:#111827;margin-bottom:6px;">
-        Todavía no publicaste la pizarra de hoy
+        Todavía no publicaste ningún estado hoy
       </p>
       <p style="font-size:13px;color:#9ca3af;margin-bottom:20px;">
-        Subí una foto del menú, precios o novedades. Desaparece sola a medianoche.
+        Subí fotos del menú, precios o novedades. Desaparecen solas a medianoche.
       </p>
       <div style="max-width:320px;margin:0 auto;">
-        <input
-          id="pizarraCaption"
-          type="text"
+        <input id="pizarraCaption" type="text"
           placeholder="Texto opcional (ej: Menú del día $2500)"
           style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;
-            border-radius:10px;font-size:14px;margin-bottom:12px;box-sizing:border-box;"
-        />
+            border-radius:10px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
         <label for="pizarraFileInput" style="
           display:block;
           background:linear-gradient(135deg,#ea580c,#f97316);
           color:white;padding:13px;border-radius:12px;
           font-size:14px;font-weight:800;cursor:pointer;
-        ">
-          📷 Subir foto de la pizarra
-        </label>
+        ">📷 Subir primer estado del día</label>
         <input type="file" id="pizarraFileInput" accept="image/*"
           style="display:none;" onchange="uploadPizarra(this)">
       </div>
@@ -685,7 +692,7 @@ window.uploadPizarra = async function(input) {
   container.innerHTML = `
     <div style="text-align:center;padding:32px;color:#9ca3af;">
       <div style="font-size:32px;margin-bottom:8px;">⏳</div>
-      Subiendo pizarra...
+      Subiendo estado...
     </div>
   `;
 
@@ -699,18 +706,37 @@ window.uploadPizarra = async function(input) {
     const data = await res.json();
 
     if (!res.ok) {
-      showToast(data.error || 'Error subiendo pizarra', 'error');
+      showToast(data.error || 'Error subiendo estado', 'error');
       loadPizarra();
       return;
     }
 
-    showToast('¡Pizarra publicada!', 'success');
+    showToast('¡Estado publicado!', 'success');
     loadPizarra();
 
   } catch (err) {
     console.error(err);
     showToast('Error de conexión', 'error');
     loadPizarra();
+  }
+};
+
+window.deleteSinglePizarra = async function(id) {
+  if (!confirm('¿Eliminar este estado?')) return;
+
+  try {
+    const res = await fetch(`/api/pizarra/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!res.ok) { showToast('Error eliminando', 'error'); return; }
+
+    showToast('Estado eliminado', 'success');
+    loadPizarra();
+
+  } catch (err) {
+    showToast('Error de conexión', 'error');
   }
 };
 
@@ -751,7 +777,7 @@ async function loadStoreVideos() {
     if (!videos.length) {
       container.innerHTML = `
         <p style="color:#9ca3af;font-size:14px;text-align:center;padding:12px 0;">
-          Todavía no agregaste videos. Máximo 6.
+          Todavía no agregaste videos.
         </p>`;
       return;
     }
