@@ -1402,33 +1402,53 @@ async function loadStoreVideos(storeId) {
 
     container.style.display = 'block';
 
+    const slides = videos
+      .map(v => buildStoreEmbed(v.url, v.platform))
+      .filter(Boolean)
+      .map(embed => `
+        <div style="
+          flex-shrink:0;
+          width:min(320px, 85vw);
+          scroll-snap-align:start;
+        ">
+          ${embed}
+        </div>
+      `).join('');
+
     container.innerHTML = `
-      <h3 style="font-size:16px;font-weight:700;color:#111827;margin-bottom:16px;">
+      <h3 style="font-size:16px;font-weight:700;color:#111827;margin-bottom:14px;padding:0 4px;">
         🎬 Videos del local
       </h3>
-      <div id="storeVideosGrid" style="display:flex;flex-direction:column;gap:16px;">
-        ${videos.map(v => buildStoreEmbed(v.url, v.platform)).filter(Boolean).join('')}
+      <div id="storeVideosSlider" style="
+        display:flex;
+        overflow-x:auto;
+        scroll-snap-type:x mandatory;
+        gap:14px;
+        padding:4px 4px 12px;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      ">
+        ${slides}
       </div>
+      <style>#storeVideosSlider::-webkit-scrollbar { display:none; }</style>
     `;
 
-    // Script de Instagram si hace falta
     if (videos.some(v => v.platform === 'instagram')) {
-  if (window.instgrm) {
-    setTimeout(() => window.instgrm.Embeds.process(), 500);
-  } else if (!document.getElementById('igScript')) {
-    const s = document.createElement('script');
-    s.id = 'igScript';
-    s.src = '//www.instagram.com/embed.js';
-    s.async = true;
-    document.body.appendChild(s);
-  }
-}
+      if (window.instgrm) {
+        setTimeout(() => window.instgrm.Embeds.process(), 500);
+      } else if (!document.getElementById('igScript')) {
+        const s = document.createElement('script');
+        s.id = 'igScript';
+        s.src = '//www.instagram.com/embed.js';
+        s.async = true;
+        document.body.appendChild(s);
+      }
+    }
 
   } catch (err) {
     console.error('Error cargando videos del perfil', err);
   }
 }
-
 function buildStoreEmbed(url, platform) {
   if (platform === 'youtube') {
     const yt = url.match(
@@ -1437,10 +1457,10 @@ function buildStoreEmbed(url, platform) {
     if (!yt) return null;
     return `
       <div style="
-        width:100%;max-width:560px;margin:0 auto;
+        width:100%;aspect-ratio:16/9;
         border-radius:14px;overflow:hidden;
-        background:#000;aspect-ratio:16/9;
-        box-shadow:0 4px 20px rgba(0,0,0,0.12);
+        background:#000;
+        box-shadow:0 4px 16px rgba(0,0,0,0.12);
       ">
         <iframe
           src="https://www.youtube.com/embed/${yt[1]}"
@@ -1451,22 +1471,22 @@ function buildStoreEmbed(url, platform) {
       </div>`;
   }
 
-if (platform === 'instagram') {
-  return `
-    <div style="display:flex;justify-content:center;max-width:480px;margin:0 auto;">
-      <blockquote
-        class="instagram-media"
-        data-instgrm-captioned
-        data-instgrm-permalink="${url}"
-        data-instgrm-version="14"
-        style="
-          background:#fff;border:0;border-radius:12px;
-          box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
-          margin:0;padding:0;width:100%;min-width:280px;
-        "
-      ></blockquote>
-    </div>`;
-}
+  if (platform === 'instagram') {
+    return `
+      <div style="min-width:280px;">
+        <blockquote
+          class="instagram-media"
+          data-instgrm-captioned
+          data-instgrm-permalink="${url}"
+          data-instgrm-version="14"
+          style="
+            background:#fff;border:0;border-radius:12px;
+            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
+            margin:0;padding:0;width:100%;
+          "
+        ></blockquote>
+      </div>`;
+  }
 
   return null;
 }
