@@ -1439,3 +1439,78 @@ function buildStoreEmbed(url) {
 
   return null;
 }
+/* ================================
+   VIDEOS — PERFIL PÚBLICO
+================================ */
+
+async function loadStoreVideos(storeId) {
+  try {
+    const res = await fetch(`/api/store-videos/${storeId}`);
+    if (!res.ok) return;
+
+    const videos = await res.json();
+    if (!videos.length) return;
+
+    const container = document.getElementById('storeVideosSection');
+    if (!container) return;
+
+    container.style.display = 'block';
+
+    container.innerHTML = `
+      <h3 style="font-size:16px;font-weight:700;color:#111827;margin-bottom:16px;">
+        🎬 Videos del local
+      </h3>
+      <div id="storeVideosGrid" style="display:flex;flex-direction:column;gap:16px;">
+        ${videos.map(v => buildStoreEmbed(v.url, v.platform)).filter(Boolean).join('')}
+      </div>
+    `;
+
+    // Script de Instagram si hace falta
+    if (videos.some(v => v.platform === 'instagram') && !document.getElementById('igScript')) {
+      const s = document.createElement('script');
+      s.id = 'igScript';
+      s.src = '//www.instagram.com/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    }
+
+  } catch (err) {
+    console.error('Error cargando videos del perfil', err);
+  }
+}
+
+function buildStoreEmbed(url, platform) {
+  if (platform === 'youtube') {
+    const yt = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    if (!yt) return null;
+    return `
+      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;">
+        <iframe
+          src="https://www.youtube.com/embed/${yt[1]}"
+          style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>`;
+  }
+
+  if (platform === 'instagram') {
+    return `
+      <div style="display:flex;justify-content:center;">
+        <blockquote
+          class="instagram-media"
+          data-instgrm-permalink="${url}"
+          data-instgrm-version="14"
+          style="
+            background:#fff;border:0;border-radius:12px;
+            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
+            max-width:540px;min-width:280px;width:100%;
+          "
+        ></blockquote>
+      </div>`;
+  }
+
+  return null;
+}
