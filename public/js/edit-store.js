@@ -233,6 +233,8 @@ if (store) {
 
   document.getElementById("description").value = store.description || "";
   document.getElementById("local").value = store.local || "";
+  document.getElementById("videoUrl").value = store.video_url || "";
+  if (store.video_url) previewVideo(store.video_url, "videoUrlPreview");
   document.getElementById("apartment").value = store.apartment || "";
   document.getElementById("references").value = store.reference_notes || "";
 
@@ -359,6 +361,10 @@ alwaysOpenCheckbox.addEventListener("change", () => {
 
   const logoPreview = document.getElementById("logoPreview");
   const coverPreview = document.getElementById("coverPreview");
+
+  document.getElementById("videoUrl").addEventListener("input", (e) => {
+  previewVideo(e.target.value.trim(), "videoUrlPreview");
+});
 
   logoInput.addEventListener("change", () => {
     const file = logoInput.files[0];
@@ -701,6 +707,7 @@ formData.append(
     formData.append("reference_notes", document.getElementById("references").value);
     formData.append("lat", selectedLat || "");
     formData.append("lng", selectedLng || "");
+    formData.append("video_url", document.getElementById("videoUrl").value.trim());
 
     if(logoInput.files[0]){
       formData.append("logo", logoInput.files[0]);
@@ -790,4 +797,73 @@ function getHoursData() {
   });
 
   return data;
+}
+
+function previewVideo(url, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!url) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const embed = buildEmbed(url);
+
+  if (!embed) {
+    container.innerHTML = `
+      <p style="font-size:12px;color:#dc2626;">
+        Link no reconocido. Usá un link de YouTube o Instagram.
+      </p>`;
+    return;
+  }
+
+  container.innerHTML = embed;
+
+  // Cargar script de Instagram si hace falta
+  if (url.includes("instagram.com") && !document.getElementById("igEmbedScript")) {
+    const script = document.createElement("script");
+    script.id = "igEmbedScript";
+    script.src = "//www.instagram.com/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }
+}
+
+function buildEmbed(url) {
+  // YouTube — watch, youtu.be, shorts
+  const yt = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (yt) {
+    return `
+      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;">
+        <iframe
+          src="https://www.youtube.com/embed/${yt[1]}"
+          style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>`;
+  }
+
+  // Instagram — post, reel, tv
+  const ig = url.match(/instagram\.com\/(p|reel|reels|tv)\/([a-zA-Z0-9_-]+)/);
+  if (ig) {
+    return `
+      <div style="display:flex;justify-content:center;">
+        <blockquote
+          class="instagram-media"
+          data-instgrm-permalink="${url}"
+          data-instgrm-version="14"
+          style="
+            background:#fff;border:0;border-radius:12px;
+            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
+            max-width:540px;min-width:280px;width:100%;
+          "
+        ></blockquote>
+      </div>`;
+  }
+
+  return null;
 }
