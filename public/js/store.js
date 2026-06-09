@@ -1401,168 +1401,49 @@ async function loadStoreVideos(storeId) {
     if (!container) return;
 
     container.style.display = 'block';
-    window._storeVideos = videos;
 
-    const thumbs = videos.map((v, i) => buildVideoThumb(v, i)).join('');
+    const slides = videos
+      .map(v => buildStoreEmbed(v.url, v.platform))
+      .filter(Boolean)
+      .map(embed => `
+        <div style="flex-shrink:0;width:320px;">
+          ${embed}
+        </div>
+      `).join('');
 
     container.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;
+      <h3 style="font-size:16px;font-weight:700;color:#111827;
         margin-bottom:14px;padding:0 4px;">
-        <h3 style="font-size:16px;font-weight:700;color:#111827;margin:0;">
-          🎬 Videos del local
-        </h3>
-        <span style="font-size:12px;color:#9ca3af;">${videos.length} video${videos.length > 1 ? 's' : ''}</span>
-      </div>
+        🎬 Videos del local
+      </h3>
       <div style="
-        display:flex;overflow-x:auto;gap:12px;
-        padding:4px 4px 10px;scrollbar-width:none;
+        display:flex;overflow-x:auto;gap:16px;
+        padding:4px 4px 12px;scrollbar-width:none;
         -webkit-overflow-scrolling:touch;
-      " id="storeVideosThumbs">
-        ${thumbs}
+      ">
+        ${slides}
       </div>
       <style>
-        #storeVideosThumbs::-webkit-scrollbar { display:none; }
-        .video-thumb { transition:transform 0.2s; }
-        .video-thumb:hover { transform:scale(1.03); }
-        .video-thumb:active { transform:scale(0.97); }
+        #storeVideosSection div::-webkit-scrollbar { display:none; }
       </style>
     `;
+
+    if (videos.some(v => v.platform === 'instagram')) {
+      if (window.instgrm) {
+        setTimeout(() => window.instgrm.Embeds.process(), 500);
+      } else if (!document.getElementById('igScript')) {
+        const s = document.createElement('script');
+        s.id = 'igScript';
+        s.src = '//www.instagram.com/embed.js';
+        s.async = true;
+        document.body.appendChild(s);
+      }
+    }
 
   } catch (err) {
     console.error('Error cargando videos del perfil', err);
   }
 }
-
-function buildVideoThumb(v, i) {
-  if (v.platform === 'youtube') {
-    const yt = v.url.match(
-      /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-    );
-    if (!yt) return '';
-    return `
-      <div class="video-thumb" onclick="openVideoModal(${i})" style="
-        flex-shrink:0;width:200px;height:112px;
-        border-radius:12px;overflow:hidden;cursor:pointer;
-        position:relative;background:#000;
-        box-shadow:0 2px 12px rgba(0,0,0,0.12);
-      ">
-        <img src="https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg"
-          style="width:100%;height:100%;object-fit:cover;opacity:0.9;">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-          <div style="width:40px;height:40px;background:rgba(255,0,0,0.9);
-            border-radius:50%;display:flex;align-items:center;justify-content:center;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  if (v.platform === 'instagram') {
-    return `
-      <div class="video-thumb" onclick="openVideoModal(${i})" style="
-        flex-shrink:0;width:200px;height:112px;
-        border-radius:12px;cursor:pointer;
-        background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
-        box-shadow:0 2px 12px rgba(188,24,136,0.2);
-        display:flex;flex-direction:column;
-        align-items:center;justify-content:center;gap:8px;
-      ">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-        </svg>
-        <span style="color:white;font-size:12px;font-weight:700;">Instagram</span>
-      </div>`;
-  }
-  return '';
-}
-
-window.openVideoModal = function(index) {
-  const videos = window._storeVideos;
-  if (!videos || index < 0 || index >= videos.length) return;
-
-  const v = videos[index];
-  const existing = document.getElementById('videoPlayerModal');
-  if (existing) existing.remove();
-
-  const embed = buildStoreEmbed(v.url, v.platform);
-  if (!embed) return;
-
-  const modal = document.createElement('div');
-  modal.id = 'videoPlayerModal';
-  modal.style.cssText = `
-    position:fixed;inset:0;z-index:99999;
-    background:rgba(0,0,0,0.94);
-    display:flex;flex-direction:column;
-    align-items:center;justify-content:center;
-    padding:20px;
-  `;
-
-  const hasPrev = index > 0;
-  const hasNext = index < videos.length - 1;
-
-  modal.innerHTML = `
-    <div style="width:100%;max-width:580px;">
-      <div style="display:flex;align-items:center;
-        justify-content:space-between;margin-bottom:14px;">
-        <span style="color:rgba(255,255,255,0.6);font-size:13px;">
-          ${index + 1} / ${videos.length}
-        </span>
-        <button onclick="closeVideoModal()" style="
-          background:rgba(255,255,255,0.12);border:none;
-          border-radius:50%;width:36px;height:36px;
-          color:white;font-size:18px;cursor:pointer;
-          display:flex;align-items:center;justify-content:center;
-        ">✕</button>
-      </div>
-
-      ${embed}
-
-      ${videos.length > 1 ? `
-        <div style="display:flex;gap:10px;margin-top:14px;">
-          <button onclick="openVideoModal(${index - 1})"
-            ${!hasPrev ? 'disabled' : ''}
-            style="flex:1;background:rgba(255,255,255,0.1);border:none;
-              border-radius:10px;padding:10px;color:white;font-size:14px;
-              font-weight:600;cursor:pointer;opacity:${hasPrev ? '1' : '0.3'};">
-            ← Anterior
-          </button>
-          <button onclick="openVideoModal(${index + 1})"
-            ${!hasNext ? 'disabled' : ''}
-            style="flex:1;background:rgba(255,255,255,0.1);border:none;
-              border-radius:10px;padding:10px;color:white;font-size:14px;
-              font-weight:600;cursor:pointer;opacity:${hasNext ? '1' : '0.3'};">
-            Siguiente →
-          </button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
-
-  if (v.platform === 'instagram') {
-    if (window.instgrm) {
-      setTimeout(() => window.instgrm.Embeds.process(), 300);
-    } else if (!document.getElementById('igScript')) {
-      const s = document.createElement('script');
-      s.id = 'igScript';
-      s.src = '//www.instagram.com/embed.js';
-      s.async = true;
-      document.body.appendChild(s);
-    }
-  }
-
-  modal.onclick = (e) => { if (e.target === modal) closeVideoModal(); };
-};
-
-window.closeVideoModal = function() {
-  const modal = document.getElementById('videoPlayerModal');
-  if (modal) modal.remove();
-  document.body.style.overflow = '';
-};
 
 function buildStoreEmbed(url, platform) {
   if (platform === 'youtube') {
@@ -1572,9 +1453,10 @@ function buildStoreEmbed(url, platform) {
     if (!yt) return null;
     return `
       <div style="width:100%;aspect-ratio:16/9;
-        border-radius:14px;overflow:hidden;background:#000;">
+        border-radius:14px;overflow:hidden;background:#000;
+        box-shadow:0 4px 16px rgba(0,0,0,0.12);">
         <iframe
-          src="https://www.youtube.com/embed/${yt[1]}?autoplay=1"
+          src="https://www.youtube.com/embed/${yt[1]}"
           style="width:100%;height:100%;border:none;"
           allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
           allowfullscreen
@@ -1584,16 +1466,16 @@ function buildStoreEmbed(url, platform) {
 
   if (platform === 'instagram') {
     return `
-      <div style="display:flex;justify-content:center;max-width:480px;margin:0 auto;">
-        <blockquote
-          class="instagram-media"
-          data-instgrm-permalink="${url}"
-          data-instgrm-version="14"
-          style="background:#fff;border:0;border-radius:12px;
-            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
-            margin:0;padding:0;width:100%;min-width:280px;"
-        ></blockquote>
-      </div>`;
+      <blockquote
+        class="instagram-media"
+        data-instgrm-permalink="${url}"
+        data-instgrm-version="14"
+        style="
+          background:#fff;border:0;border-radius:12px;
+          box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
+          margin:0;padding:0;width:100%;min-width:280px;
+        "
+      ></blockquote>`;
   }
 
   return null;
