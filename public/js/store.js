@@ -1476,7 +1476,6 @@ function buildStoreEmbed(url, platform) {
       <div style="min-width:280px;">
         <blockquote
           class="instagram-media"
-          data-instgrm-captioned
           data-instgrm-permalink="${url}"
           data-instgrm-version="14"
           style="
