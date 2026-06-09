@@ -1228,15 +1228,33 @@ async function loadPizarraForProfile(storeId) {
     const res = await fetch(`/api/pizarra/${storeId}`);
     if (!res.ok) return;
 
-    const pizarra = await res.json();
+    const pizarras = await res.json();
+    if (!pizarras.length) return;
+
+    window._storePizarras = pizarras;
 
     const logoEl = document.getElementById('storeLogo');
     if (!logoEl) return;
 
-    // Anillo naranja estilo Instagram
     logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 6px #ea580c';
     logoEl.style.cursor = 'pointer';
     logoEl.style.transition = 'box-shadow 0.2s ease';
+
+    if (pizarras.length > 1) {
+      const parent = logoEl.parentElement;
+      if (parent && parent.style.position !== 'relative') {
+        parent.style.position = 'relative';
+      }
+      const badge = document.createElement('div');
+      badge.style.cssText = `
+        position:absolute;bottom:-2px;right:-2px;
+        background:#ea580c;color:white;border-radius:999px;
+        font-size:10px;font-weight:800;padding:2px 6px;
+        border:2px solid white;pointer-events:none;z-index:10;
+      `;
+      badge.textContent = pizarras.length;
+      parent.appendChild(badge);
+    }
 
     logoEl.onmouseenter = () => {
       logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 7px #f97316';
@@ -1245,145 +1263,136 @@ async function loadPizarraForProfile(storeId) {
       logoEl.style.boxShadow = '0 0 0 3px white, 0 0 0 6px #ea580c';
     };
 
-    logoEl.onclick = () => openPizarraStory(pizarra);
+    logoEl.onclick = () => openPizarraStory(0);
 
   } catch (err) {
     console.error('Error pizarra perfil:', err);
   }
-}
+}  
 
-function openPizarraStory(pizarra) {
+function openPizarraStory(index) {
+  const pizarras = window._storePizarras || [];
+  if (!pizarras.length || index < 0 || index >= pizarras.length) {
+    closePizarraStory();
+    return;
+  }
+
+  const pizarra = pizarras[index];
+  const DURATION = 5000;
+
   const existing = document.getElementById('pizarraStoryModal');
   if (existing) existing.remove();
+  if (pizarraStoryTimer) { clearTimeout(pizarraStoryTimer); pizarraStoryTimer = null; }
 
   const modal = document.createElement('div');
   modal.id = 'pizarraStoryModal';
   modal.style.cssText = `
     position:fixed;inset:0;z-index:99999;
-    background:black;
-    display:flex;flex-direction:column;
+    background:black;display:flex;flex-direction:column;
     align-items:center;justify-content:center;
-    animation:pizarraFadeIn 0.25s ease;
+    animation:pizarraFadeIn 0.2s ease;
   `;
 
-  const DURATION = 8000;
+  const bars = pizarras.map((_, i) => `
+    <div style="flex:1;height:3px;background:rgba(255,255,255,0.3);
+      border-radius:999px;overflow:hidden;">
+      <div id="pizarraBar_${i}" style="
+        height:100%;background:white;border-radius:999px;
+        width:${i < index ? '100%' : '0%'};
+        ${i === index ? `transition:width ${DURATION}ms linear;` : ''}
+      "></div>
+    </div>
+  `).join('');
 
   modal.innerHTML = `
     <style>
       @keyframes pizarraFadeIn {
-        from { opacity:0; transform:scale(0.97); }
-        to   { opacity:1; transform:scale(1); }
+        from{opacity:0;transform:scale(0.97);}
+        to{opacity:1;transform:scale(1);}
       }
     </style>
 
-    <!-- BARRA DE PROGRESO -->
-    <div style="
-      position:absolute;top:12px;left:12px;right:12px;
-      height:3px;background:rgba(255,255,255,0.25);
-      border-radius:999px;overflow:hidden;
-    ">
-      <div id="pizarraProgressBar" style="
-        height:100%;width:0%;background:white;
-        border-radius:999px;
-        transition:width ${DURATION}ms linear;
-      "></div>
+    <div style="position:absolute;top:12px;left:12px;right:12px;display:flex;gap:4px;">
+      ${bars}
     </div>
 
-    <!-- HEADER -->
-    <div style="
-      position:absolute;top:24px;left:14px;right:14px;
-      display:flex;align-items:center;justify-content:space-between;
-    ">
+    <div style="position:absolute;top:28px;left:14px;right:14px;
+      display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="
-          width:38px;height:38px;border-radius:50%;
-          border:2px solid white;
-          background:url('${storeData?.logo_url || ''}') center/cover no-repeat, #ea580c;
-          flex-shrink:0;
-        "></div>
+        <div style="width:38px;height:38px;border-radius:50%;border:2px solid white;
+          background:url('${storeData?.logo_url || ''}') center/cover no-repeat,#ea580c;
+          flex-shrink:0;"></div>
         <div>
           <div style="color:white;font-size:13px;font-weight:700;line-height:1.2;">
             ${storeData?.name || ''}
           </div>
           <div style="color:rgba(255,255,255,0.65);font-size:11px;">
-            🖊️ La Pizarra de Hoy
+            🖊️ La Pizarra de Hoy · ${index + 1}/${pizarras.length}
           </div>
         </div>
       </div>
       <button id="closePizarraBtn" style="
-        background:rgba(255,255,255,0.15);
-        border:none;border-radius:50%;
-        width:34px;height:34px;
-        color:white;font-size:18px;
-        cursor:pointer;display:flex;
-        align-items:center;justify-content:center;
-        line-height:1;
+        background:rgba(255,255,255,0.15);border:none;border-radius:50%;
+        width:34px;height:34px;color:white;font-size:18px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;
       ">✕</button>
     </div>
 
-    <!-- IMAGEN -->
-    <img
-      src="${pizarra.image_url}"
-      style="
-        max-width:100%;
-        max-height:100vh;
-        object-fit:contain;
-        border-radius:4px;
-      "
+    <img src="${pizarra.image_url}"
+      style="max-width:100%;max-height:100vh;object-fit:contain;border-radius:4px;"
     />
 
     ${pizarra.caption ? `
-      <div style="
-        position:absolute;bottom:36px;left:20px;right:20px;
-        background:rgba(0,0,0,0.65);
-        backdrop-filter:blur(8px);
-        border-radius:14px;padding:14px 18px;
-        color:white;font-size:15px;
-        text-align:center;line-height:1.5;
-      ">
+      <div style="position:absolute;bottom:36px;left:20px;right:20px;
+        background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+        border-radius:14px;padding:14px 18px;color:white;
+        font-size:15px;text-align:center;line-height:1.5;">
         ${pizarra.caption}
       </div>
     ` : ''}
+
+    <div style="position:absolute;inset:0;display:flex;top:80px;">
+      <div style="flex:1;cursor:pointer;" onclick="navigatePizarra(${index - 1})"></div>
+      <div style="flex:1;cursor:pointer;" onclick="navigatePizarra(${index + 1})"></div>
+    </div>
   `;
 
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
 
-  // Arrancar barra de progreso
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      const bar = document.getElementById('pizarraProgressBar');
+      const bar = document.getElementById(`pizarraBar_${index}`);
       if (bar) bar.style.width = '100%';
     });
   });
 
-  // Auto-cerrar
-  pizarraStoryTimer = setTimeout(closePizarraStory, DURATION);
+  pizarraStoryTimer = setTimeout(() => {
+    navigatePizarra(index + 1);
+  }, DURATION);
 
-  // Botón cerrar
   document.getElementById('closePizarraBtn').onclick = closePizarraStory;
-
-  // Cerrar tocando fuera de la imagen
-  modal.onclick = (e) => {
-    if (e.target === modal) closePizarraStory();
-  };
 }
+
+window.navigatePizarra = function(index) {
+  const pizarras = window._storePizarras || [];
+  if (index < 0 || index >= pizarras.length) {
+    closePizarraStory();
+    return;
+  }
+  openPizarraStory(index);
+};
 
 function closePizarraStory() {
   const modal = document.getElementById('pizarraStoryModal');
   if (modal) {
-    modal.style.animation = 'none';
     modal.style.opacity = '0';
-    modal.style.transition = 'opacity 0.2s ease';
+    modal.style.transition = 'opacity 0.2s';
     setTimeout(() => modal.remove(), 200);
   }
   document.body.style.overflow = '';
-  if (pizarraStoryTimer) {
-    clearTimeout(pizarraStoryTimer);
-    pizarraStoryTimer = null;
-  }
+  if (pizarraStoryTimer) { clearTimeout(pizarraStoryTimer); pizarraStoryTimer = null; }
 }
-
 
 /* ================================
    VIDEOS — PERFIL PÚBLICO
