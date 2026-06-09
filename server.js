@@ -3901,6 +3901,104 @@ app.delete('/api/pizarra', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error eliminando pizarra' });
   }
 });
+
+/* ================================
+   STORE VIDEOS
+================================ */
+
+function detectPlatform(url) {
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/instagram\.com/.test(url)) return 'instagram';
+  return null;
+}
+
+// LISTAR VIDEOS DE UNA TIENDA
+app.get('/api/store-videos/:store_id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM store_videos
+       WHERE store_id = $1
+       ORDER BY created_at DESC`,
+      [req.params.store_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS GET:', err.message);
+    res.status(500).json({ error: 'Error obteniendo videos' });
+  }
+});
+
+// AGREGAR VIDEO
+app.post('/api/store-videos', authMiddleware, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url?.trim()) {
+      return res.status(400).json({ error: 'URL requerida' });
+    }
+
+    const platform = detectPlatform(url.trim());
+    if (!platform) {
+      return res.status(400).json({ error: 'Solo se aceptan links de YouTube o Instagram' });
+    }
+
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    // Máximo 6 videos por tienda
+    const countRes = await pool.query(
+      'SELECT COUNT(*) FROM store_videos WHERE store_id = $1',
+      [storeId]
+    );
+
+    if (parseInt(countRes.rows[0].count) >= 6) {
+      return res.status(400).json({ error: 'Máximo 6 videos por tienda' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO store_videos (store_id, url, platform)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [storeId, url.trim(), platform]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS POST:', err.message);
+    res.status(500).json({ error: 'Error agregando video' });
+  }
+});
+
+// ELIMINAR VIDEO
+app.delete('/api/store-videos/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM store_videos
+       WHERE id = $1
+       AND store_id IN (SELECT id FROM stores WHERE user_id = $2)
+       RETURNING *`,
+      [req.params.id, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Video no encontrado' });
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS DELETE:', err.message);
+    res.status(500).json({ error: 'Error eliminando video' });
+  }
+});
   
   /* ================================
      START
