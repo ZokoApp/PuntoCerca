@@ -518,6 +518,7 @@ async function loadStore() {
 setupMap(store);
 handleUIByRole(store);
 loadPizarraForProfile(store.id);
+loadStoreVideos(store.id);
 
     // REVIEWS — reemplaza el render inicial con datos frescos + voto del usuario
     loadStoreRating(store.id);
@@ -1067,29 +1068,8 @@ function renderStore(store) {
   renderStoreStars(Number(store.rating_avg) || 0, null);
   updateStoreRatingInfo(Number(store.rating_avg) || 0, Number(store.rating_count) || 0, null);
 
-  // VIDEO EMBED
-const videoSection = document.getElementById("storeVideo");
-if (videoSection) {
-  if (store.video_url) {
-    const embed = buildStoreEmbed(store.video_url);
-    if (embed) {
-      videoSection.style.display = "block";
-      videoSection.innerHTML = `
-        <h3 style="font-size:16px;font-weight:700;color:#111827;margin-bottom:14px;">
-          📹 Video del local
-        </h3>
-        ${embed}
-      `;
-      if (store.video_url.includes("instagram.com") && !document.getElementById("igScript")) {
-        const s = document.createElement("script");
-        s.id = "igScript";
-        s.src = "//www.instagram.com/embed.js";
-        s.async = true;
-        document.body.appendChild(s);
-      }
-    }
-  }
-}
+ 
+
 }
 
 /* ================================
@@ -1432,13 +1412,17 @@ async function loadStoreVideos(storeId) {
     `;
 
     // Script de Instagram si hace falta
-    if (videos.some(v => v.platform === 'instagram') && !document.getElementById('igScript')) {
-      const s = document.createElement('script');
-      s.id = 'igScript';
-      s.src = '//www.instagram.com/embed.js';
-      s.async = true;
-      document.body.appendChild(s);
-    }
+    if (videos.some(v => v.platform === 'instagram')) {
+  if (window.instgrm) {
+    setTimeout(() => window.instgrm.Embeds.process(), 300);
+  } else if (!document.getElementById('igScript')) {
+    const s = document.createElement('script');
+    s.id = 'igScript';
+    s.src = '//www.instagram.com/embed.js';
+    s.async = true;
+    document.body.appendChild(s);
+  }
+}
 
   } catch (err) {
     console.error('Error cargando videos del perfil', err);
