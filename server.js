@@ -1633,6 +1633,147 @@ try {
       res.status(500).json({ error: "Error obteniendo comentarios" });
     }
   });
+
+  app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
+    const productId = req.params.id;
+    const userId = req.user.id;
+    const { rating } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating inválido" });
+    }
+
+    try {
+      // validar producto
+      const prodCheck = await pool.query(
+        `SELECT id FROM products WHERE id = $1`,
+        [productId]
+      );
+
+      if (!prodCheck.rows.length) {
+        return res.status(404).json({ error: "Producto no existe" });
+      }
+
+      await pool.query(`
+        INSERT INTO product_ratings (user_id, product_id, rating)
+        VALUES ($1,$2,$3)
+        ON CONFLICT (user_id, product_id)
+        DO UPDATE SET rating = EXCLUDED.rating
+      `, [userId, productId, rating]);
+
+      const result = await pool.query(`
+        SELECT 
+          AVG(rating)::numeric(10,2) as avg,
+          COUNT(*) as count
+        FROM product_ratings
+        WHERE product_id = $1
+      `, [productId]);
+
+      res.json({
+        avg: result.rows[0].avg || 0,
+        count: result.rows[0].count || 0
+      });
+
+    } catch (err) {
+      console.error("ERROR RATE PRODUCT:", err);
+      res.status(500).json({ error: "Error rating producto" });
+    }
+  });
+
+  // ================================
+  // 💬 POST COMMENT PRODUCTO
+  // ================================
+  app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
+
+    const { content } = req.body;
+    const productId = req.params.id;
+    const userId = req.user?.id;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: "Usuario no válido" });
+    }
+
+    try {
+
+      // validar producto y obtener tienda para notificar
+      const prodRes = await pool.query(`
+        SELECT p.id, p.name, p.slug, s.user_id as owner_id
+        FROM products p
+        JOIN stores s ON s.id = p.store_id
+        WHERE p.id = $1
+      `, [productId]);
+
+      if (!prodRes.rows.length) {
+        return res.status(404).json({ error: "Producto no existe" });
+      }
+
+      const product = prodRes.rows[0];
+
+      const result = await pool.query(
+        `INSERT INTO comments (product_id, user_id, content)
+         VALUES ($1,$2,$3)
+         RETURNING *`,
+        [productId, userId, content.trim()]
+      );
+
+      // 🔔 notificar al dueño de la tienda
+      try {
+        if (product.owner_id && product.owner_id !== userId) {
+          await createNotification(
+            product.owner_id,
+            "product_comment",
+            "Nuevo comentario en tu producto",
+            `${req.user.name || "Un usuario"} comentó en ${product.name}`,
+            `/product/${product.slug || productId}`
+          );
+        }
+      } catch (notifErr) {
+        console.error("ERROR NOTIF COMMENT:", notifErr);
+      }
+
+      res.json(result.rows[0]);
+
+    } catch (err) {
+      console.error("ERROR POST COMMENT:", err);
+      res.status(500).json({ error: "Error creando comentario" });
+    }
+  });
+
+  // ================================
+  // ✏️ EDITAR COMENTARIO
+  // ================================
+  app.put('/api/comments/:id', authMiddleware, async (req, res) => {
+
+    const { content } = req.body;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+
+    try {
+      const result = await pool.query(
+        `UPDATE comments
+         SET content = $1
+         WHERE id = $2 AND user_id = $3
+         RETURNING *`,
+        [content.trim(), req.params.id, req.user.id]
+      );
+
+      if (!result.rows.length) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+
+      res.json(result.rows[0]);
+
+    } catch (error) {
+      console.error("EDIT COMMENT ERROR:", error);
+      res.status(500).json({ error: "Error editando comentario" });
+    }
+  });
   
   app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
   
