@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    <!-- NOTIFICACIONES -->
+
   <!-- NOTIFICACIONES -->
 <div id="notifWrapper" class="relative" style="display:none;">
       <button id="notifBtn" class="relative p-2 rounded-full hover:bg-gray-100 transition">
@@ -283,6 +283,27 @@
 
     </div>
   </div>
+</section>
+ <!-- ================= ESTADOS DEL DÍA ================= -->
+<section id="storiesSection" style="display:none;
+  padding:16px 0 8px;border-bottom:1px solid #f1f5f9;background:white;">
+  <div style="max-width:1280px;margin:0 auto;padding:0 16px;">
+    <div style="
+      display:flex;align-items:center;gap:6px;
+      margin-bottom:14px;
+    ">
+      <span style="font-size:13px;font-weight:700;color:#111827;">
+        🖊️ Pizarras de hoy
+      </span>
+      <span style="font-size:11px;color:#9ca3af;">de tiendas que seguís</span>
+    </div>
+    <div id="storiesStrip" style="
+      display:flex;gap:16px;overflow-x:auto;
+      padding:4px 0 12px;scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    "></div>
+  </div>
+  <style>#storiesStrip::-webkit-scrollbar{display:none}</style>
 </section>
 <!-- ================= CATEGORÍAS ================= -->
 <section class="pc-categories-section">
@@ -729,6 +750,7 @@
 <div id="toastContainer" class="fixed top-5 right-5 z-[9999] space-y-3"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="/js/stories-feed.js"></script>
   <script src="/js/delivery-monitor.js"></script>
  <script src="/js/utils/prices.js"></script>
 <script type="module" src="/js/app.js"></script>
