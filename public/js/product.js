@@ -15,6 +15,7 @@ if (!param) {
 }
   
   let isLogged = false;
+let currentProduct = null;
 
  function timeAgo(dateString) {
 
@@ -69,6 +70,8 @@ if (!param) {
   }
 
   const product = await res.json();
+
+    currentProduct = product;
 
   // 🔁 redirección si cambia slug
   if (product.redirect_slug && param !== product.redirect_slug) {
@@ -349,13 +352,17 @@ ${window.location.href}`;
         const content = document.getElementById("commentInput").value;
         if (!content) return;
   
+        if (!currentProduct) return;
+
         try {
-          await fetch(`/api/products/${product.id}/comments`, {
+          const res = await fetch(`/api/products/${currentProduct.id}/comments`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ content })
           });
+
+          if (!res.ok) throw new Error();
   
           location.reload();
   
@@ -441,7 +448,8 @@ ${window.location.href}`;
 
   try {
 
-    const productId = param;
+    if (!currentProduct) return;
+    const productId = currentProduct.id;
 
     const res = await fetch(`/api/products/${productId}/rate`, {
       method: "POST",
