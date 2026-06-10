@@ -13,17 +13,15 @@ if (!param) {
   alert("Producto inválido");
   throw new Error("Parámetro no encontrado");
 }
-  
-  let isLogged = false;
+
+let isLogged = false;
 let currentProduct = null;
 
- function timeAgo(dateString) {
-
+function timeAgo(dateString) {
   const date = new Date(dateString);
   const now = new Date();
 
   const seconds = Math.floor((now - date) / 1000);
-
   if (seconds < 60) return "Hace unos segundos";
 
   const minutes = Math.floor(seconds / 60);
@@ -38,24 +36,24 @@ let currentProduct = null;
   const weeks = Math.floor(days / 7);
   return `Hace ${weeks} semanas`;
 }
-  
-  // 🔐 CHECK LOGIN PRIMERO
-  async function checkAuth() {
-    try {
-      const res = await fetch('/api/me', {
-        credentials: 'include'
-      });
-  
-      if (res.ok) isLogged = true;
-  
-    } catch {}
-  }
-  
-  async function init() {
+
+// 🔐 CHECK LOGIN PRIMERO
+async function checkAuth() {
+  try {
+    const res = await fetch('/api/me', {
+      credentials: 'include'
+    });
+
+    if (res.ok) isLogged = true;
+
+  } catch {}
+}
+
+async function init() {
 
   await checkAuth();
 
-  // 🔥 detectar si es ID o SLUG
+  // detectar si es ID o SLUG
   const isId = !isNaN(param);
 
   const url = isId
@@ -70,8 +68,7 @@ let currentProduct = null;
   }
 
   const product = await res.json();
-
-    currentProduct = product;
+  currentProduct = product;
 
   // 🔁 redirección si cambia slug
   if (product.redirect_slug && param !== product.redirect_slug) {
@@ -112,11 +109,11 @@ let currentProduct = null;
   addSpec("Talles", product.size);
   const subName = SUBCATEGORY_MAP[product.subcategory_id];
 
-if (subName) {
-  addSpec("Categoría", `${product.category} • ${subName}`);
-} else {
-  addSpec("Categoría", product.category);
-}
+  if (subName) {
+    addSpec("Categoría", `${product.category} • ${subName}`);
+  } else {
+    addSpec("Categoría", product.category);
+  }
 
   let colors = [];
 
@@ -130,35 +127,35 @@ if (subName) {
 
   if (colors.length > 0) {
     const colorMap = {
-  negro: "#000000",
-  blanco: "#ffffff",
-  rojo: "#ef4444",
-  azul: "#3b82f6",
-  verde: "#22c55e",
-  rosa: "#ec4899",
-  gris: "#6b7280",
-  amarillo: "#eab308",
-  marron: "#92400e",
-  beige: "#f5f5dc"
-};
+      negro: "#000000",
+      blanco: "#ffffff",
+      rojo: "#ef4444",
+      azul: "#3b82f6",
+      verde: "#22c55e",
+      rosa: "#ec4899",
+      gris: "#6b7280",
+      amarillo: "#eab308",
+      marron: "#92400e",
+      beige: "#f5f5dc"
+    };
 
-const colorsHTML = colors.map(c => {
+    const colorsHTML = colors.map(c => {
 
-  const key = c.toLowerCase().trim();
-  const bg = colorMap[key] || "#ccc"; // fallback
+      const key = c.toLowerCase().trim();
+      const bg = colorMap[key] || "#ccc"; // fallback
 
-  return `
-    <span title="${c}" style="
-      display:inline-block;
-      width:16px;
-      height:16px;
-      border-radius:50%;
-      background:${bg};
-      border:1px solid #ddd;
-      margin-right:6px;
-    "></span>
-  `;
-}).join("");
+      return `
+        <span title="${c}" style="
+          display:inline-block;
+          width:16px;
+          height:16px;
+          border-radius:50%;
+          background:${bg};
+          border:1px solid #ddd;
+          margin-right:6px;
+        "></span>
+      `;
+    }).join("");
 
     specsHTML += `
       <div>
@@ -200,11 +197,11 @@ const colorsHTML = colors.map(c => {
   document.getElementById("productPrice").innerHTML =
     window.renderPriceHTML(product);
 
-    if (product.is_offer && product.offer_expires_at) {
-  document.getElementById("productPrice").innerHTML += `
-    <div class="offer-timer" data-expire="${product.offer_expires_at}"></div>
-  `;
-}
+  if (product.is_offer && product.offer_expires_at) {
+    document.getElementById("productPrice").innerHTML += `
+      <div class="offer-timer" data-expire="${product.offer_expires_at}"></div>
+    `;
+  }
 
   let description = "Sin descripción";
   const extraParsed = safeJSON(product.extra, {});
@@ -315,13 +312,13 @@ const colorsHTML = colors.map(c => {
 
     const telefono = product.store_phone.replace(/\D/g, "");
 
-  const priceNumber = parseFloat(product.price);
+    const priceNumber = parseFloat(product.price);
 
-const precioTexto = (!product.price || isNaN(priceNumber))
-  ? "Consultar"
-  : `$${priceNumber.toLocaleString()}`;
+    const precioTexto = (!product.price || isNaN(priceNumber))
+      ? "Consultar"
+      : `$${priceNumber.toLocaleString()}`;
 
-const mensaje = `Hola! Quiero consultar por este producto:
+    const mensaje = `Hola! Quiero consultar por este producto:
 
 ${product.name}
 Precio: ${precioTexto}
@@ -336,122 +333,118 @@ ${window.location.href}`;
 
   loadComments(product.id);
   loadRelated(product);
-    startOfferTimers();
+  startOfferTimers();
 }
-  
-    const sendBtn = document.getElementById("sendComment");
-  
-    if (sendBtn) {
-      sendBtn.addEventListener("click", async () => {
-  
-        if (!isLogged) {
-          alert("Tenés que iniciar sesión");
-          return window.location.href = "/login";
-        }
-  
-        const content = document.getElementById("commentInput").value;
-        if (!content) return;
-  
-        if (!currentProduct) return;
 
-        try {
-          const res = await fetch(`/api/products/${currentProduct.id}/comments`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ content })
-          });
+// =============================
+// COMENTAR
+// =============================
+const sendBtn = document.getElementById("sendComment");
 
-          if (!res.ok) throw new Error();
-  
-          location.reload();
-  
-        } catch {
-          alert("Error al comentar");
-        }
-  
-      });
+if (sendBtn) {
+  sendBtn.addEventListener("click", async () => {
+
+    if (!isLogged) {
+      alert("Tenés que iniciar sesión");
+      return window.location.href = "/login";
     }
-  
-    function renderStars(avg = 0, userRating = 0) {
-    const container = document.getElementById("ratingStars");
-    container.innerHTML = "";
-  
-    for (let i = 1; i <= 5; i++) {
-      const star = document.createElement("span");
-  
-      const active = userRating ? i <= userRating : i <= Math.round(avg);
-  
-      star.innerHTML = active ? "⭐" : "☆";
-  
-      star.style.cursor = "pointer";
-      star.style.fontSize = "22px";
-      star.style.transition = "0.2s";
-  
-      if (userRating && i <= userRating) {
-        star.style.transform = "scale(1.15)";
-      }
-  
-      star.addEventListener("click", () => {
-  
-        if (!isLogged) {
-          alert("Iniciá sesión para votar");
-          window.location.href = "/login";
-          return;
-        }
-  
-        rateProduct(i);
+
+    if (!currentProduct) return;
+
+    const content = document.getElementById("commentInput").value;
+    if (!content.trim()) return;
+
+    try {
+      const res = await fetch(`/api/products/${currentProduct.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content })
       });
-  
-      star.addEventListener("mouseover", () => {
-    highlightStars(i);
+
+      if (!res.ok) throw new Error();
+
+      location.reload();
+
+    } catch {
+      alert("Error al comentar");
+    }
+
   });
-  
-      
-  
-      star.addEventListener("mouseleave", () => {
-        renderStars(avg, userRating);
-      });
-  
-      container.appendChild(star);
-    }
+}
+
+// =============================
+// ESTRELLAS (SVG, sin emojis)
+// =============================
+function starSVG(filled) {
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="${filled ? '#f59e0b' : 'none'}" stroke="${filled ? '#f59e0b' : '#d1d5db'}" stroke-width="1.5" style="display:block;"><path stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>`;
+}
+
+function renderStars(avg = 0, userRating = 0) {
+  const container = document.getElementById("ratingStars");
+  container.innerHTML = "";
+  container.style.display = "flex";
+  container.style.gap = "3px";
+  container.style.width = "fit-content";
+
+  const baseRating = userRating || Math.round(avg);
+
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+    star.style.cursor = "pointer";
+    star.innerHTML = starSVG(i <= baseRating);
+
+    star.addEventListener("mouseenter", () => highlightStars(i));
+
+    star.addEventListener("click", () => {
+      if (!isLogged) {
+        alert("Iniciá sesión para votar");
+        window.location.href = "/login";
+        return;
+      }
+      rateProduct(i);
+    });
+
+    container.appendChild(star);
   }
-  
-  function highlightStars(rating) {
-    const stars = document.getElementById("ratingStars").children;
-  
-    for (let i = 0; i < stars.length; i++) {
-      stars[i].innerHTML = i < rating ? "⭐" : "☆";
-    }
+
+  container.onmouseleave = () => highlightStars(baseRating);
+}
+
+function highlightStars(rating) {
+  const stars = document.getElementById("ratingStars").children;
+
+  for (let i = 0; i < stars.length; i++) {
+    stars[i].innerHTML = starSVG(i < rating);
   }
-  
-  function updateRatingInfo(avg, count, userRating = 0) {
-    const info = document.getElementById("ratingInfo");
-  
-    const avgNumber = parseFloat(avg) || 0;
-  
-    let text = `⭐ ${avgNumber.toFixed(1)} (${count} votos)`;
-  
-    if (userRating) {
-      text += ` • Tu voto: ${userRating}⭐`;
-    }
-  
-    info.innerText = text;
+}
+
+function updateRatingInfo(avg, count, userRating = 0) {
+  const info = document.getElementById("ratingInfo");
+
+  const avgNumber = parseFloat(avg) || 0;
+
+  let text = `${avgNumber.toFixed(1)} (${count} votos)`;
+
+  if (userRating) {
+    text += ` • Tu voto: ${userRating}/5`;
   }
-  
-  let isRating = false;
-  
- async function rateProduct(value) {
+
+  info.innerText = text;
+}
+
+let isRating = false;
+
+async function rateProduct(value) {
 
   if (isRating) return;
   isRating = true;
 
   try {
 
-    if (!currentProduct) return;
-    const productId = currentProduct.id;
+    if (!currentProduct) throw new Error("Producto no cargado");
 
-    const res = await fetch(`/api/products/${productId}/rate`, {
+    const res = await fetch(`/api/products/${currentProduct.id}/rate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -460,7 +453,7 @@ ${window.location.href}`;
 
     if (!res.ok) throw new Error();
 
-    const data = await res.json(); // 🔥 FALTABA ESTO TAMBIÉN
+    const data = await res.json();
 
     renderStars(
       parseFloat(data.avg) || 0,
@@ -480,12 +473,72 @@ ${window.location.href}`;
 
   isRating = false;
 }
-    
-  
-  // =============================
-  // FUNCIONES
-  // =============================
-  async function loadComments(productId) {
+
+// =============================
+// EDITAR / ELIMINAR COMENTARIO
+// =============================
+window.editComment = function(id, content) {
+
+  const p = document.getElementById(`comment-${id}`);
+
+  p.innerHTML = `
+    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
+
+    <div style="margin-top:5px;display:flex;gap:5px;">
+      <button type="button" onclick="saveComment(${id})">Guardar</button>
+      <button type="button" onclick="location.reload()">Cancelar</button>
+    </div>
+  `;
+};
+
+window.saveComment = async function(id) {
+
+  const newContent = document.getElementById(`edit-input-${id}`).value;
+
+  if (!newContent.trim()) return alert("Comentario vacío");
+
+  try {
+
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content: newContent })
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al editar");
+  }
+};
+
+window.deleteComment = async function(id) {
+
+  if (!confirm("¿Eliminar comentario?")) return;
+
+  try {
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    alert("Error al eliminar");
+  }
+};
+
+// =============================
+// COMENTARIOS
+// =============================
+async function loadComments(productId) {
 
   try {
     const res = await fetch(`/api/products/${productId}/comments`);
@@ -513,108 +566,36 @@ ${window.location.href}`;
       div.className = "flex gap-3 border-b pb-3 mb-3 items-start";
 
       div.innerHTML = `
-  <img 
-    src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}" 
-    style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
-  />
+        <img
+          src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+          style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+        />
 
-  <div style="flex:1;">
-    <div style="display:flex;align-items:center;gap:8px;">
-  <strong style="font-size:14px;">${c.name}</strong>
-  <span style="font-size:12px;color:#888;">
-    ${timeAgo(c.created_at)}
-  </span>
-</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <strong style="font-size:14px;">${c.name}</strong>
+            <span style="font-size:12px;color:#888;">
+              ${timeAgo(c.created_at)}
+            </span>
+          </div>
 
-      ${isLogged ? `
-        <div style="display:flex;gap:10px;">
-          <button onclick="editComment(${c.id}, '${c.content.replace(/'/g, "\\'")}')" style="font-size:12px;">
-            Editar
-          </button>
+          ${isLogged ? `
+            <div style="display:flex;gap:10px;">
+              <button onclick="editComment(${c.id}, '${c.content.replace(/'/g, "\\'")}')" style="font-size:12px;">
+                Editar
+              </button>
 
-          <button onclick="deleteComment(${c.id})" style="font-size:12px;color:red;">
-            Eliminar
-          </button>
+              <button onclick="deleteComment(${c.id})" style="font-size:12px;color:red;">
+                Eliminar
+              </button>
+            </div>
+          ` : ""}
+
+          <p id="comment-${c.id}" style="margin-top:4px;font-size:14px;color:#444;">
+            ${c.content}
+          </p>
         </div>
-      ` : ""}
-    </div>
-
-    <p id="comment-${c.id}" style="margin-top:4px;font-size:14px;color:#444;">
-      ${c.content}
-    </p>
-  </div>
-`;
-
-      window.editComment = function(id, content) {
-
-  const p = document.getElementById(`comment-${id}`);
-
-  p.innerHTML = `
-    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
-    
-    <div style="margin-top:5px;display:flex;gap:5px;">
-<button type="button" onclick="saveComment(${id})">Guardar</button>
-     <button type="button" onclick="location.reload()">Cancelar</button>
-    </div>
-  `;
-};
-
-      window.editComment = function(id, content) {
-
-  const p = document.getElementById(`comment-${id}`);
-
-  p.innerHTML = `
-    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
-    
-    <div style="margin-top:5px;display:flex;gap:5px;">
-      <button onclick="saveComment(${id})">Guardar</button>
-      <button onclick="location.reload()">Cancelar</button>
-    </div>
-  `;
-};
-
-      window.saveComment = async function(id) {
-
-  const newContent = document.getElementById(`edit-input-${id}`).value;
-
-  if (!newContent.trim()) return alert("Comentario vacío");
-
-  try {
-
-    const res = await fetch(`/api/comments/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ content: newContent })
-    });
-
-    if (!res.ok) throw new Error();
-
-    location.reload();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error al editar");
-  }
-};
-      window.deleteComment = async function(id) { 
-
-  if (!confirm("¿Eliminar comentario?")) return;
-
-  try {
-    const res = await fetch(`/api/comments/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-
-    if (!res.ok) throw new Error();
-
-    location.reload();
-
-  } catch (err) {
-    alert("Error al eliminar");
-  }
-}
+      `;
 
       container.appendChild(div);
     });
@@ -623,50 +604,50 @@ ${window.location.href}`;
     console.error(err);
   }
 }
-  
-  async function loadRelated(product) {
-  
-    const res = await fetch(`/api/stores/${product.store_id}/products`);
-    const products = await res.json();
-  
-    const container = document.getElementById("relatedProducts");
-  
-    const filtered = products
-      .filter(p => p.id !== product.id)
-      .slice(0, 8);
-  
-    filtered.forEach(p => {
-  
-      const card = document.createElement("div");
-      card.className = "bg-white rounded-2xl border shadow-sm overflow-hidden cursor-pointer hover:shadow-lg";
-  
-      card.innerHTML = `
-        <div class="bg-gray-100 h-40 flex items-center justify-center">
-          <img src="${p.image_url}" class="max-h-full object-contain">
-        </div>
-  
-        <div class="p-3">
-          <h3 class="text-sm font-semibold">${p.name}</h3>
-          <p class="text-orange-600 font-bold">
+
+async function loadRelated(product) {
+
+  const res = await fetch(`/api/stores/${product.store_id}/products`);
+  const products = await res.json();
+
+  const container = document.getElementById("relatedProducts");
+
+  const filtered = products
+    .filter(p => p.id !== product.id)
+    .slice(0, 8);
+
+  filtered.forEach(p => {
+
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-2xl border shadow-sm overflow-hidden cursor-pointer hover:shadow-lg";
+
+    card.innerHTML = `
+      <div class="bg-gray-100 h-40 flex items-center justify-center">
+        <img src="${p.image_url}" class="max-h-full object-contain">
+      </div>
+
+      <div class="p-3">
+        <h3 class="text-sm font-semibold">${p.name}</h3>
+        <p class="text-orange-600 font-bold">
 ${(!p.price || isNaN(parseFloat(p.price)))
   ? "Consultar"
   : `$${parseFloat(p.price).toLocaleString()}`}
-</p>
-        </div>
-      `;
-  
-      card.onclick = () => {
-    window.location.href = `/product/${p.slug}`;
-  };
-  
-      container.appendChild(card);
-    });
-  }
-  
-  // INIT
-  init();
-  
-  function startOfferTimers() {
+        </p>
+      </div>
+    `;
+
+    card.onclick = () => {
+      window.location.href = `/product/${p.slug}`;
+    };
+
+    container.appendChild(card);
+  });
+}
+
+// INIT
+init();
+
+function startOfferTimers() {
   const timers = document.querySelectorAll(".offer-timer");
 
   timers.forEach(timer => {
@@ -678,7 +659,7 @@ ${(!p.price || isNaN(parseFloat(p.price)))
       const diff = expire - now;
 
       if (diff <= 0) {
-        timer.innerHTML = "⛔ Oferta finalizada";
+        timer.innerHTML = "Oferta finalizada";
         return;
       }
 
@@ -686,29 +667,29 @@ ${(!p.price || isNaN(parseFloat(p.price)))
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      timer.innerHTML = `⏳ ${hours}h ${minutes}m ${seconds}s`;
+      timer.innerHTML = `Termina en ${hours}h ${minutes}m ${seconds}s`;
     }
 
     update();
     setInterval(update, 1000);
   });
 }
-  
-  // =============================
-  // ZOOM
-  // =============================
-  const zoomContainer = document.getElementById("zoomContainer");
-  const img = document.getElementById("productImage");
-  
-  zoomContainer.addEventListener("mousemove", (e) => {
-    const rect = zoomContainer.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * 100;
-    const y = (e.clientY - rect.top) / rect.height * 100;
-  
-    img.style.transformOrigin = `${x}% ${y}%`;
-    img.style.transform = "scale(2)";
-  });
-  
-  zoomContainer.addEventListener("mouseleave", () => {
-    img.style.transform = "scale(1)";
-  });
+
+// =============================
+// ZOOM
+// =============================
+const zoomContainer = document.getElementById("zoomContainer");
+const img = document.getElementById("productImage");
+
+zoomContainer.addEventListener("mousemove", (e) => {
+  const rect = zoomContainer.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width * 100;
+  const y = (e.clientY - rect.top) / rect.height * 100;
+
+  img.style.transformOrigin = `${x}% ${y}%`;
+  img.style.transform = "scale(2)";
+});
+
+zoomContainer.addEventListener("mouseleave", () => {
+  img.style.transform = "scale(1)";
+});
