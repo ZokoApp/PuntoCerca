@@ -682,7 +682,6 @@ async function checkFollowing(storeId) {
   if (btn) {
     btn.style.display = "none";
     btn.innerText = "Seguir";
-    btn.onclick = null;
     btn.innerText = data.following ? "Siguiendo" : "Seguir";
     btn.style.display = "inline-block";
   }
