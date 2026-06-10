@@ -33,6 +33,7 @@ a{text-decoration:none;color:inherit;}
 .section{background:white;border:1px solid #e5e7eb;border-radius:20px;padding:24px;margin-bottom:20px;}
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .section-title{font-size:15px;font-weight:700;color:#111827;display:flex;align-items:center;gap:8px;}
+.title-icon{width:17px;height:17px;color:#ea580c;flex-shrink:0;}
 .section-link{font-size:12px;color:#ea580c;font-weight:600;}
 .section-link:hover{text-decoration:underline;}
 
@@ -109,7 +110,7 @@ a{text-decoration:none;color:inherit;}
   <!-- PIZARRAS DE HOY -->
   <div class="section" id="storiesSection" style="display:none;">
     <div class="section-head">
-      <div class="section-title">🖊️ Pizarras de hoy</div>
+      <div class="section-title"><svg class="title-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>Pizarras de hoy</div>
     </div>
     <div class="stories-strip" id="storiesStrip"></div>
   </div>
@@ -118,7 +119,7 @@ a{text-decoration:none;color:inherit;}
   <div class="section" id="notifsSection" style="display:none;">
     <div class="section-head">
       <div class="section-title">
-        🔔 Notificaciones
+        <svg class="title-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>Notificaciones
         <span id="notifBadge" style="background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;display:none;"></span>
       </div>
       <button onclick="markAllRead()" class="section-link" style="background:none;border:none;cursor:pointer;">Marcar todo leído</button>
@@ -129,7 +130,7 @@ a{text-decoration:none;color:inherit;}
   <!-- NOVEDADES -->
   <div class="section" id="feedProductsSection" style="display:none;">
     <div class="section-head">
-      <div class="section-title">🆕 Novedades de tus tiendas</div>
+      <div class="section-title"><svg class="title-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>Novedades de tus tiendas</div>
     </div>
     <div class="scroll-row" id="feedProductsList"></div>
   </div>
@@ -137,7 +138,7 @@ a{text-decoration:none;color:inherit;}
   <!-- OFERTAS -->
   <div class="section" id="feedOffersSection" style="display:none;">
     <div class="section-head">
-      <div class="section-title">🔥 Ofertas activas</div>
+      <div class="section-title"><svg class="title-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>Ofertas activas</div>
     </div>
     <div class="scroll-row" id="feedOffersList"></div>
   </div>
@@ -145,14 +146,14 @@ a{text-decoration:none;color:inherit;}
   <!-- EVENTOS -->
   <div class="section" id="feedEventsSection" style="display:none;">
     <div class="section-head">
-      <div class="section-title">📅 Eventos de tus tiendas</div>
+      <div class="section-title"><svg class="title-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>Eventos de tus tiendas</div>
     </div>
     <div class="scroll-row" id="feedEventsList"></div>
   </div>
 
   <!-- ESTADO VACÍO -->
   <div class="section" id="emptyStateSection" style="display:none;text-align:center;padding:36px 20px;">
-    <div style="font-size:36px;margin-bottom:10px;">🏪</div>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width:44px;height:44px;margin:0 auto 12px;display:block;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 2.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/></svg>
     <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:5px;">Todavía no seguís ninguna tienda</div>
     <p style="font-size:13px;color:#9ca3af;margin-bottom:16px;max-width:320px;margin-left:auto;margin-right:auto;">Seguí tus comercios favoritos y acá vas a ver sus pizarras, novedades, ofertas y eventos.</p>
     <a href="/stores" style="display:inline-block;background:#ea580c;color:white;font-size:13px;font-weight:700;padding:10px 20px;border-radius:999px;">Explorar tiendas →</a>
@@ -192,7 +193,7 @@ async function loadUser(){
     const res = await fetch('/api/me',{credentials:'include'});
     if(!res.ok){ window.location.href='/login'; return; }
     const u = await res.json();
-    document.getElementById('welcomeMsg').textContent = `Hola, ${u.name||'usuario'} 👋`;
+    document.getElementById('welcomeMsg').textContent = `Hola, ${u.name||'usuario'}`;
   }catch(e){}
 }
 
@@ -257,7 +258,7 @@ window.openStory = function(si, pi=0){
         <a href="/${store.store_slug}" style="width:38px;height:38px;border-radius:50%;border:2px solid white;flex-shrink:0;display:block;background:url('${store.logo_url||''}') center/cover no-repeat,#ea580c;"></a>
         <div>
           <a href="/${store.store_slug}" style="color:white;font-size:13px;font-weight:700;line-height:1.2;display:block;">${store.store_name}</a>
-          <div style="color:rgba(255,255,255,0.65);font-size:11px;">🖊️ La Pizarra de Hoy · ${pi+1}/${pizarras.length}</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:11px;">La Pizarra de Hoy · ${pi+1}/${pizarras.length}</div>
         </div>
       </div>
       <button id="closeStoryBtn" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:34px;height:34px;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
@@ -374,7 +375,7 @@ async function loadFeedOffers(){
         <img src="${p.image_url||'/img/favicon.png'}" alt="${p.name}" onerror="this.src='/img/favicon.png'">
         <div class="product-card-body">
           <div class="product-card-store">${p.store_name}</div>
-          <div class="offer-badge">🔥 Oferta</div>
+          <div class="offer-badge">Oferta</div>
           <div class="product-card-name">${p.name}</div>
           <div style="display:flex;align-items:center;gap:6px;">
             <div class="product-card-price">${price(p.price)}</div>
@@ -403,7 +404,7 @@ async function loadFeedEvents(){
         <div class="event-card" onclick="window.location.href='/${e.store_slug}'">
           <img src="${e.image_url||'/img/favicon.png'}" alt="${e.title}" onerror="this.src='/img/favicon.png'">
           <div class="event-card-body">
-            <div class="event-card-status ${active?'':'upcoming'}">${active?'🔥 En curso':'⏳ Próximo'}</div>
+            <div class="event-card-status ${active?'':'upcoming'}">${active?'● En curso':'Próximo'}</div>
             <div class="event-card-title">${e.title}</div>
             <div class="event-card-store">${e.store_name}</div>
             <div class="event-card-date">${start.toLocaleString('es-AR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
