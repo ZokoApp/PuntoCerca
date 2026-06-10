@@ -4023,6 +4023,42 @@ app.delete('/api/pizarra/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error eliminando pizarra' });
   }
 });
+
+/* ================================
+   FEED — PIZARRAS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/pizarras', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id        AS store_id,
+        s.name      AS store_name,
+        s.slug      AS store_slug,
+        s.logo_url,
+        json_agg(
+          json_build_object(
+            'id',         p.id,
+            'image_url',  p.image_url,
+            'caption',    p.caption,
+            'created_at', p.created_at,
+            'expires_at', p.expires_at
+          ) ORDER BY p.created_at ASC
+        ) AS pizarras
+      FROM follows f
+      JOIN stores s  ON s.id = f.store_id
+      JOIN pizarras p ON p.store_id = s.id
+      WHERE f.user_id = $1
+        AND p.expires_at > NOW()
+      GROUP BY s.id, s.name, s.slug, s.logo_url
+      ORDER BY MAX(p.created_at) DESC
+    `, [req.user.id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED PIZARRAS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo feed' });
+  }
+});
   /* ================================
      START
   ================================ */
