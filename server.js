@@ -4059,6 +4059,72 @@ app.get('/api/feed/pizarras', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error obteniendo feed' });
   }
 });
+
+/* ================================
+   FEED — OFERTAS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/offers', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, s.name as store_name, s.slug as store_slug, s.logo_url
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+        AND p.is_offer = true
+        AND p.offer_expires_at > NOW()
+      ORDER BY p.offer_expires_at ASC
+      LIMIT 10
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED OFFERS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+/* ================================
+   FEED — EVENTOS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/events', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.*, s.name as store_name, s.slug as store_slug, s.logo_url
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+        AND e.end_at >= NOW()
+      ORDER BY e.start_at ASC
+      LIMIT 8
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED EVENTS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+/* ================================
+   FEED — PRODUCTOS NUEVOS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/products', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, s.name as store_name, s.slug as store_slug
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+      ORDER BY p.id DESC
+      LIMIT 12
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED PRODUCTS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
   /* ================================
      START
   ================================ */
