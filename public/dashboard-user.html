@@ -29,14 +29,6 @@ a{text-decoration:none;color:inherit;}
 .welcome h1{font-size:22px;font-weight:800;color:#111827;letter-spacing:-0.03em;}
 .welcome p{font-size:14px;color:#9ca3af;margin-top:3px;}
 
-/* METRICS */
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
-@media(max-width:480px){.metrics{grid-template-columns:1fr 1fr;}}
-.metric{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
-.metric-icon{width:42px;height:42px;border-radius:12px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.metric-label{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
-.metric-value{font-size:22px;font-weight:900;color:#111827;letter-spacing:-0.04em;line-height:1.1;}
-
 /* SECTIONS */
 .section{background:white;border:1px solid #e5e7eb;border-radius:20px;padding:24px;margin-bottom:20px;}
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
@@ -87,23 +79,6 @@ a{text-decoration:none;color:inherit;}
 .event-card-store{font-size:11px;color:#9ca3af;}
 .event-card-date{font-size:10px;color:#6b7280;margin-top:4px;}
 
-/* STORE CARDS */
-.stores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
-.store-card{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.15s;}
-.store-card:hover{box-shadow:0 4px 14px rgba(0,0,0,0.08);transform:translateY(-2px);}
-.store-card-img{height:80px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.store-card-img img{width:100%;height:100%;object-fit:cover;}
-.store-card-body{padding:10px 12px;}
-.store-card-name{font-size:13px;font-weight:700;color:#111827;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.store-card-city{font-size:11px;color:#9ca3af;margin-bottom:10px;}
-.store-card-actions{display:flex;gap:6px;}
-.btn-see{background:white;border:1px solid #e5e7eb;color:#374151;padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;}
-.btn-unfollow{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;}
-
-/* EMPTY */
-.empty{text-align:center;padding:28px 16px;color:#9ca3af;font-size:13px;}
-.empty svg{width:32px;height:32px;margin:0 auto 8px;display:block;opacity:0.3;}
-
 /* TOAST */
 .toast-wrap{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
 .toast{background:#111827;color:white;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 14px rgba(0,0,0,0.18);animation:tIn 0.25s ease;}
@@ -129,37 +104,6 @@ a{text-decoration:none;color:inherit;}
   <div class="welcome">
     <h1 id="welcomeMsg">Bienvenido</h1>
     <p>Tu actividad y novedades de las tiendas que seguís</p>
-  </div>
-
-  <!-- MÉTRICAS -->
-  <div class="metrics">
-    <div class="metric">
-      <div class="metric-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 2.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>
-      </div>
-      <div>
-        <div class="metric-label">Siguiendo</div>
-        <div class="metric-value" id="metricFollowing">—</div>
-      </div>
-    </div>
-    <div class="metric">
-      <div class="metric-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-      </div>
-      <div>
-        <div class="metric-label">Guardados</div>
-        <div class="metric-value" id="metricSaved">—</div>
-      </div>
-    </div>
-    <div class="metric">
-      <div class="metric-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
-      </div>
-      <div>
-        <div class="metric-label">Notificaciones</div>
-        <div class="metric-value" id="metricNotifs">—</div>
-      </div>
-    </div>
   </div>
 
   <!-- PIZARRAS DE HOY -->
@@ -206,22 +150,12 @@ a{text-decoration:none;color:inherit;}
     <div class="scroll-row" id="feedEventsList"></div>
   </div>
 
-  <!-- TIENDAS SEGUIDAS -->
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">🏪 Tiendas que seguís</div>
-      <a href="/stores" class="section-link">Explorar más →</a>
-    </div>
-    <div id="followingContainer"></div>
-  </div>
-
-  <!-- GUARDADOS -->
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">❤️ Productos guardados</div>
-      <a href="/products" class="section-link">Ver todos →</a>
-    </div>
-    <div id="savedContainer"></div>
+  <!-- ESTADO VACÍO -->
+  <div class="section" id="emptyStateSection" style="display:none;text-align:center;padding:36px 20px;">
+    <div style="font-size:36px;margin-bottom:10px;">🏪</div>
+    <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:5px;">Todavía no seguís ninguna tienda</div>
+    <p style="font-size:13px;color:#9ca3af;margin-bottom:16px;max-width:320px;margin-left:auto;margin-right:auto;">Seguí tus comercios favoritos y acá vas a ver sus pizarras, novedades, ofertas y eventos.</p>
+    <a href="/stores" style="display:inline-block;background:#ea580c;color:white;font-size:13px;font-weight:700;padding:10px 20px;border-radius:999px;">Explorar tiendas →</a>
   </div>
 
 </div>
@@ -262,20 +196,15 @@ async function loadUser(){
   }catch(e){}
 }
 
-/* ── METRICS ── */
-async function loadMetrics(){
+/* ── EMPTY STATE ── */
+async function checkEmptyState(){
   try{
-    const [fRes, sRes, nRes] = await Promise.all([
-      fetch('/api/following',{credentials:'include'}),
-      fetch('/api/product-favorites',{credentials:'include'}),
-      fetch('/api/notifications/unread-count',{credentials:'include'})
-    ]);
-    const following = fRes.ok ? await fRes.json() : [];
-    const saved = sRes.ok ? await sRes.json() : [];
-    const notifs = nRes.ok ? await nRes.json() : {count:0};
-    document.getElementById('metricFollowing').textContent = following.length;
-    document.getElementById('metricSaved').textContent = saved.length;
-    document.getElementById('metricNotifs').textContent = notifs.count||0;
+    const res = await fetch('/api/following',{credentials:'include'});
+    if(!res.ok) return;
+    const following = await res.json();
+    if(!following.length){
+      document.getElementById('emptyStateSection').style.display = 'block';
+    }
   }catch(e){}
 }
 
@@ -402,14 +331,12 @@ window.markRead=async function(id){
   await fetch(`/api/notifications/${id}/read`,{method:'PUT',credentials:'include'});
   const el=document.getElementById(`notif_${id}`);
   if(el){ el.querySelector('.notif-dot')?.classList.add('read'); }
-  loadMetrics();
 };
 
 window.markAllRead=async function(){
   await fetch('/api/notifications/read-all',{method:'PUT',credentials:'include'});
   document.querySelectorAll('.notif-dot').forEach(d=>d.classList.add('read'));
   document.getElementById('notifBadge').style.display='none';
-  loadMetrics();
   showToast('Notificaciones marcadas como leídas','success');
 };
 
@@ -487,78 +414,14 @@ async function loadFeedEvents(){
   }catch(e){}
 }
 
-/* ── TIENDAS SEGUIDAS ── */
-async function loadFollowing(){
-  try{
-    const res=await fetch('/api/following',{credentials:'include'});
-    const stores=await res.json();
-    const c=document.getElementById('followingContainer');
-    if(!stores.length){
-      c.innerHTML=`<div class="empty"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 2.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>Todavía no seguís ninguna tienda — <a href="/stores" style="color:#ea580c;">explorá tiendas</a></div>`;
-      return;
-    }
-    const grid=document.createElement('div');
-    grid.className='stores-grid';
-    stores.forEach(s=>{
-      const div=document.createElement('div');
-      div.className='store-card';
-      div.innerHTML=`
-        <div class="store-card-img"><img src="${s.logo_url||'/img/favicon.png'}" alt="${s.name}" onerror="this.style.display='none'"></div>
-        <div class="store-card-body">
-          <div class="store-card-name">${s.name}</div>
-          <div class="store-card-city">${s.city||s.category||''}</div>
-          <div class="store-card-actions">
-            <a href="/${s.slug||'store/'+s.id}" class="btn-see">Ver</a>
-            <button class="btn-unfollow" data-id="${s.id}">Dejar</button>
-          </div>
-        </div>
-      `;
-      div.querySelector('.btn-unfollow').addEventListener('click',async(e)=>{
-        e.stopPropagation();
-        await fetch(`/api/follow/${s.id}`,{method:'DELETE',credentials:'include'});
-        showToast('Dejaste de seguir la tienda');
-        loadFollowing(); loadMetrics();
-      });
-      div.addEventListener('click',()=>{ window.location.href=`/${s.slug||'store/'+s.id}`; });
-      grid.appendChild(div);
-    });
-    c.appendChild(grid);
-  }catch(e){}
-}
-
-/* ── GUARDADOS ── */
-async function loadSaved(){
-  try{
-    const res=await fetch('/api/product-favorites',{credentials:'include'});
-    if(!res.ok){ document.getElementById('savedContainer').innerHTML='<div class="empty">No guardaste productos</div>'; return; }
-    const products=await res.json();
-    const c=document.getElementById('savedContainer');
-    if(!products.length){
-      c.innerHTML='<div class="empty"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>Todavía no guardaste ningún producto</div>';
-      return;
-    }
-    c.innerHTML='<div class="scroll-row" id="savedRow"></div>';
-    const row=document.getElementById('savedRow');
-    products.forEach(p=>{
-      const div=document.createElement('div');
-      div.className='product-card';
-      div.innerHTML=`<img src="${p.image_url||'/img/favicon.png'}" alt="${p.name}" onerror="this.src='/img/favicon.png'"><div class="product-card-body"><div class="product-card-name">${p.name}</div><div class="product-card-price">${price(p.price)}</div></div>`;
-      div.onclick=()=>{ window.location.href=`/product/${p.id}`; };
-      row.appendChild(div);
-    });
-  }catch(e){}
-}
-
 /* ── INIT ── */
 loadUser();
-loadMetrics();
+checkEmptyState();
 loadStories();
 loadNotifications();
 loadFeedProducts();
 loadFeedOffers();
 loadFeedEvents();
-loadFollowing();
-loadSaved();
 </script>
 </body>
 </html>
