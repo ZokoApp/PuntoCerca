@@ -4244,6 +4244,170 @@ app.get('/api/feed/products', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error' });
   }
 });
+/* ================================
+   HIGHLIGHTS — DESTACADOS
+================================ */
+
+// GET highlights de una tienda (público, incluye items)
+app.get('/api/stores/:id/highlights', async (req, res) => {
+  try {
+    const highlights = await pool.query(`
+      SELECT h.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id',          i.id,
+              'image_url',   i.image_url,
+              'caption',     i.caption,
+              'order_index', i.order_index
+            ) ORDER BY i.order_index ASC, i.created_at ASC
+          ) FILTER (WHERE i.id IS NOT NULL),
+          '[]'
+        ) AS items
+      FROM store_highlights h
+      LEFT JOIN highlight_items i ON i.highlight_id = h.id
+      WHERE h.store_id = $1
+      GROUP BY h.id
+      ORDER BY h.order_index ASC, h.created_at ASC
+    `, [req.params.id]);
+
+    res.json(highlights.rows);
+  } catch (err) {
+    console.error('ERROR GET HIGHLIGHTS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo highlights' });
+  }
+});
+
+// POST crear highlight
+app.post('/api/highlights', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title?.trim()) {
+      return res.status(400).json({ error: 'Título requerido' });
+    }
+
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1', [req.user.id]
+    );
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO store_highlights (store_id, title)
+      VALUES ($1, $2) RETURNING *
+    `, [storeRes.rows[0].id, title.trim()]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error creando highlight' });
+  }
+});
+
+// POST agregar foto a un highlight
+app.post('/api/highlights/:id/items', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    // verificar que el highlight sea de la tienda del usuario
+    const check = await pool.query(`
+      SELECT h.id FROM store_highlights h
+      JOIN stores s ON s.id = h.store_id
+      WHERE h.id = $1 AND s.user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    if (!check.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Imagen requerida' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO highlight_items (highlight_id, image_url, caption)
+      VALUES ($1, $2, $3) RETURNING *
+    `, [req.params.id, req.file.path, req.body.caption || null]);
+
+    // si es la primera foto, usarla como cover del highlight
+    await pool.query(`
+      UPDATE store_highlights
+      SET cover_url = COALESCE(cover_url, $1)
+      WHERE id = $2
+    `, [req.file.path, req.params.id]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST HIGHLIGHT ITEM:', err.message);
+    res.status(500).json({ error: 'Error agregando foto' });
+  }
+});
+
+// PUT actualizar título de highlight
+app.put('/api/highlights/:id', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    const result = await pool.query(`
+      UPDATE store_highlights h
+      SET title = COALESCE($1, h.title)
+      FROM stores s
+      WHERE h.id = $2 AND h.store_id = s.id AND s.user_id = $3
+      RETURNING h.*
+    `, [title || null, req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR PUT HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error actualizando highlight' });
+  }
+});
+
+// DELETE highlight completo
+app.delete('/api/highlights/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      DELETE FROM store_highlights h
+      USING stores s
+      WHERE h.id = $1 AND h.store_id = s.id AND s.user_id = $2
+      RETURNING h.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error eliminando highlight' });
+  }
+});
+
+// DELETE item individual
+app.delete('/api/highlight-items/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      DELETE FROM highlight_items i
+      USING store_highlights h
+      JOIN stores s ON s.id = h.store_id
+      WHERE i.id = $1 AND i.highlight_id = h.id AND s.user_id = $2
+      RETURNING i.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE HIGHLIGHT ITEM:', err.message);
+    res.status(500).json({ error: 'Error eliminando foto' });
+  }
+});
   /* ================================
      START
   ================================ */
