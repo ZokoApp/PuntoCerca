@@ -2971,8 +2971,8 @@ app.get('/delivery/cliente/:token', (req, res) => {
        logo_url = COALESCE($13, logo_url),
        cover_url = COALESCE($14, cover_url),
        subcategory_ids = COALESCE($15, subcategory_ids),
-       opening_hours = COALESCE($16, opening_hours),
-     WHERE id = $18 AND user_id = $19
+      opening_hours = COALESCE($16, opening_hours)
+     WHERE id = $17 AND user_id = $18
      RETURNING *`,
    [
     name,
