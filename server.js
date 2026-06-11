@@ -4408,6 +4408,8 @@ app.delete('/api/highlight-items/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error eliminando foto' });
   }
 });
+
+
   /* ================================
      START
   ================================ */
