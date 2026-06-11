@@ -2499,67 +2499,45 @@ app.delete("/api/events/:id", authMiddleware, async (req, res) => {
 app.post(
   "/api/store-catalog",
   authMiddleware,
-  uploadPDF.single("catalog"),
+  (req, res, next) => {
+    uploadPDF.single("catalog")(req, res, (err) => {
+      if (err) {
+        console.error('CATALOG UPLOAD ERROR:', err.message);
+        return res.status(500).json({ error: 'Error procesando el archivo: ' + err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
-
     try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No se recibió ningún archivo' });
+      }
 
-      const userId = req.user.id;
-
-      // buscar tienda del usuario
       const storeResult = await pool.query(
-        `
-        SELECT id
-        FROM stores
-        WHERE user_id = $1
-        `,
-        [userId]
+        `SELECT id FROM stores WHERE user_id = $1`,
+        [req.user.id]
       );
 
       if (!storeResult.rows.length) {
-        return res.status(404).json({
-          error: "Tienda no encontrada"
-        });
+        return res.status(404).json({ error: 'Tienda no encontrada' });
       }
-
-      const storeId = storeResult.rows[0].id;
 
       const pdfUrl = req.file.path;
 
-      if (!pdfUrl) {
-        return res.status(400).json({
-          error: "PDF requerido"
-        });
-      }
-
-      // guardar url
       await pool.query(
-        `
-        UPDATE stores
-        SET catalog_pdf_url = $1
-        WHERE id = $2
-        `,
-        [pdfUrl, storeId]
+        `UPDATE stores SET catalog_pdf_url = $1 WHERE id = $2`,
+        [pdfUrl, storeResult.rows[0].id]
       );
 
-      res.json({
-        success: true,
-        pdfUrl
-      });
+      res.json({ success: true, pdfUrl });
 
     } catch (err) {
-
-      console.error("UPLOAD PDF ERROR:", err);
-
-      res.status(500).json({
-        error: "Error subiendo PDF"
-      });
-
+      console.error('CATALOG ERROR:', err.message, err.stack);
+      res.status(500).json({ error: 'Error subiendo catálogo: ' + err.message });
     }
-
   }
 );
-  
   app.delete('/api/follow/:storeId', authMiddleware, async (req, res) => {
   
     try {
