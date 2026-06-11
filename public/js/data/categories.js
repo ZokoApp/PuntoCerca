@@ -22,6 +22,8 @@ export const CATEGORIES = {
     { id: 55, name: "Mayorista" },
     { id: 49, name: "Supermercado" },
     { id: 47, name: "Almacén" },
+    { id: 121, name: "Polleria" },
+    { id: 122, name: "Tienda de Alientos" },
     
     
 
