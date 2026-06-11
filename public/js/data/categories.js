@@ -46,6 +46,8 @@ export const CATEGORIES = {
   { id: 65, name: "TV y Smart TV" },
   { id: 66, name: "Audio" },
   { id: 67, name: "Gaming" },
+    { id: 119, name: "Bicicleteria" },
+      { id: 120, name: "Pancheria" },
     
     
 
