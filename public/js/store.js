@@ -518,6 +518,7 @@ async function loadStore() {
 setupMap(store);
 handleUIByRole(store);
 loadPizarraForProfile(store.id);
+    loadHighlights(store.id);
 loadStoreVideos(store.id);
 
     // REVIEWS — reemplaza el render inicial con datos frescos + voto del usuario
@@ -1515,3 +1516,264 @@ function buildStoreEmbed(url, platform) {
 
   return null;
 }
+
+/* ================================
+   HIGHLIGHTS — DESTACADOS
+================================ */
+
+let _currentHighlight = null;
+let _currentItemIndex = 0;
+
+async function loadHighlights(storeId) {
+  try {
+    const res = await fetch(`/api/stores/${storeId}/highlights`);
+    if (!res.ok) return;
+
+    const highlights = await res.json();
+    const section = document.getElementById('highlightsSection');
+    const strip = document.getElementById('highlightsStrip');
+    if (!section || !strip) return;
+
+    const visible = isOwner
+      ? highlights
+      : highlights.filter(h => h.items && h.items.length > 0);
+
+    if (!visible.length && !isOwner) return;
+
+    section.style.display = 'block';
+    strip.innerHTML = '';
+
+    // círculo "+" para el dueño
+    if (isOwner) {
+      const addBtn = document.createElement('div');
+      addBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:70px;';
+      addBtn.onclick = openCreateHighlight;
+      addBtn.innerHTML = `
+        <div style="width:64px;height:64px;border-radius:50%;border:2px dashed #d1d5db;
+          display:flex;align-items:center;justify-content:center;background:#f8fafc;transition:all 0.15s;"
+          onmouseenter="this.style.borderColor='#ea580c';this.style.background='#fff7ed'"
+          onmouseleave="this.style.borderColor='#d1d5db';this.style.background='#f8fafc'">
+          <span style="font-size:26px;color:#9ca3af;">+</span>
+        </div>
+        <span style="font-size:11px;color:#9ca3af;font-weight:600;text-align:center;">Nuevo</span>
+      `;
+      strip.appendChild(addBtn);
+    }
+
+    // círculos existentes
+    highlights.forEach(h => {
+      if (!isOwner && (!h.items || !h.items.length)) return;
+
+      const hasItems = h.items && h.items.length > 0;
+      const coverImg = h.cover_url || (hasItems ? h.items[0].image_url : '');
+
+      const circle = document.createElement('div');
+      circle.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:70px;';
+      circle.onclick = () => openHighlightViewer(h);
+      circle.innerHTML = `
+        <div style="position:relative;">
+          <div style="width:64px;height:64px;border-radius:50%;
+            background:${coverImg ? `url('${coverImg}') center/cover no-repeat` : 'linear-gradient(135deg,#ea580c,#f97316)'};
+            border:2.5px solid ${hasItems ? '#e5e7eb' : '#d1d5db'};
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform 0.15s;
+            ${!hasItems ? 'opacity:0.5;' : ''}"
+            onmouseenter="this.style.transform='scale(1.06)'"
+            onmouseleave="this.style.transform='scale(1)'">
+          </div>
+          ${hasItems ? `<div style="position:absolute;bottom:1px;right:1px;background:#ea580c;color:white;
+            font-size:9px;font-weight:800;padding:1px 5px;border-radius:999px;
+            border:1.5px solid white;">${h.items.length}</div>` : ''}
+        </div>
+        <span style="font-size:11px;color:#374151;font-weight:600;text-align:center;
+          width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.title}</span>
+        ${isOwner ? `<button onclick="event.stopPropagation();deleteHighlight(${h.id})"
+          style="background:none;border:none;font-size:10px;color:#dc2626;cursor:pointer;
+          padding:0;line-height:1;">Eliminar</button>` : ''}
+      `;
+      strip.appendChild(circle);
+    });
+
+  } catch (err) {
+    console.error('Error highlights:', err);
+  }
+}
+
+function openHighlightViewer(highlight) {
+  _currentHighlight = highlight;
+  _currentItemIndex = 0;
+  renderHighlightViewer();
+}
+
+function renderHighlightViewer() {
+  const existing = document.getElementById('highlightViewerModal');
+  if (existing) existing.remove();
+
+  const h = _currentHighlight;
+  if (!h) return;
+
+  const items = h.items || [];
+  const idx = _currentItemIndex;
+  const item = items[idx];
+
+  const modal = document.createElement('div');
+  modal.id = 'highlightViewerModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.93);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+
+  if (!items.length) {
+    modal.innerHTML = `
+      <div style="color:white;text-align:center;padding:40px;">
+        <div style="font-size:48px;margin-bottom:16px;">📷</div>
+        <p style="font-size:16px;font-weight:700;margin-bottom:8px;">${h.title}</p>
+        <p style="font-size:14px;color:rgba(255,255,255,0.5);">Todavía no hay fotos</p>
+        ${isOwner ? `<label style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#ea580c,#f97316);
+          color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;">
+          📷 Agregar primera foto
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadHighlightItem(${h.id},this)">
+        </label>` : ''}
+      </div>
+      <button onclick="closeHighlightViewer()" style="position:absolute;top:16px;right:16px;
+        background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;
+        color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    modal.onclick = (e) => { if (e.target === modal) closeHighlightViewer(); };
+    return;
+  }
+
+  const dots = items.map((_, i) => `<div style="width:${i===idx?'20px':'6px'};height:6px;border-radius:999px;
+    background:${i===idx?'white':'rgba(255,255,255,0.35)'};transition:all 0.2s;"></div>`).join('');
+
+  modal.innerHTML = `
+    <div style="position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;
+      justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);z-index:2;">
+      <div>
+        <div style="color:white;font-size:15px;font-weight:700;">${h.title}</div>
+        <div style="color:rgba(255,255,255,0.55);font-size:12px;">${idx+1} / ${items.length}</div>
+      </div>
+      <button onclick="closeHighlightViewer()" style="background:rgba(255,255,255,0.15);border:none;
+        border-radius:50%;width:36px;height:36px;color:white;font-size:18px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+
+    <div style="position:relative;max-width:480px;width:100%;padding:0 40px;">
+      <img src="${item.image_url}" style="width:100%;max-height:65vh;object-fit:contain;border-radius:16px;display:block;"/>
+      ${idx > 0 ? `<button onclick="navHighlight(-1)" style="position:absolute;left:0;top:50%;
+        transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;border-radius:50%;
+        width:36px;height:36px;color:white;font-size:22px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;">‹</button>` : ''}
+      ${idx < items.length-1 ? `<button onclick="navHighlight(1)" style="position:absolute;right:0;top:50%;
+        transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;border-radius:50%;
+        width:36px;height:36px;color:white;font-size:22px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;">›</button>` : ''}
+    </div>
+
+    ${item.caption ? `<div style="margin-top:12px;padding:8px 24px;max-width:480px;width:100%;
+      color:rgba(255,255,255,0.9);font-size:14px;text-align:center;line-height:1.5;">${item.caption}</div>` : ''}
+
+    <div style="display:flex;gap:5px;align-items:center;margin-top:14px;">${dots}</div>
+
+    ${isOwner ? `<div style="display:flex;gap:10px;margin-top:16px;">
+      <label style="background:rgba(255,255,255,0.15);color:white;padding:8px 16px;
+        border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">
+        + Agregar foto
+        <input type="file" accept="image/*" style="display:none;" onchange="uploadHighlightItem(${h.id},this)">
+      </label>
+      <button onclick="deleteHighlightItem(${item.id})" style="background:rgba(220,38,38,0.25);
+        border:1px solid rgba(220,38,38,0.4);color:#fca5a5;padding:8px 16px;
+        border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Eliminar foto</button>
+    </div>` : ''}
+  `;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+  modal.onclick = (e) => { if (e.target === modal) closeHighlightViewer(); };
+}
+
+window.navHighlight = function(dir) {
+  const items = _currentHighlight?.items || [];
+  const newIdx = _currentItemIndex + dir;
+  if (newIdx >= 0 && newIdx < items.length) {
+    _currentItemIndex = newIdx;
+    renderHighlightViewer();
+  }
+};
+
+function closeHighlightViewer() {
+  const m = document.getElementById('highlightViewerModal');
+  if (m) { m.style.opacity='0'; m.style.transition='opacity 0.2s'; setTimeout(()=>m.remove(),200); }
+  document.body.style.overflow = '';
+  _currentHighlight = null;
+  _currentItemIndex = 0;
+}
+
+function openCreateHighlight() {
+  const title = prompt('Nombre del destacado\n(ej: Menú, Fotos del local, Clientes, Novedades):');
+  if (!title?.trim()) return;
+  fetch('/api/highlights', {
+    method: 'POST', credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: title.trim() })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { showToast(d.error, 'error'); return; }
+    showToast('Destacado creado', 'success');
+    loadHighlights(storeData.id);
+  })
+  .catch(() => showToast('Error de conexión', 'error'));
+}
+
+window.uploadHighlightItem = async function(highlightId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const caption = prompt('Caption opcional (dejá vacío si no querés):') || '';
+  const fd = new FormData();
+  fd.append('image', file);
+  if (caption) fd.append('caption', caption);
+  try {
+    const res = await fetch(`/api/highlights/${highlightId}/items`, {
+      method: 'POST', credentials: 'include', body: fd
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Error', 'error'); return; }
+    showToast('Foto agregada', 'success');
+    const hlRes = await fetch(`/api/stores/${storeData.id}/highlights`);
+    const highlights = await hlRes.json();
+    const updated = highlights.find(h => h.id === highlightId);
+    if (updated) {
+      _currentHighlight = updated;
+      _currentItemIndex = updated.items.length - 1;
+      renderHighlightViewer();
+    }
+    loadHighlights(storeData.id);
+  } catch { showToast('Error de conexión', 'error'); }
+};
+
+window.deleteHighlightItem = async function(itemId) {
+  if (!confirm('¿Eliminar esta foto?')) return;
+  try {
+    await fetch(`/api/highlight-items/${itemId}`, { method: 'DELETE', credentials: 'include' });
+    showToast('Foto eliminada', 'success');
+    const hlRes = await fetch(`/api/stores/${storeData.id}/highlights`);
+    const highlights = await hlRes.json();
+    const updated = highlights.find(h => h.id === _currentHighlight?.id);
+    if (updated && updated.items.length > 0) {
+      _currentHighlight = updated;
+      _currentItemIndex = Math.min(_currentItemIndex, updated.items.length - 1);
+      renderHighlightViewer();
+    } else {
+      closeHighlightViewer();
+    }
+    loadHighlights(storeData.id);
+  } catch { showToast('Error eliminando', 'error'); }
+};
+
+window.deleteHighlight = async function(id) {
+  if (!confirm('¿Eliminar este destacado y todas sus fotos?')) return;
+  try {
+    await fetch(`/api/highlights/${id}`, { method: 'DELETE', credentials: 'include' });
+    showToast('Destacado eliminado', 'success');
+    loadHighlights(storeData.id);
+  } catch { showToast('Error', 'error'); }
+};
