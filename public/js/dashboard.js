@@ -866,7 +866,13 @@ async function loadHighlightStats() {
 
     const stats = await res.json();
 
-    if (!stats.length) {
+// actualizar link siempre, independiente de si hay stats
+const profileLink = document.getElementById('hlStatsProfileLink');
+if (profileLink && myStore?.slug) {
+  profileLink.href = `/${myStore.slug}`;
+}
+
+if (!stats.length) {
       container.innerHTML = `
         <div style="text-align:center;padding:28px;color:#9ca3af;">
           <div style="font-size:36px;margin-bottom:10px;">📷</div>
