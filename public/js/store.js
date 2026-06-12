@@ -1708,36 +1708,229 @@ function closeHighlightViewer() {
 }
 
 function openCreateHighlight() {
-  const title = prompt('Nombre del destacado\n(ej: Menú, Fotos del local, Clientes, Novedades):');
-  if (!title?.trim()) return;
+  const existing = document.getElementById('createHighlightModal');
+  if (existing) existing.remove();
+
+  const EMOJIS = ['📷','🍽️','⭐','🛍️','👥','📍','🎉','🔥','💼','🌟','🏪','📦'];
+
+  const modal = document.createElement('div');
+  modal.id = 'createHighlightModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  modal.innerHTML = `
+    <div style="background:white;border-radius:24px;padding:28px;width:100%;max-width:400px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:hlModalIn 0.2s ease;">
+      <style>@keyframes hlModalIn{from{opacity:0;transform:scale(0.95)translateY(10px)}to{opacity:1;transform:scale(1)translateY(0)}}</style>
+
+      <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 6px;">Nuevo destacado</h3>
+      <p style="font-size:13px;color:#9ca3af;margin:0 0 20px;">Creá una colección de fotos para tu perfil</p>
+
+      <!-- Emojis -->
+      <div style="margin-bottom:18px;">
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:10px;">Ícono</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${EMOJIS.map((e, i) => `
+            <button type="button" data-emoji="${e}" onclick="selectHighlightEmoji(this)" style="
+              width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer;
+              border:2px solid ${i === 0 ? '#ea580c' : '#e5e7eb'};
+              background:${i === 0 ? '#fff7ed' : 'white'};
+              transition:all 0.15s;
+            ">${e}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Nombre -->
+      <div style="margin-bottom:24px;">
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">Nombre</label>
+        <input id="hlTitleInput" type="text" placeholder="ej: Menú, Fotos del local, Clientes..."
+          maxlength="30"
+          style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:14px;
+            font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='#ea580c'"
+          onblur="this.style.borderColor='#e5e7eb'"
+        />
+        <div style="font-size:11px;color:#9ca3af;margin-top:5px;text-align:right;">
+          <span id="hlCharCount">0</span>/30
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('createHighlightModal').remove()"
+          style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:14px;
+            font-size:14px;font-weight:700;cursor:pointer;background:white;color:#374151;
+            transition:background 0.15s;"
+          onmouseenter="this.style.background='#f9fafb'"
+          onmouseleave="this.style.background='white'">
+          Cancelar
+        </button>
+        <button id="hlCreateBtn" onclick="confirmCreateHighlight()"
+          style="flex:2;padding:13px;border:none;border-radius:14px;
+            font-size:14px;font-weight:700;cursor:pointer;color:white;
+            background:linear-gradient(135deg,#ea580c,#f97316);
+            box-shadow:0 4px 14px rgba(234,88,12,0.3);transition:all 0.15s;"
+          onmouseenter="this.style.transform='translateY(-1px)'"
+          onmouseleave="this.style.transform='translateY(0)'">
+          Crear destacado →
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  // seleccionar el primer emoji por defecto
+  modal.querySelector('[data-emoji]').dataset.selected = 'true';
+  window._selectedHighlightEmoji = EMOJIS[0];
+
+  const input = document.getElementById('hlTitleInput');
+  input.focus();
+  input.addEventListener('input', () => {
+    document.getElementById('hlCharCount').textContent = input.value.length;
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmCreateHighlight();
+  });
+}
+
+window.selectHighlightEmoji = function(btn) {
+  document.querySelectorAll('#createHighlightModal [data-emoji]').forEach(b => {
+    b.style.border = '2px solid #e5e7eb';
+    b.style.background = 'white';
+  });
+  btn.style.border = '2px solid #ea580c';
+  btn.style.background = '#fff7ed';
+  window._selectedHighlightEmoji = btn.dataset.emoji;
+};
+
+window.confirmCreateHighlight = function() {
+  const input = document.getElementById('hlTitleInput');
+  const rawTitle = input?.value.trim();
+  if (!rawTitle) {
+    input.style.borderColor = '#dc2626';
+    input.placeholder = 'El nombre es obligatorio';
+    setTimeout(() => { input.style.borderColor = '#e5e7eb'; }, 1500);
+    return;
+  }
+  const emoji = window._selectedHighlightEmoji || '📷';
+  const title = `${emoji} ${rawTitle}`;
+
+  const btn = document.getElementById('hlCreateBtn');
+  btn.textContent = 'Creando...';
+  btn.disabled = true;
+
   fetch('/api/highlights', {
     method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: title.trim() })
+    body: JSON.stringify({ title })
   })
   .then(r => r.json())
   .then(d => {
-    if (d.error) { showToast(d.error, 'error'); return; }
+    if (d.error) { showToast(d.error, 'error'); btn.textContent = 'Crear destacado →'; btn.disabled = false; return; }
+    document.getElementById('createHighlightModal')?.remove();
     showToast('Destacado creado', 'success');
     loadHighlights(storeData.id);
   })
-  .catch(() => showToast('Error de conexión', 'error'));
-}
-
-window.uploadHighlightItem = async function(highlightId, input) {
-  const file = input.files[0];
+  .catch(() => { showToast('Error de conexión', 'error'); btn.textContent = 'Crear destacado →'; btn.disabled = false; });
+};
+window.uploadHighlightItem = async function(highlightId, inputEl) {
+  const file = inputEl.files[0];
   if (!file) return;
-  const caption = prompt('Caption opcional (dejá vacío si no querés):') || '';
+
+  // preview URL
+  const previewUrl = URL.createObjectURL(file);
+
+  const existing = document.getElementById('uploadHighlightModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'uploadHighlightModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  modal.innerHTML = `
+    <div style="background:white;border-radius:24px;padding:24px;width:100%;max-width:420px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:hlModalIn 0.2s ease;">
+
+      <h3 style="font-size:16px;font-weight:800;color:#111827;margin:0 0 18px;">Agregar foto al destacado</h3>
+
+      <!-- Preview -->
+      <div style="width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;
+        background:#f1f5f9;margin-bottom:18px;position:relative;">
+        <img src="${previewUrl}" style="width:100%;height:100%;object-fit:cover;display:block;"/>
+      </div>
+
+      <!-- Caption -->
+      <div style="margin-bottom:22px;">
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;
+          letter-spacing:0.05em;display:block;margin-bottom:8px;">Caption <span style="color:#d1d5db;font-weight:400;">(opcional)</span></label>
+        <textarea id="hlCaptionInput" placeholder="Describí la foto..."
+          rows="2" maxlength="150"
+          style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:14px;
+            font-size:14px;font-family:inherit;outline:none;resize:none;box-sizing:border-box;
+            transition:border-color 0.15s;line-height:1.5;"
+          onfocus="this.style.borderColor='#ea580c'"
+          onblur="this.style.borderColor='#e5e7eb'"
+        ></textarea>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px;text-align:right;">
+          <span id="captionCount">0</span>/150
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('uploadHighlightModal').remove()"
+          style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:14px;
+            font-size:14px;font-weight:700;cursor:pointer;background:white;color:#374151;">
+          Cancelar
+        </button>
+        <button id="hlUploadBtn" onclick="confirmUploadHighlightItem(${highlightId})"
+          style="flex:2;padding:13px;border:none;border-radius:14px;
+            font-size:14px;font-weight:700;cursor:pointer;color:white;
+            background:linear-gradient(135deg,#ea580c,#f97316);
+            box-shadow:0 4px 14px rgba(234,88,12,0.3);">
+          📷 Subir foto
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  // guardar referencia al archivo
+  window._pendingHighlightFile = file;
+
+  document.getElementById('hlCaptionInput').addEventListener('input', function() {
+    document.getElementById('captionCount').textContent = this.value.length;
+  });
+};
+
+window.confirmUploadHighlightItem = async function(highlightId) {
+  const file = window._pendingHighlightFile;
+  if (!file) return;
+
+  const caption = document.getElementById('hlCaptionInput')?.value.trim() || '';
+  const btn = document.getElementById('hlUploadBtn');
+  btn.textContent = 'Subiendo...';
+  btn.disabled = true;
+
   const fd = new FormData();
   fd.append('image', file);
   if (caption) fd.append('caption', caption);
+
   try {
     const res = await fetch(`/api/highlights/${highlightId}/items`, {
       method: 'POST', credentials: 'include', body: fd
     });
     const data = await res.json();
-    if (!res.ok) { showToast(data.error || 'Error', 'error'); return; }
+    if (!res.ok) { showToast(data.error || 'Error', 'error'); btn.textContent = '📷 Subir foto'; btn.disabled = false; return; }
+
+    document.getElementById('uploadHighlightModal')?.remove();
     showToast('Foto agregada', 'success');
+    window._pendingHighlightFile = null;
+
     const hlRes = await fetch(`/api/stores/${storeData.id}/highlights`);
     const highlights = await hlRes.json();
     const updated = highlights.find(h => h.id === highlightId);
@@ -1747,7 +1940,11 @@ window.uploadHighlightItem = async function(highlightId, input) {
       renderHighlightViewer();
     }
     loadHighlights(storeData.id);
-  } catch { showToast('Error de conexión', 'error'); }
+  } catch {
+    showToast('Error de conexión', 'error');
+    btn.textContent = '📷 Subir foto';
+    btn.disabled = false;
+  }
 };
 
 window.deleteHighlightItem = async function(itemId) {
