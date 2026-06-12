@@ -2196,21 +2196,16 @@ window.confirmEditHlTitle = async function(highlightId) {
   const title = input?.value.trim();
   if (!title) return;
 
-  const currentTitle = _currentHighlight?.title || '';
-  const emojiMatch = currentTitle.match(/^[\p{Emoji}\s]+/u);
-  const prefix = emojiMatch ? emojiMatch[0].trim() + ' ' : '';
-  const fullTitle = prefix + title;
-
   try {
     const res = await fetch(`/api/highlights/${highlightId}/title`, {
       method: 'PUT', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: fullTitle })
+      body: JSON.stringify({ title })
     });
     if (!res.ok) { showToast('Error', 'error'); return; }
     document.getElementById('editHlTitleModal')?.remove();
     showToast('Nombre actualizado', 'success');
-    if (_currentHighlight) _currentHighlight.title = fullTitle;
+    if (_currentHighlight) _currentHighlight.title = title;
     loadHighlights(storeData.id);
   } catch(e) { showToast('Error', 'error'); }
 };
