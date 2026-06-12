@@ -1615,25 +1615,30 @@ function renderHighlightViewer() {
   const idx = _currentItemIndex;
   const item = items[idx];
 
+  // registrar vista
+  if (item) fetch(`/api/highlight-items/${item.id}/view`, { method: 'POST' }).catch(()=>{});
+
   const modal = document.createElement('div');
   modal.id = 'highlightViewerModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.93);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,0.95);
+    display:flex;flex-direction:column;
+    overflow-y:auto;
+  `;
 
   if (!items.length) {
     modal.innerHTML = `
-      <div style="color:white;text-align:center;padding:40px;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:40px;">
         <div style="font-size:48px;margin-bottom:16px;">📷</div>
         <p style="font-size:16px;font-weight:700;margin-bottom:8px;">${h.title}</p>
         <p style="font-size:14px;color:rgba(255,255,255,0.5);">Todavía no hay fotos</p>
-        ${isOwner ? `<label style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#ea580c,#f97316);
-          color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;">
+        ${isOwner ? `<label style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;">
           📷 Agregar primera foto
           <input type="file" accept="image/*" style="display:none;" onchange="uploadHighlightItem(${h.id},this)">
         </label>` : ''}
       </div>
-      <button onclick="closeHighlightViewer()" style="position:absolute;top:16px;right:16px;
-        background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;
-        color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <button onclick="closeHighlightViewer()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     `;
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
@@ -1641,55 +1646,104 @@ function renderHighlightViewer() {
     return;
   }
 
-  const dots = items.map((_, i) => `<div style="width:${i===idx?'20px':'6px'};height:6px;border-radius:999px;
-    background:${i===idx?'white':'rgba(255,255,255,0.35)'};transition:all 0.2s;"></div>`).join('');
+  const dots = items.map((_, i) => `
+    <div onclick="navHighlight(${i - idx})" style="
+      width:${i===idx?'20px':'6px'};height:6px;border-radius:999px;cursor:pointer;
+      background:${i===idx?'white':'rgba(255,255,255,0.35)'};transition:all 0.2s;
+    "></div>
+  `).join('');
 
   modal.innerHTML = `
-    <div style="position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;
-      justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);z-index:2;">
-      <div>
-        <div style="color:white;font-size:15px;font-weight:700;">${h.title}</div>
-        <div style="color:rgba(255,255,255,0.55);font-size:12px;">${idx+1} / ${items.length}</div>
+    <!-- HEADER -->
+    <div style="position:sticky;top:0;z-index:10;padding:14px 18px;display:flex;align-items:center;
+      justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.85),transparent);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="color:white;font-size:15px;font-weight:700;">${h.title}</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:12px;">${idx+1} / ${items.length}</div>
+        </div>
+        ${isOwner ? `<button onclick="openEditHighlightTitle(${h.id}, this)" data-title="${h.title}"
+          style="background:rgba(255,255,255,0.12);border:none;border-radius:8px;
+            color:rgba(255,255,255,0.75);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;">
+          ✏️ Renombrar
+        </button>` : ''}
       </div>
-      <button onclick="closeHighlightViewer()" style="background:rgba(255,255,255,0.15);border:none;
+      <button onclick="closeHighlightViewer()" style="background:rgba(255,255,255,0.12);border:none;
         border-radius:50%;width:36px;height:36px;color:white;font-size:18px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;">✕</button>
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
 
-    <div style="position:relative;max-width:480px;width:100%;padding:0 40px;">
-      <img src="${item.image_url}" style="width:100%;max-height:65vh;object-fit:contain;border-radius:16px;display:block;"/>
-      ${idx > 0 ? `<button onclick="navHighlight(-1)" style="position:absolute;left:0;top:50%;
-        transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;border-radius:50%;
-        width:36px;height:36px;color:white;font-size:22px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;">‹</button>` : ''}
-      ${idx < items.length-1 ? `<button onclick="navHighlight(1)" style="position:absolute;right:0;top:50%;
-        transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;border-radius:50%;
-        width:36px;height:36px;color:white;font-size:22px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;">›</button>` : ''}
+    <!-- IMAGEN -->
+    <div style="display:flex;align-items:center;justify-content:center;padding:0 44px;flex:1;">
+      <div style="position:relative;max-width:500px;width:100%;">
+        <img src="${item.image_url}" style="width:100%;max-height:55vh;object-fit:contain;border-radius:16px;display:block;"/>
+        ${idx > 0 ? `<button onclick="navHighlight(-1)" style="position:absolute;left:-40px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;border-radius:50%;width:34px;height:34px;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>` : ''}
+        ${idx < items.length-1 ? `<button onclick="navHighlight(1)" style="position:absolute;right:-40px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;border-radius:50%;width:34px;height:34px;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>` : ''}
+      </div>
     </div>
 
-    ${item.caption ? `<div style="margin-top:12px;padding:8px 24px;max-width:480px;width:100%;
-      color:rgba(255,255,255,0.9);font-size:14px;text-align:center;line-height:1.5;">${item.caption}</div>` : ''}
+    <!-- CAPTION + DOTS -->
+    ${item.caption ? `<p style="text-align:center;color:rgba(255,255,255,0.85);font-size:14px;padding:10px 24px 4px;line-height:1.5;">${item.caption}</p>` : ''}
+    <div style="display:flex;gap:5px;align-items:center;justify-content:center;padding:10px 0 14px;">${dots}</div>
 
-    <div style="display:flex;gap:5px;align-items:center;margin-top:14px;">${dots}</div>
+    <!-- ACCIONES DUEÑO -->
+    ${isOwner ? `
+      <div style="display:flex;gap:8px;justify-content:center;padding:0 16px 14px;flex-wrap:wrap;">
+        <label style="background:rgba(255,255,255,0.12);color:white;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;">
+          🔄 Cambiar foto
+          <input type="file" accept="image/*" style="display:none;" onchange="replaceHighlightItemPhoto(${item.id},this)">
+        </label>
+        <label style="background:rgba(255,255,255,0.12);color:white;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;">
+          + Agregar foto
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadHighlightItem(${h.id},this)">
+        </label>
+        <button onclick="deleteHighlightItem(${item.id})" style="background:rgba(220,38,38,0.2);border:1px solid rgba(220,38,38,0.35);color:#fca5a5;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;">
+          🗑 Eliminar foto
+        </button>
+      </div>
+    ` : ''}
 
-    ${isOwner ? `<div style="display:flex;gap:10px;margin-top:16px;">
-      <label style="background:rgba(255,255,255,0.15);color:white;padding:8px 16px;
-        border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">
-        + Agregar foto
-        <input type="file" accept="image/*" style="display:none;" onchange="uploadHighlightItem(${h.id},this)">
-      </label>
-      <button onclick="deleteHighlightItem(${item.id})" style="background:rgba(220,38,38,0.25);
-        border:1px solid rgba(220,38,38,0.4);color:#fca5a5;padding:8px 16px;
-        border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Eliminar foto</button>
-    </div>` : ''}
+    <!-- REACCIONES -->
+    <div style="background:rgba(255,255,255,0.06);border-top:1px solid rgba(255,255,255,0.1);padding:16px 20px;">
+      <div id="hlReactionsBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px;">
+        <div style="color:rgba(255,255,255,0.4);font-size:13px;">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- COMENTARIOS -->
+    <div style="background:rgba(0,0,0,0.3);padding:16px 20px 24px;">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em;">
+        💬 Comentarios
+      </div>
+      <div id="hlCommentsList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div style="color:rgba(255,255,255,0.3);font-size:13px;">Cargando...</div>
+      </div>
+      ${currentUser ? `
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <img src="${currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=ea580c&color=fff`}"
+            style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-bottom:2px;">
+          <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:14px;padding:2px 4px 2px 12px;display:flex;align-items:center;gap:8px;">
+            <input id="hlCommentInput" placeholder="Comentá..." maxlength="200"
+              style="flex:1;background:none;border:none;outline:none;color:white;font-size:14px;padding:9px 0;font-family:inherit;"
+              onkeydown="if(event.key==='Enter')submitHlComment(${item.id})">
+            <button onclick="submitHlComment(${item.id})" style="background:linear-gradient(135deg,#ea580c,#f97316);border:none;border-radius:10px;color:white;font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer;flex-shrink:0;">
+              Enviar
+            </button>
+          </div>
+        </div>
+      ` : `<p style="font-size:13px;color:rgba(255,255,255,0.4);text-align:center;">
+          <a href="/login" style="color:#f97316;font-weight:600;">Iniciá sesión</a> para comentar
+        </p>`}
+    </div>
   `;
 
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
-  modal.onclick = (e) => { if (e.target === modal) closeHighlightViewer(); };
-}
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeHighlightViewer(); });
 
+  // cargar reacciones y comentarios
+  loadItemInteractions(item.id);
+}
 window.navHighlight = function(dir) {
   const items = _currentHighlight?.items || [];
   const newIdx = _currentItemIndex + dir;
@@ -1974,3 +2028,135 @@ window.deleteHighlight = async function(id) {
     loadHighlights(storeData.id);
   } catch { showToast('Error', 'error'); }
 };
+/* ================================
+   HIGHLIGHT — INTERACCIONES
+================================ */
+
+const HL_EMOJIS = ['🔥','❤️','👏','😍','🤤'];
+
+async function loadItemInteractions(itemId) {
+  try {
+    const [reactRes, commRes] = await Promise.all([
+      fetch(`/api/highlight-items/${itemId}/reactions`),
+      fetch(`/api/highlight-items/${itemId}/comments`)
+    ]);
+    const reactions = reactRes.ok ? await reactRes.json() : [];
+    const comments  = commRes.ok  ? await commRes.json()  : [];
+
+    renderReactionsBar(reactions, itemId);
+    renderCommentsList(comments, itemId);
+  } catch(e) { console.error(e); }
+}
+
+function renderReactionsBar(reactions, itemId) {
+  const bar = document.getElementById('hlReactionsBar');
+  if (!bar) return;
+
+  // contar por emoji
+  const countMap = {};
+  reactions.forEach(r => { countMap[r.emoji] = (countMap[r.emoji]||0) + r.count; });
+
+  const userEmoji = reactions.find(r => r.user_emoji)?.user_emoji || null;
+
+  bar.innerHTML = HL_EMOJIS.map(e => {
+    const count = countMap[e] || 0;
+    const isActive = userEmoji === e;
+    return `
+      <button onclick="reactToHlItem(${itemId},'${e}')" style="
+        display:flex;align-items:center;gap:5px;
+        background:${isActive ? 'rgba(234,88,12,0.25)' : 'rgba(255,255,255,0.08)'};
+        border:1px solid ${isActive ? 'rgba(234,88,12,0.5)' : 'rgba(255,255,255,0.12)'};
+        border-radius:999px;padding:6px 12px;cursor:pointer;
+        font-size:18px;transition:all 0.15s;
+      ">
+        ${e}
+        ${count > 0 ? `<span style="font-size:12px;font-weight:700;color:${isActive?'#f97316':'rgba(255,255,255,0.7)'};">${count}</span>` : ''}
+      </button>
+    `;
+  }).join('');
+}
+
+function renderCommentsList(comments, itemId) {
+  const list = document.getElementById('hlCommentsList');
+  if (!list) return;
+
+  if (!comments.length) {
+    list.innerHTML = `<p style="color:rgba(255,255,255,0.35);font-size:13px;text-align:center;padding:8px 0;">Sé el primero en comentar</p>`;
+    return;
+  }
+
+  list.innerHTML = comments.map(c => {
+    const isMine = currentUser && String(currentUser.id) === String(c.user_id);
+    const avatar = c.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=374151&color=fff`;
+    const time = new Date(c.created_at).toLocaleString('es-AR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `
+      <div style="display:flex;gap:9px;align-items:flex-start;">
+        <img src="${avatar}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px;">
+        <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:12px;padding:9px 12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px;">
+            <span style="font-size:12px;font-weight:700;color:white;">${c.name}</span>
+            <span style="font-size:10px;color:rgba(255,255,255,0.35);">${time}</span>
+          </div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.85);margin:0;line-height:1.5;">${c.content}</p>
+          ${isMine ? `<button onclick="deleteHlComment(${c.id},${itemId})"
+            style="background:none;border:none;color:rgba(220,38,38,0.7);font-size:11px;cursor:pointer;margin-top:4px;padding:0;">
+            Eliminar
+          </button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.reactToHlItem = async function(itemId, emoji) {
+  if (!currentUser) { window.location.href = '/login'; return; }
+  try {
+    await fetch(`/api/highlight-items/${itemId}/react`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emoji })
+    });
+    const reactRes = await fetch(`/api/highlight-items/${itemId}/reactions`);
+    const reactions = await reactRes.json();
+    renderReactionsBar(reactions, itemId);
+  } catch(e) { showToast('Error', 'error'); }
+};
+
+window.submitHlComment = async function(itemId) {
+  const input = document.getElementById('hlCommentInput');
+  const content = input?.value.trim();
+  if (!content) return;
+  input.value = '';
+  try {
+    const res = await fetch(`/api/highlight-items/${itemId}/comments`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) { showToast('Error', 'error'); return; }
+    const commRes = await fetch(`/api/highlight-items/${itemId}/comments`);
+    const comments = await commRes.json();
+    renderCommentsList(comments, itemId);
+    // scroll al final
+    const list = document.getElementById('hlCommentsList');
+    if (list) list.scrollTop = list.scrollHeight;
+  } catch(e) { showToast('Error de conexión', 'error'); }
+};
+
+window.deleteHlComment = async function(commentId, itemId) {
+  if (!confirm('¿Eliminar comentario?')) return;
+  try {
+    await fetch(`/api/highlight-comments/${commentId}`, { method: 'DELETE', credentials: 'include' });
+    const commRes = await fetch(`/api/highlight-items/${itemId}/comments`);
+    const comments = await commRes.json();
+    renderCommentsList(comments, itemId);
+  } catch(e) { showToast('Error', 'error'); }
+};
+
+window.openEditHighlightTitle = function(highlightId, btn) {
+  const currentTitle = btn.dataset.title || '';
+  const clean = currentTitle.replace(/^[\p{Emoji}\s]+/u, '').trim();
+
+  const modal = document.createElement('div');
+  modal.id = 'editHlTitleModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;a
