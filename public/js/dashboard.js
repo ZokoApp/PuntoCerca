@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadDeliveries();
   loadPizarra();
   loadStoreVideos();
+  loadHighlightStats();
 });
 
 /* ================================
@@ -855,3 +856,86 @@ window.deleteStoreVideo = async function(id) {
     showToast('Error de conexión', 'error');
   }
 };
+async function loadHighlightStats() {
+  const container = document.getElementById('highlightStatsContainer');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/my-highlights/stats', { credentials: 'include' });
+    if (!res.ok) return;
+
+    const stats = await res.json();
+
+    if (!stats.length) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:28px;color:#9ca3af;">
+          <div style="font-size:36px;margin-bottom:10px;">📷</div>
+          <p style="font-size:14px;">Todavía no creaste ningún destacado.</p>
+          <a href="/${myStore?.slug}" style="display:inline-block;margin-top:12px;
+            background:linear-gradient(135deg,#ea580c,#f97316);color:white;
+            padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;
+            text-decoration:none;">Ir a mi perfil a crear uno →</a>
+        </div>
+      `;
+      return;
+    }
+
+    const totalViews     = stats.reduce((s,h) => s + h.total_views, 0);
+    const totalReactions = stats.reduce((s,h) => s + h.total_reactions, 0);
+    const totalComments  = stats.reduce((s,h) => s + h.total_comments, 0);
+    const totalPhotos    = stats.reduce((s,h) => s + h.item_count, 0);
+
+    container.innerHTML = `
+      <!-- TOTALES -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+        ${[
+          ['👁️', totalViews, 'Vistas totales'],
+          ['🔥', totalReactions, 'Reacciones'],
+          ['💬', totalComments, 'Comentarios'],
+          ['📷', totalPhotos, 'Fotos']
+        ].map(([icon, val, label]) => `
+          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:14px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">${icon}</div>
+            <div style="font-size:20px;font-weight:900;color:#111827;letter-spacing:-0.03em;">${val.toLocaleString('es-AR')}</div>
+            <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:2px;">${label}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- POR DESTACADO -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${stats.map(h => `
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+            background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;">
+            <div style="width:48px;height:48px;border-radius:12px;flex-shrink:0;
+              background:${h.cover_url ? `url('${h.cover_url}') center/cover no-repeat` : 'linear-gradient(135deg,#ea580c,#f97316)'};
+              border:1px solid #e5e7eb;">
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:700;color:#111827;
+                overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.title}</div>
+              <div style="font-size:12px;color:#9ca3af;margin-top:2px;">${h.item_count} foto${h.item_count !== 1 ? 's' : ''}</div>
+            </div>
+            <div style="display:flex;gap:16px;flex-shrink:0;">
+              <div style="text-align:center;">
+                <div style="font-size:15px;font-weight:800;color:#111827;">${h.total_views.toLocaleString('es-AR')}</div>
+                <div style="font-size:10px;color:#9ca3af;">👁️ vistas</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:15px;font-weight:800;color:#ea580c;">${h.total_reactions}</div>
+                <div style="font-size:10px;color:#9ca3af;">🔥 reacciones</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:15px;font-weight:800;color:#374151;">${h.total_comments}</div>
+                <div style="font-size:10px;color:#9ca3af;">💬 comentarios</div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch(err) {
+    console.error('Error stats highlights:', err);
+    if (container) container.innerHTML = '<p style="color:#9ca3af;font-size:14px;">Error cargando estadísticas</p>';
+  }
+}
