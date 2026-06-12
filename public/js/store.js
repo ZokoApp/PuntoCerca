@@ -2159,4 +2159,108 @@ window.openEditHighlightTitle = function(highlightId, btn) {
 
   const modal = document.createElement('div');
   modal.id = 'editHlTitleModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;a
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:360px;">
+      <h3 style="font-size:16px;font-weight:800;color:#111827;margin:0 0 16px;">Renombrar destacado</h3>
+      <input id="editHlTitleInput" value="${clean}" maxlength="30"
+        style="width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+          font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='#ea580c'"
+        onblur="this.style.borderColor='#e5e7eb'">
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="document.getElementById('editHlTitleModal').remove()"
+          style="flex:1;padding:11px;border:1.5px solid #e5e7eb;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;background:white;">
+          Cancelar
+        </button>
+        <button onclick="confirmEditHlTitle(${highlightId})"
+          style="flex:2;padding:11px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;color:white;background:linear-gradient(135deg,#ea580c,#f97316);">
+          Guardar
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  const input = document.getElementById('editHlTitleInput');
+  input.focus();
+  input.select();
+  input.onkeydown = (e) => { if (e.key === 'Enter') confirmEditHlTitle(highlightId); };
+};
+
+window.confirmEditHlTitle = async function(highlightId) {
+  const input = document.getElementById('editHlTitleInput');
+  const title = input?.value.trim();
+  if (!title) return;
+
+  const currentTitle = _currentHighlight?.title || '';
+  const emojiMatch = currentTitle.match(/^[\p{Emoji}\s]+/u);
+  const prefix = emojiMatch ? emojiMatch[0].trim() + ' ' : '';
+  const fullTitle = prefix + title;
+
+  try {
+    const res = await fetch(`/api/highlights/${highlightId}/title`, {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: fullTitle })
+    });
+    if (!res.ok) { showToast('Error', 'error'); return; }
+    document.getElementById('editHlTitleModal')?.remove();
+    showToast('Nombre actualizado', 'success');
+    if (_currentHighlight) _currentHighlight.title = fullTitle;
+    loadHighlights(storeData.id);
+  } catch(e) { showToast('Error', 'error'); }
+};
+
+window.replaceHighlightItemPhoto = async function(itemId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const previewUrl = URL.createObjectURL(file);
+
+  const modal = document.createElement('div');
+  modal.id = 'replacePhotoModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:22px;width:100%;max-width:380px;">
+      <h3 style="font-size:15px;font-weight:800;color:#111827;margin:0 0 14px;">Reemplazar foto</h3>
+      <img src="${previewUrl}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;margin-bottom:16px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="document.getElementById('replacePhotoModal').remove()"
+          style="flex:1;padding:11px;border:1.5px solid #e5e7eb;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;background:white;">
+          Cancelar
+        </button>
+        <button id="confirmReplaceBtn" onclick="confirmReplacePhoto(${itemId})"
+          style="flex:2;padding:11px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;color:white;background:linear-gradient(135deg,#ea580c,#f97316);">
+          Reemplazar
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  window._replacePhotoFile = file;
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+};
+
+window.confirmReplacePhoto = async function(itemId) {
+  const file = window._replacePhotoFile;
+  if (!file) return;
+  const btn = document.getElementById('confirmReplaceBtn');
+  btn.textContent = 'Subiendo...'; btn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('image', file);
+  try {
+    const res = await fetch(`/api/highlight-items/${itemId}`, {
+      method: 'PUT', credentials: 'include', body: fd
+    });
+    if (!res.ok) { showToast('Error', 'error'); return; }
+    document.getElementById('replacePhotoModal')?.remove();
+    showToast('Foto reemplazada', 'success');
+    window._replacePhotoFile = null;
+    const hlRes = await fetch(`/api/stores/${storeData.id}/highlights`);
+    const highlights = await hlRes.json();
+    const updated = highlights.find(hh => hh.id === _currentHighlight?.id);
+    if (updated) { _currentHighlight = updated; renderHighlightViewer(); }
+    loadHighlights(storeData.id);
+  } catch(e) { showToast('Error de conexión', 'error'); }
+};
