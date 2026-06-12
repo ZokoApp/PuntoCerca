@@ -941,11 +941,7 @@ if (!stats.length) {
       </div>
     `;
 
-    const profileLink = document.getElementById('hlStatsProfileLink');
-if (profileLink && myStore?.slug) {
-  profileLink.href = `/${myStore.slug}`;
-  profileLink.textContent = 'Ver perfil →';
-}
+  
   } catch(err) {
     console.error('Error stats highlights:', err);
     if (container) container.innerHTML = '<p style="color:#9ca3af;font-size:14px;">Error cargando estadísticas</p>';
