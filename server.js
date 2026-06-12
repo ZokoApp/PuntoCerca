@@ -4518,12 +4518,37 @@ app.post('/api/highlight-items/:id/comments', authMiddleware, async (req, res) =
     const userRes = await pool.query(
       `SELECT name, avatar_url FROM users WHERE id=$1`, [req.user.id]
     );
+
+    // 🔔 notificar al dueño de la tienda
+    try {
+      const ownerRes = await pool.query(`
+        SELECT s.user_id, s.name as store_name, s.slug, h.title as highlight_title
+        FROM highlight_items i
+        JOIN store_highlights h ON h.id = i.highlight_id
+        JOIN stores s ON s.id = h.store_id
+        WHERE i.id = $1
+      `, [req.params.id]);
+
+      const owner = ownerRes.rows[0];
+      if (owner && owner.user_id !== req.user.id) {
+        await createNotification(
+          owner.user_id,
+          'highlight_comment',
+          'Nuevo comentario en tu destacado',
+          `${req.user.name || 'Un usuario'} comentó en "${owner.highlight_title}" de ${owner.store_name}`,
+          `/${owner.slug}`
+        );
+      }
+    } catch(notifErr) {
+      console.error('ERROR NOTIF HIGHLIGHT COMMENT:', notifErr);
+    }
+
     res.json({ ...result.rows[0], ...userRes.rows[0] });
   } catch (err) {
+    console.error('ERROR POST HL COMMENT:', err.message);
     res.status(500).json({ error: 'Error' });
   }
 });
-
 // DELETE comentario
 app.delete('/api/highlight-comments/:id', authMiddleware, async (req, res) => {
   try {
