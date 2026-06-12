@@ -1676,7 +1676,7 @@ function renderHighlightViewer() {
     <!-- IMAGEN -->
     <div style="display:flex;align-items:center;justify-content:center;padding:0 44px;flex:1;">
       <div style="position:relative;max-width:500px;width:100%;">
-        <img src="${item.image_url}" style="width:100%;max-height:55vh;object-fit:contain;border-radius:16px;display:block;"/>
+      <img id="hlCurrentImg" src="${item.image_url}" style="width:100%;max-height:55vh;object-fit:contain;border-radius:16px;display:block;"/>
         ${idx > 0 ? `<button onclick="navHighlight(-1)" style="position:absolute;left:-40px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;border-radius:50%;width:34px;height:34px;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>` : ''}
         ${idx < items.length-1 ? `<button onclick="navHighlight(1)" style="position:absolute;right:-40px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;border-radius:50%;width:34px;height:34px;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>` : ''}
       </div>
@@ -1689,6 +1689,10 @@ function renderHighlightViewer() {
     <!-- ACCIONES DUEÑO -->
     ${isOwner ? `
       <div style="display:flex;gap:8px;justify-content:center;padding:0 16px 14px;flex-wrap:wrap;">
+      <button onclick="activateTagMode(${item.id})" style="background:rgba(255,255,255,0.12);color:white;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:none;display:flex;align-items:center;gap:6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+          Agregar link
+        </button>
         <label style="background:rgba(255,255,255,0.12);color:white;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;">
           🔄 Cambiar foto
           <input type="file" accept="image/*" style="display:none;" onchange="replaceHighlightItemPhoto(${item.id},this)">
@@ -1743,6 +1747,7 @@ function renderHighlightViewer() {
 
   // cargar reacciones y comentarios
   loadItemInteractions(item.id);
+  setTimeout(() => loadTagsForItem(item.id), 150);
 }
 window.navHighlight = function(dir) {
   const items = _currentHighlight?.items || [];
@@ -2261,4 +2266,321 @@ window.confirmReplacePhoto = async function(itemId) {
     if (updated) { _currentHighlight = updated; renderHighlightViewer(); }
     loadHighlights(storeData.id);
   } catch(e) { showToast('Error de conexión', 'error'); }
+};
+
+/* ================================
+   IMAGE TAGS — LINKS EN IMÁGENES
+================================ */
+
+async function loadTagsForItem(itemId) {
+  try {
+    const res = await fetch(`/api/image-tags?highlight_item_id=${itemId}`);
+    if (!res.ok) return;
+    const tags = await res.json();
+    renderTagDots(tags, itemId);
+  } catch(e) { console.error(e); }
+}
+
+function renderTagDots(tags, itemId) {
+  document.querySelectorAll('.img-tag-dot').forEach(d => d.remove());
+  const img = document.getElementById('hlCurrentImg');
+  if (!img) return;
+  const wrapper = img.parentElement;
+  if (getComputedStyle(wrapper).position === 'static') wrapper.style.position = 'relative';
+
+  tags.forEach(tag => {
+    const dot = document.createElement('div');
+    dot.className = 'img-tag-dot';
+    dot.style.cssText = `
+      position:absolute;left:${tag.x_percent}%;top:${tag.y_percent}%;
+      transform:translate(-50%,-50%);z-index:10;cursor:pointer;
+    `;
+    dot.innerHTML = `
+      <style>
+        @keyframes tagPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.6);}70%{box-shadow:0 0 0 8px rgba(255,255,255,0);}}
+      </style>
+      <div style="
+        width:26px;height:26px;border-radius:50%;background:white;
+        box-shadow:0 2px 8px rgba(0,0,0,0.35);
+        display:flex;align-items:center;justify-content:center;
+        animation:tagPulse 2s infinite;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+        </svg>
+      </div>
+    `;
+
+    if (isOwner) {
+      const del = document.createElement('button');
+      del.style.cssText = `
+        position:absolute;top:-7px;right:-7px;width:18px;height:18px;
+        border-radius:50%;background:#dc2626;border:none;color:white;
+        font-size:9px;cursor:pointer;display:none;align-items:center;
+        justify-content:center;z-index:11;line-height:1;
+      `;
+      del.textContent = '✕';
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm('¿Eliminar este link?')) return;
+        await fetch(`/api/image-tags/${tag.id}`, { method:'DELETE', credentials:'include' });
+        loadTagsForItem(itemId);
+      };
+      dot.appendChild(del);
+      dot.onmouseenter = () => { del.style.display = 'flex'; };
+      dot.onmouseleave = () => { del.style.display = 'none'; };
+    }
+
+    dot.addEventListener('click', (e) => { e.stopPropagation(); showTagPopup(tag, dot); });
+    wrapper.appendChild(dot);
+  });
+}
+
+function showTagPopup(tag, dotEl) {
+  document.getElementById('tagPopup')?.remove();
+  const popup = document.createElement('div');
+  popup.id = 'tagPopup';
+
+  const label = tag.label || tag.product_name || 'Ver más';
+  const url   = tag.url || (tag.product_slug ? `/product/${tag.product_slug}` : null);
+  const price = tag.product_price
+    ? '$' + Number(tag.product_price).toLocaleString('es-AR')
+    : null;
+
+  popup.style.cssText = `
+    position:fixed;z-index:999999;background:white;border-radius:16px;
+    padding:12px;width:200px;box-shadow:0 8px 32px rgba(0,0,0,0.3);
+    animation:tagPopIn 0.15s ease;
+  `;
+  popup.innerHTML = `
+    <style>@keyframes tagPopIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}</style>
+    ${tag.product_image ? `<img src="${tag.product_image}" onerror="this.style.display='none'"
+      style="width:100%;height:90px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block;">` : ''}
+    <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:${price?'3px':'10px'};line-height:1.3;">${label}</div>
+    ${price ? `<div style="font-size:14px;font-weight:800;color:#ea580c;margin-bottom:10px;">${price}</div>` : ''}
+    ${url ? `<a href="${url}" style="display:block;text-align:center;
+      background:linear-gradient(135deg,#ea580c,#f97316);color:white;padding:8px;
+      border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;">
+      ${tag.product_id ? 'Ver producto' : 'Ver más →'}</a>` : ''}
+    <button onclick="document.getElementById('tagPopup').remove()"
+      style="position:absolute;top:8px;right:8px;background:none;border:none;
+      color:#9ca3af;font-size:16px;cursor:pointer;padding:2px;line-height:1;">✕</button>
+  `;
+
+  document.body.appendChild(popup);
+
+  const dr = dotEl.getBoundingClientRect();
+  const w  = 200;
+  let left = dr.left + dr.width / 2 - w / 2;
+  let top  = dr.top - (popup.offsetHeight || 150) - 10;
+  if (left < 8) left = 8;
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+  if (top < 8) top = dr.bottom + 10;
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        document.removeEventListener('click', close);
+      }
+    });
+  }, 100);
+}
+
+window.activateTagMode = function(itemId) {
+  const img = document.getElementById('hlCurrentImg');
+  if (!img) return;
+
+  document.getElementById('tagModeHint')?.remove();
+  const hint = document.createElement('div');
+  hint.id = 'tagModeHint';
+  hint.style.cssText = `
+    position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+    background:rgba(0,0,0,0.75);color:white;padding:8px 16px;
+    border-radius:999px;font-size:12px;font-weight:600;
+    pointer-events:none;white-space:nowrap;z-index:20;
+  `;
+  hint.textContent = 'Tocá en la foto para agregar un link';
+  img.parentElement.appendChild(hint);
+  img.style.cursor = 'crosshair';
+
+  function handleClick(e) {
+    e.stopPropagation();
+    const rect = img.getBoundingClientRect();
+    const x = Math.round(((e.clientX - rect.left) / rect.width)  * 10000) / 100;
+    const y = Math.round(((e.clientY - rect.top)  / rect.height) * 10000) / 100;
+    img.style.cursor = '';
+    img.removeEventListener('click', handleClick);
+    hint.remove();
+    openTagCreator(x, y, itemId);
+  }
+  img.addEventListener('click', handleClick);
+};
+
+async function openTagCreator(x, y, itemId) {
+  let products = [];
+  try {
+    const r = await fetch(`/api/stores/${storeData.id}/products`);
+    products = await r.json();
+  } catch(e) {}
+
+  const modal = document.createElement('div');
+  modal.id = 'tagCreatorModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;';
+
+  modal.innerHTML = `
+    <div style="background:white;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:800;color:#111827;margin:0;">Agregar link</h3>
+        <button onclick="document.getElementById('tagCreatorModal').remove()"
+          style="background:#f3f4f6;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+
+      <div style="display:flex;gap:6px;margin-bottom:20px;background:#f8fafc;border-radius:12px;padding:4px;">
+        <button id="tabProducts" onclick="switchTagTab('products')"
+          style="flex:1;padding:9px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          Mis productos
+        </button>
+        <button id="tabUrl" onclick="switchTagTab('url')"
+          style="flex:1;padding:9px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:#9ca3af;">
+          URL externa
+        </button>
+      </div>
+
+      <div id="tagPanelProducts">
+        ${products.length ? `
+          <input id="tagProductSearch" placeholder="Buscar producto..."
+            oninput="filterTagProducts(this.value)"
+            style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:12px;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+          <div id="tagProductList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
+            ${products.map(p => `
+              <div class="tag-product-item" data-id="${p.id}" data-name="${p.name}"
+                onclick="selectTagProduct(this)"
+                style="display:flex;align-items:center;gap:12px;padding:10px 12px;
+                  border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:all 0.15s;">
+                <img src="${p.image_url||'/img/favicon.png'}" onerror="this.src='/img/favicon.png'"
+                  style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:600;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+                  <div style="font-size:12px;color:#ea580c;font-weight:700;margin-top:2px;">${p.price ? '$'+Number(p.price).toLocaleString('es-AR') : 'Consultar'}</div>
+                </div>
+                <div class="tag-check" style="display:none;width:20px;height:20px;border-radius:50%;
+                  background:#ea580c;flex-shrink:0;align-items:center;justify-content:center;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="white">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                  </svg>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `<p style="text-align:center;color:#9ca3af;padding:24px 0;font-size:14px;">No tenés productos cargados todavía</p>`}
+      </div>
+
+      <div id="tagPanelUrl" style="display:none;">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">URL</label>
+          <input id="tagUrlInput" type="url" placeholder="https://..."
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Etiqueta</label>
+          <input id="tagLabelInput" type="text" placeholder="ej: Ver más, Comprar ahora..."
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+      </div>
+
+      <button id="tagConfirmBtn" onclick="confirmAddTag(${x},${y},${itemId})"
+        style="width:100%;margin-top:20px;padding:14px;border:none;border-radius:14px;
+          font-size:14px;font-weight:700;cursor:pointer;color:white;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          box-shadow:0 4px 14px rgba(234,88,12,0.3);">
+        Agregar link →
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  window._selectedTagProductId = null;
+}
+
+window.switchTagTab = function(tab) {
+  const isP = tab === 'products';
+  document.getElementById('tagPanelProducts').style.display = isP ? 'block' : 'none';
+  document.getElementById('tagPanelUrl').style.display      = isP ? 'none'  : 'block';
+  const tp = document.getElementById('tabProducts');
+  const tu = document.getElementById('tabUrl');
+  tp.style.background  = isP ? 'white'       : 'transparent';
+  tp.style.color       = isP ? '#111827'      : '#9ca3af';
+  tp.style.boxShadow   = isP ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+  tu.style.background  = isP ? 'transparent' : 'white';
+  tu.style.color       = isP ? '#9ca3af'     : '#111827';
+  tu.style.boxShadow   = isP ? 'none'        : '0 1px 3px rgba(0,0,0,0.1)';
+};
+
+window.selectTagProduct = function(el) {
+  document.querySelectorAll('.tag-product-item').forEach(item => {
+    item.style.borderColor = '#e5e7eb';
+    item.style.background  = 'white';
+    const c = item.querySelector('.tag-check');
+    if (c) c.style.display = 'none';
+  });
+  el.style.borderColor = '#ea580c';
+  el.style.background  = '#fff7ed';
+  const c = el.querySelector('.tag-check');
+  if (c) c.style.display = 'flex';
+  window._selectedTagProductId = el.dataset.id;
+};
+
+window.filterTagProducts = function(q) {
+  const s = q.toLowerCase();
+  document.querySelectorAll('.tag-product-item').forEach(item => {
+    item.style.display = (item.dataset.name||'').toLowerCase().includes(s) ? 'flex' : 'none';
+  });
+};
+
+window.confirmAddTag = async function(x, y, itemId) {
+  const btn  = document.getElementById('tagConfirmBtn');
+  const isProd = document.getElementById('tagPanelProducts').style.display !== 'none';
+  let body;
+
+  if (isProd) {
+    if (!window._selectedTagProductId) { showToast('Seleccioná un producto', 'error'); return; }
+    body = {
+      highlight_item_id: itemId,
+      x_percent: x, y_percent: y,
+      product_id: parseInt(window._selectedTagProductId)
+    };
+  } else {
+    const url   = document.getElementById('tagUrlInput')?.value.trim();
+    const label = document.getElementById('tagLabelInput')?.value.trim();
+    if (!url) { showToast('Ingresá una URL', 'error'); return; }
+    body = { highlight_item_id: itemId, x_percent: x, y_percent: y, url, label: label || 'Ver más' };
+  }
+
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/image-tags', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { showToast('Error', 'error'); return; }
+    document.getElementById('tagCreatorModal')?.remove();
+    showToast('Link agregado', 'success');
+    loadTagsForItem(itemId);
+  } catch(e) {
+    showToast('Error de conexión', 'error');
+  } finally {
+    if (btn) { btn.textContent = 'Agregar link →'; btn.disabled = false; }
+  }
 };
