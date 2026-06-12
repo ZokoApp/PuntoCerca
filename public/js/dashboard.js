@@ -906,10 +906,7 @@ if (!stats.length) {
     <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:2px;">${label}</div>
   </div>
 `).join('')}
-            <div style="font-size:20px;font-weight:900;color:#111827;letter-spacing:-0.03em;">${val.toLocaleString('es-AR')}</div>
-            <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:2px;">${label}</div>
-          </div>
-        `).join('')}
+        
       </div>
 
       <!-- POR DESTACADO -->
