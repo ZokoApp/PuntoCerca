@@ -894,14 +894,18 @@ if (!stats.length) {
     container.innerHTML = `
       <!-- TOTALES -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-        ${[
-          ['👁️', totalViews, 'Vistas totales'],
-          ['🔥', totalReactions, 'Reacciones'],
-          ['💬', totalComments, 'Comentarios'],
-          ['📷', totalPhotos, 'Fotos']
-        ].map(([icon, val, label]) => `
-          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">${icon}</div>
+       ${[
+  ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#6b7280"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>', totalViews, 'Vistas totales'],
+  ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>', totalReactions, 'Reacciones'],
+  ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#6b7280"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>', totalComments, 'Comentarios'],
+  ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#6b7280"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>', totalPhotos, 'Fotos']
+].map(([icon, val, label]) => `
+  <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:14px;text-align:center;">
+    <div style="display:flex;justify-content:center;margin-bottom:4px;">${icon}</div>
+    <div style="font-size:20px;font-weight:900;color:#111827;letter-spacing:-0.03em;">${val.toLocaleString('es-AR')}</div>
+    <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:2px;">${label}</div>
+  </div>
+`).join('')}
             <div style="font-size:20px;font-weight:900;color:#111827;letter-spacing:-0.03em;">${val.toLocaleString('es-AR')}</div>
             <div style="font-size:11px;color:#9ca3af;font-weight:600;margin-top:2px;">${label}</div>
           </div>
@@ -925,15 +929,15 @@ if (!stats.length) {
             <div style="display:flex;gap:16px;flex-shrink:0;">
               <div style="text-align:center;">
                 <div style="font-size:15px;font-weight:800;color:#111827;">${h.total_views.toLocaleString('es-AR')}</div>
-                <div style="font-size:10px;color:#9ca3af;">👁️ vistas</div>
+                <div style="font-size:10px;color:#9ca3af;">vistas</div>
               </div>
               <div style="text-align:center;">
                 <div style="font-size:15px;font-weight:800;color:#ea580c;">${h.total_reactions}</div>
-                <div style="font-size:10px;color:#9ca3af;">🔥 reacciones</div>
+                <div style="font-size:10px;color:#9ca3af;">reacciones</div>
               </div>
               <div style="text-align:center;">
                 <div style="font-size:15px;font-weight:800;color:#374151;">${h.total_comments}</div>
-                <div style="font-size:10px;color:#9ca3af;">💬 comentarios</div>
+                <div style="font-size:10px;color:#9ca3af;">comentarios</div>
               </div>
             </div>
           </div>
