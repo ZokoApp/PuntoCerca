@@ -4648,6 +4648,154 @@ app.get('/api/my-highlights/stats', authMiddleware, async (req, res) => {
   }
 });
 
+/* ================================
+   IMAGE TAGS — LINKS EN IMÁGENES
+================================ */
+
+// GET tags de un item (highlight o pizarra)
+app.get('/api/image-tags', async (req, res) => {
+  try {
+    const { highlight_item_id, pizarra_id } = req.query;
+
+    if (!highlight_item_id && !pizarra_id) {
+      return res.status(400).json({ error: 'Se requiere highlight_item_id o pizarra_id' });
+    }
+
+    let result;
+    if (highlight_item_id) {
+      result = await pool.query(`
+        SELECT t.*,
+          p.id        AS product_id,
+          p.name      AS product_name,
+          p.price     AS product_price,
+          p.image_url AS product_image,
+          p.slug      AS product_slug
+        FROM image_tags t
+        LEFT JOIN products p ON p.id = t.product_id
+        WHERE t.highlight_item_id = $1
+        ORDER BY t.created_at ASC
+      `, [highlight_item_id]);
+    } else {
+      result = await pool.query(`
+        SELECT t.*,
+          p.id        AS product_id,
+          p.name      AS product_name,
+          p.price     AS product_price,
+          p.image_url AS product_image,
+          p.slug      AS product_slug
+        FROM image_tags t
+        LEFT JOIN products p ON p.id = t.product_id
+        WHERE t.pizarra_id = $1
+        ORDER BY t.created_at ASC
+      `, [pizarra_id]);
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET IMAGE TAGS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo tags' });
+  }
+});
+
+// POST crear tag
+app.post('/api/image-tags', authMiddleware, async (req, res) => {
+  try {
+    const { highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id } = req.body;
+
+    if (!highlight_item_id && !pizarra_id) {
+      return res.status(400).json({ error: 'Se requiere highlight_item_id o pizarra_id' });
+    }
+    if (x_percent == null || y_percent == null) {
+      return res.status(400).json({ error: 'Posición requerida' });
+    }
+
+    // verificar que la imagen pertenece al usuario
+    if (highlight_item_id) {
+      const check = await pool.query(`
+        SELECT i.id FROM highlight_items i
+        JOIN store_highlights h ON h.id = i.highlight_id
+        JOIN stores s ON s.id = h.store_id
+        WHERE i.id = $1 AND s.user_id = $2
+      `, [highlight_item_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    } else {
+      const check = await pool.query(`
+        SELECT p.id FROM pizarras p
+        JOIN stores s ON s.id = p.store_id
+        WHERE p.id = $1 AND s.user_id = $2
+      `, [pizarra_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO image_tags
+        (highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [
+      highlight_item_id || null,
+      pizarra_id || null,
+      x_percent,
+      y_percent,
+      label || null,
+      url || null,
+      product_id || null
+    ]);
+
+    // enriquecer con datos del producto si tiene
+    let tag = result.rows[0];
+    if (tag.product_id) {
+      const prodRes = await pool.query(
+        `SELECT name, price, image_url, slug FROM products WHERE id = $1`,
+        [tag.product_id]
+      );
+      if (prodRes.rows.length) {
+        const p = prodRes.rows[0];
+        tag = {
+          ...tag,
+          product_name: p.name,
+          product_price: p.price,
+          product_image: p.image_url,
+          product_slug: p.slug
+        };
+      }
+    }
+
+    res.json(tag);
+  } catch (err) {
+    console.error('ERROR POST IMAGE TAG:', err.message);
+    res.status(500).json({ error: 'Error creando tag' });
+  }
+});
+
+// DELETE tag
+app.delete('/api/image-tags/:id', authMiddleware, async (req, res) => {
+  try {
+    // verificar ownership via highlight o pizarra
+    const result = await pool.query(`
+      DELETE FROM image_tags t
+      USING (
+        SELECT t2.id FROM image_tags t2
+        LEFT JOIN highlight_items hi ON hi.id = t2.highlight_item_id
+        LEFT JOIN store_highlights sh ON sh.id = hi.highlight_id
+        LEFT JOIN pizarras pz ON pz.id = t2.pizarra_id
+        LEFT JOIN stores s ON s.id = COALESCE(sh.store_id, pz.store_id)
+        WHERE t2.id = $1 AND s.user_id = $2
+      ) valid
+      WHERE t.id = valid.id
+      RETURNING t.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado o tag no existe' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE IMAGE TAG:', err.message);
+    res.status(500).json({ error: 'Error eliminando tag' });
+  }
+});
 
   /* ================================
      START
