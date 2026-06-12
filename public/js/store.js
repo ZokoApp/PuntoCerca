@@ -1699,7 +1699,7 @@ window.navHighlight = function(dir) {
   }
 };
 
-function closeHighlightViewer() {
+window.closeHighlightViewer = function() {
   const m = document.getElementById('highlightViewerModal');
   if (m) { m.style.opacity='0'; m.style.transition='opacity 0.2s'; setTimeout(()=>m.remove(),200); }
   document.body.style.overflow = '';
