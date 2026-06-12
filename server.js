@@ -4409,6 +4409,220 @@ app.delete('/api/highlight-items/:id', authMiddleware, async (req, res) => {
   }
 });
 
+/* ================================
+   HIGHLIGHTS — VISTAS, REACCIONES, COMENTARIOS, EDICIÓN
+================================ */
+
+// Registrar vista de un item
+app.post('/api/highlight-items/:id/view', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE highlight_items SET views = COALESCE(views,0) + 1 WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// Reaccionar a un item (toggle)
+app.post('/api/highlight-items/:id/react', authMiddleware, async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    if (!emoji) return res.status(400).json({ error: 'Emoji requerido' });
+
+    // verificar si ya reaccionó
+    const existing = await pool.query(
+      `SELECT id, emoji FROM highlight_reactions WHERE item_id=$1 AND user_id=$2`,
+      [req.params.id, req.user.id]
+    );
+
+    if (existing.rows.length) {
+      if (existing.rows[0].emoji === emoji) {
+        // misma reacción → quitar
+        await pool.query(
+          `DELETE FROM highlight_reactions WHERE item_id=$1 AND user_id=$2`,
+          [req.params.id, req.user.id]
+        );
+        return res.json({ action: 'removed' });
+      } else {
+        // reacción distinta → cambiar
+        await pool.query(
+          `UPDATE highlight_reactions SET emoji=$1 WHERE item_id=$2 AND user_id=$3`,
+          [emoji, req.params.id, req.user.id]
+        );
+        return res.json({ action: 'changed' });
+      }
+    }
+
+    await pool.query(
+      `INSERT INTO highlight_reactions (item_id, user_id, emoji) VALUES ($1,$2,$3)`,
+      [req.params.id, req.user.id, emoji]
+    );
+    res.json({ action: 'added' });
+
+  } catch (err) {
+    console.error('ERROR REACT:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET reacciones de un item
+app.get('/api/highlight-items/:id/reactions', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT emoji, COUNT(*)::int as count,
+        MAX(CASE WHEN user_id = $2 THEN emoji END) as user_emoji
+      FROM highlight_reactions
+      WHERE item_id = $1
+      GROUP BY emoji
+      ORDER BY count DESC
+    `, [req.params.id, req.cookies.access_token
+        ? (() => { try { return require('jsonwebtoken').verify(req.cookies.access_token, process.env.JWT_SECRET).id; } catch { return -1; } })()
+        : -1
+    ]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET comentarios de un item
+app.get('/api/highlight-items/:id/comments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT hc.*, u.name, u.avatar_url
+      FROM highlight_comments hc
+      JOIN users u ON u.id = hc.user_id
+      WHERE hc.item_id = $1
+      ORDER BY hc.created_at ASC
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// POST comentario
+app.post('/api/highlight-items/:id/comments', authMiddleware, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: 'Comentario vacío' });
+
+    const result = await pool.query(`
+      INSERT INTO highlight_comments (item_id, user_id, content)
+      VALUES ($1, $2, $3) RETURNING *
+    `, [req.params.id, req.user.id, content.trim()]);
+
+    const userRes = await pool.query(
+      `SELECT name, avatar_url FROM users WHERE id=$1`, [req.user.id]
+    );
+    res.json({ ...result.rows[0], ...userRes.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// DELETE comentario
+app.delete('/api/highlight-comments/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM highlight_comments WHERE id=$1 AND user_id=$2 RETURNING id`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// PUT editar título del highlight
+app.put('/api/highlights/:id/title', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title?.trim()) return res.status(400).json({ error: 'Título requerido' });
+
+    const result = await pool.query(`
+      UPDATE store_highlights sh
+      SET title = $1
+      FROM stores s
+      WHERE sh.id = $2 AND sh.store_id = s.id AND s.user_id = $3
+      RETURNING sh.*
+    `, [title.trim(), req.params.id, req.user.id]);
+
+    if (!result.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// PUT editar foto/caption de un item
+app.put('/api/highlight-items/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const check = await pool.query(`
+      SELECT i.id FROM highlight_items i
+      JOIN store_highlights h ON h.id = i.highlight_id
+      JOIN stores s ON s.id = h.store_id
+      WHERE i.id = $1 AND s.user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const newImageUrl = req.file ? req.file.path : null;
+    const { caption } = req.body;
+
+    const result = await pool.query(`
+      UPDATE highlight_items
+      SET
+        image_url = COALESCE($1, image_url),
+        caption   = COALESCE($2, caption)
+      WHERE id = $3
+      RETURNING *
+    `, [newImageUrl, caption ?? null, req.params.id]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET estadísticas de highlights para el dashboard
+app.get('/api/my-highlights/stats', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      `SELECT id FROM stores WHERE user_id=$1`, [req.user.id]
+    );
+    if (!storeRes.rows.length) return res.json([]);
+    const storeId = storeRes.rows[0].id;
+
+    const result = await pool.query(`
+      SELECT
+        h.id,
+        h.title,
+        h.cover_url,
+        COUNT(DISTINCT i.id)::int         AS item_count,
+        COALESCE(SUM(i.views),0)::int     AS total_views,
+        COUNT(DISTINCT r.id)::int         AS total_reactions,
+        COUNT(DISTINCT c.id)::int         AS total_comments
+      FROM store_highlights h
+      LEFT JOIN highlight_items i       ON i.highlight_id = h.id
+      LEFT JOIN highlight_reactions r   ON r.item_id = i.id
+      LEFT JOIN highlight_comments c    ON c.item_id = i.id
+      WHERE h.store_id = $1
+      GROUP BY h.id
+      ORDER BY total_views DESC
+    `, [storeId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR HIGHLIGHT STATS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
 
   /* ================================
      START
