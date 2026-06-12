@@ -1765,36 +1765,54 @@ function openCreateHighlight() {
   const existing = document.getElementById('createHighlightModal');
   if (existing) existing.remove();
 
-  const EMOJIS = ['📷','🍽️','⭐','🛍️','👥','📍','🎉','🔥','💼','🌟','🏪','📦'];
+  const ICONS = [
+    { key: 'camera', label: 'Fotos', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />` },
+    { key: 'star', label: 'Destacado', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />` },
+    { key: 'menu', label: 'Menú', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5A2.25 2.25 0 0012.75 4.5h-1.5A2.25 2.25 0 009 6.75v1.5M3 13.125c0-.621.504-1.125 1.125-1.125h15.75c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 19.875v-6.75z" />` },
+    { key: 'bag', label: 'Productos', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />` },
+    { key: 'users', label: 'Clientes', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />` },
+    { key: 'pin', label: 'Ubicación', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />` },
+    { key: 'calendar', label: 'Eventos', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />` },
+    { key: 'bolt', label: 'Ofertas', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />` },
+    { key: 'briefcase', label: 'Servicios', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" />` },
+    { key: 'box', label: 'Catálogo', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />` },
+    { key: 'store', label: 'Local', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 2.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />` },
+    { key: 'heart', label: 'Favoritos', svg: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />` },
+  ];
 
   const modal = document.createElement('div');
   modal.id = 'createHighlightModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;';
 
   modal.innerHTML = `
-    <div style="background:white;border-radius:24px;padding:28px;width:100%;max-width:400px;
+    <div style="background:white;border-radius:24px;padding:28px;width:100%;max-width:420px;
       box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:hlModalIn 0.2s ease;">
-      <style>@keyframes hlModalIn{from{opacity:0;transform:scale(0.95)translateY(10px)}to{opacity:1;transform:scale(1)translateY(0)}}</style>
+      <style>@keyframes hlModalIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}</style>
 
       <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 6px;">Nuevo destacado</h3>
       <p style="font-size:13px;color:#9ca3af;margin:0 0 20px;">Creá una colección de fotos para tu perfil</p>
 
-      <!-- Emojis -->
       <div style="margin-bottom:18px;">
         <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:10px;">Ícono</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${EMOJIS.map((e, i) => `
-            <button type="button" data-emoji="${e}" onclick="selectHighlightEmoji(this)" style="
-              width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer;
-              border:2px solid ${i === 0 ? '#ea580c' : '#e5e7eb'};
-              background:${i === 0 ? '#fff7ed' : 'white'};
-              transition:all 0.15s;
-            ">${e}</button>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+          ${ICONS.map((icon, i) => `
+            <button type="button" data-icon-key="${icon.key}" onclick="selectHighlightIcon(this)" title="${icon.label}" style="
+              width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;
+              border:2px solid ${i===0?'#ea580c':'#e5e7eb'};
+              background:${i===0?'#fff7ed':'white'};
+              display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+              transition:all 0.15s;padding:8px 4px;
+              color:${i===0?'#ea580c':'#6b7280'};
+            ">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                ${icon.svg}
+              </svg>
+              <span style="font-size:9px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;text-align:center;">${icon.label}</span>
+            </button>
           `).join('')}
         </div>
       </div>
 
-      <!-- Nombre -->
       <div style="margin-bottom:24px;">
         <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">Nombre</label>
         <input id="hlTitleInput" type="text" placeholder="ej: Menú, Fotos del local, Clientes..."
@@ -1802,30 +1820,20 @@ function openCreateHighlight() {
           style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:14px;
             font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color 0.15s;"
           onfocus="this.style.borderColor='#ea580c'"
-          onblur="this.style.borderColor='#e5e7eb'"
-        />
+          onblur="this.style.borderColor='#e5e7eb'"/>
         <div style="font-size:11px;color:#9ca3af;margin-top:5px;text-align:right;">
           <span id="hlCharCount">0</span>/30
         </div>
       </div>
 
-      <!-- Botones -->
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('createHighlightModal').remove()"
-          style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:14px;
-            font-size:14px;font-weight:700;cursor:pointer;background:white;color:#374151;
-            transition:background 0.15s;"
-          onmouseenter="this.style.background='#f9fafb'"
-          onmouseleave="this.style.background='white'">
+          style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;background:white;color:#374151;">
           Cancelar
         </button>
         <button id="hlCreateBtn" onclick="confirmCreateHighlight()"
-          style="flex:2;padding:13px;border:none;border-radius:14px;
-            font-size:14px;font-weight:700;cursor:pointer;color:white;
-            background:linear-gradient(135deg,#ea580c,#f97316);
-            box-shadow:0 4px 14px rgba(234,88,12,0.3);transition:all 0.15s;"
-          onmouseenter="this.style.transform='translateY(-1px)'"
-          onmouseleave="this.style.transform='translateY(0)'">
+          style="flex:2;padding:13px;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;color:white;
+            background:linear-gradient(135deg,#ea580c,#f97316);box-shadow:0 4px 14px rgba(234,88,12,0.3);">
           Crear destacado →
         </button>
       </div>
@@ -1834,42 +1842,37 @@ function openCreateHighlight() {
 
   document.body.appendChild(modal);
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-
-  // seleccionar el primer emoji por defecto
-  modal.querySelector('[data-emoji]').dataset.selected = 'true';
-  window._selectedHighlightEmoji = EMOJIS[0];
+  window._selectedHighlightIcon = ICONS[0].key;
 
   const input = document.getElementById('hlTitleInput');
   input.focus();
   input.addEventListener('input', () => {
     document.getElementById('hlCharCount').textContent = input.value.length;
   });
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') confirmCreateHighlight();
-  });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmCreateHighlight(); });
 }
 
-window.selectHighlightEmoji = function(btn) {
-  document.querySelectorAll('#createHighlightModal [data-emoji]').forEach(b => {
+window.selectHighlightIcon = function(btn) {
+  document.querySelectorAll('#createHighlightModal [data-icon-key]').forEach(b => {
     b.style.border = '2px solid #e5e7eb';
     b.style.background = 'white';
+    b.style.color = '#6b7280';
   });
   btn.style.border = '2px solid #ea580c';
   btn.style.background = '#fff7ed';
-  window._selectedHighlightEmoji = btn.dataset.emoji;
+  btn.style.color = '#ea580c';
+  window._selectedHighlightIcon = btn.dataset.iconKey;
 };
 
 window.confirmCreateHighlight = function() {
   const input = document.getElementById('hlTitleInput');
-  const rawTitle = input?.value.trim();
-  if (!rawTitle) {
+  const title = input?.value.trim();
+  if (!title) {
     input.style.borderColor = '#dc2626';
     input.placeholder = 'El nombre es obligatorio';
     setTimeout(() => { input.style.borderColor = '#e5e7eb'; }, 1500);
     return;
   }
-  const emoji = window._selectedHighlightEmoji || '📷';
-  const title = `${emoji} ${rawTitle}`;
 
   const btn = document.getElementById('hlCreateBtn');
   btn.textContent = 'Creando...';
