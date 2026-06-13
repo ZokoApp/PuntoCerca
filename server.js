@@ -1294,7 +1294,7 @@ app.get("/api/stores/:id/events", async (req, res) => {
       ]
     );
 
-    // 🔔 NOTIFICAR A SEGUIDORES (CORREGIDO)
+ 
     try {
 
       // obtener tienda correctamente por ID
@@ -1483,7 +1483,7 @@ app.post("/api/events", uploadEvent.single("image"), authMiddleware, async (req,
 
     const image_url = req.file.path;
 
-    // 🔥 INSERT CORRECTO (ACÁ ESTABA TU ERROR)
+  
     const result = await pool.query(`
       INSERT INTO store_events
       (store_id, title, description, image_url, start_at, end_at)
@@ -1932,7 +1932,7 @@ if (stock !== undefined && stock !== null && stock !== "") {
 
 }
   
-      // 🔥 IMÁGENES
+      
       let images = [];
   
       if (req.files && req.files.length > 0) {
@@ -1942,7 +1942,7 @@ if (stock !== undefined && stock !== null && stock !== "") {
       const mainImage = images[0] || null;
       const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
   
-      // 🔥 UPDATE
+    
       const result = await pool.query(
         `UPDATE products
          SET 
@@ -3487,8 +3487,19 @@ app.get('/:slug/videos', async (req, res) => {
       }
   
       const result = await pool.query(query);
-  
-      res.json(result.rows);
+
+    const products = result.rows.map(p => {
+      if (p.images && typeof p.images === 'string') {
+        try { p.images = JSON.parse(p.images); } catch { p.images = []; }
+      }
+      if (!Array.isArray(p.images)) p.images = [];
+      if (p.image_url && !p.images.includes(p.image_url)) {
+        p.images = [p.image_url, ...p.images];
+      }
+      p.images = [...new Set(p.images)].filter(Boolean);
+      return p;
+    });
+    res.json(products);
   
     } catch (error) {
       console.error(error);
