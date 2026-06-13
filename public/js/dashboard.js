@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadPizarra();
   loadStoreVideos();
   loadHighlightStats();
+  loadSucursales();
 });
 
 /* ================================
@@ -948,3 +949,138 @@ if (!stats.length) {
     if (container) container.innerHTML = '<p style="color:#9ca3af;font-size:14px;">Error cargando estadísticas</p>';
   }
 }
+/* ================================
+   SUCURSALES
+================================ */
+
+async function loadSucursales() {
+  if (!myStore) return;
+  const container = document.getElementById('sucursalesList');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`/api/stores/${myStore.id}/sucursales`);
+    if (!res.ok) return;
+    const sucursales = await res.json();
+
+    if (!sucursales.length) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:28px;color:#9ca3af;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="display:block;margin:0 auto 12px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 2.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z"/>
+          </svg>
+          <p style="font-size:14px;margin-bottom:4px;">Todavía no cargaste ninguna sucursal</p>
+          <p style="font-size:12px;">Tu perfil principal ya aparece como ubicación principal</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = sucursales.map(s => `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+        background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:10px;">
+        <div style="width:42px;height:42px;border-radius:12px;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 0 1 15 0Z"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:#111827;">${s.name}</div>
+          ${s.street ? `<div style="font-size:12px;color:#6b7280;margin-top:2px;">
+            ${s.street}${s.local ? ` · Local ${s.local}` : ''}${s.city ? ` · ${s.city}` : ''}
+          </div>` : ''}
+          ${s.phone ? `<div style="font-size:12px;color:#ea580c;font-weight:600;margin-top:2px;">${s.phone}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button onclick="openSucursalModal(${JSON.stringify(s).replace(/"/g, '&quot;')})"
+            style="background:white;border:1px solid #e5e7eb;padding:7px 12px;
+              border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#374151;">
+            Editar
+          </button>
+          <button onclick="deleteSucursal(${s.id})"
+            style="background:none;border:none;color:#dc2626;cursor:pointer;padding:7px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch(err) {
+    console.error('Error sucursales:', err);
+  }
+}
+
+window.openSucursalModal = function(sucursal = null) {
+  const modal = document.getElementById('sucursalModal');
+  modal.style.display = 'flex';
+
+  document.getElementById('sucursalId').value     = sucursal?.id    || '';
+  document.getElementById('sucursalName').value   = sucursal?.name  || '';
+  document.getElementById('sucursalStreet').value = sucursal?.street || '';
+  document.getElementById('sucursalLocal').value  = sucursal?.local  || '';
+  document.getElementById('sucursalCity').value   = sucursal?.city   || '';
+  document.getElementById('sucursalPhone').value  = sucursal?.phone  || '';
+
+  document.getElementById('sucursalModalTitle').textContent =
+    sucursal ? 'Editar sucursal' : 'Nueva sucursal';
+};
+
+window.closeSucursalModal = function() {
+  document.getElementById('sucursalModal').style.display = 'none';
+};
+
+window.saveSucursal = async function() {
+  const btn  = document.getElementById('saveSucursalBtn');
+  const id   = document.getElementById('sucursalId').value;
+  const name = document.getElementById('sucursalName').value.trim();
+
+  if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
+
+  const body = {
+    store_id: myStore.id,
+    name,
+    street: document.getElementById('sucursalStreet').value.trim() || null,
+    local:  document.getElementById('sucursalLocal').value.trim()  || null,
+    city:   document.getElementById('sucursalCity').value.trim()   || null,
+    phone:  document.getElementById('sucursalPhone').value.trim()  || null,
+  };
+
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(id ? `/api/sucursales/${id}` : '/api/sucursales', {
+      method: id ? 'PUT' : 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) { showToast('Error guardando', 'error'); return; }
+
+    showToast(id ? 'Sucursal actualizada' : 'Sucursal creada', 'success');
+    closeSucursalModal();
+    loadSucursales();
+
+  } catch(e) {
+    showToast('Error de conexión', 'error');
+  } finally {
+    btn.textContent = 'Guardar sucursal';
+    btn.disabled = false;
+  }
+};
+
+window.deleteSucursal = async function(id) {
+  if (!confirm('¿Eliminar esta sucursal?')) return;
+  try {
+    await fetch(`/api/sucursales/${id}`, { method:'DELETE', credentials:'include' });
+    showToast('Sucursal eliminada', 'success');
+    loadSucursales();
+  } catch(e) {
+    showToast('Error eliminando', 'error');
+  }
+};
