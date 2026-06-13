@@ -344,7 +344,9 @@ card.className = "card";
 card.setAttribute("data-id", store.id);
 
 card.innerHTML = `
-  ${buildCarousel(p.images?.length > 1 ? p.images : [p.image_url || '/img/default.png'], p.slug)}
+  <img src="${store.logo_url || '/img/default.png'}" 
+    style="width:100%;height:160px;object-fit:cover;"
+    onerror="this.src='/img/default.png'">
 
   <div class="card-content">
 
