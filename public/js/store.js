@@ -8,6 +8,7 @@ let currentUser = null;
 let isOwner = false;
 let storeData = null;
 let storeIdGlobal = null;
+let storeMap = null;
 
 
 
@@ -917,15 +918,15 @@ function setupMap(store) {
   const lat = store.lat || -34.6037;
   const lng = store.lng || -58.3816;
 
-  const map = L.map("storeMap").setView([lat, lng], 16);
+  storeMap = L.map("storeMap").setView([lat, lng], 16);
 
   L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
     maxZoom: 19
-  }).addTo(map);
+  }).addTo(storeMap);
 
-  L.marker([lat, lng]).addTo(map).bindPopup(store.name);
+  L.marker([lat, lng]).addTo(storeMap).bindPopup(store.name);
 
-  setTimeout(() => map.invalidateSize(), 300);
+  setTimeout(() => storeMap.invalidateSize(), 300);
 }
 
 function getSubcategoryNames(ids) {
@@ -2855,6 +2856,49 @@ async function loadSucursalesPublic(storeId) {
         </div>
       `;
     }).join('');
+    // agregar marcadores de sucursales al mapa
+    if (storeMap) {
+      sucursales.forEach(s => {
+        if (!s.lat || !s.lng) return;
+
+        const icon = L.divIcon({
+          html: `
+            <div style="
+              width:32px;height:32px;border-radius:50%;
+              background:linear-gradient(135deg,#ea580c,#f97316);
+              border:3px solid white;
+              box-shadow:0 2px 8px rgba(234,88,12,0.4);
+              display:flex;align-items:center;justify-content:center;
+            ">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 2.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z"/>
+              </svg>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          className: 'leaflet-div-icon-clean'
+        });
+
+        const addressParts = [s.street, s.local ? `Local ${s.local}` : null, s.city]
+          .filter(Boolean).join(' · ');
+
+        L.marker([parseFloat(s.lat), parseFloat(s.lng)], { icon })
+          .addTo(storeMap)
+          .bindPopup(`<strong>${s.name}</strong>${addressParts ? `<br><span style="font-size:12px;color:#6b7280;">${addressParts}</span>` : ''}`);
+      });
+
+      // ajustar zoom para mostrar todos los marcadores
+      const allCoords = sucursales
+        .filter(s => s.lat && s.lng)
+        .map(s => [parseFloat(s.lat), parseFloat(s.lng)]);
+
+      if (allCoords.length && storeData?.lat && storeData?.lng) {
+        allCoords.push([parseFloat(storeData.lat), parseFloat(storeData.lng)]);
+        const bounds = L.latLngBounds(allCoords);
+        storeMap.fitBounds(bounds, { padding: [40, 40] });
+      }
+    }
 
   } catch(err) {
     console.error('Error cargando sucursales:', err);
