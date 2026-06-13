@@ -224,7 +224,7 @@
   background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);
   align-items:center;justify-content:center;padding:20px;">
   <div style="background:white;border-radius:24px;padding:28px;max-width:480px;
-    width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+    width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);max-height:92vh;overflow-y:auto;">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
       <h3 id="sucursalModalTitle" style="font-size:18px;font-weight:800;color:#111827;margin:0;">Nueva sucursal</h3>
@@ -233,6 +233,8 @@
     </div>
 
     <input type="hidden" id="sucursalId">
+    <input type="hidden" id="sucursalLat">
+    <input type="hidden" id="sucursalLng">
 
     <div style="display:flex;flex-direction:column;gap:14px;">
 
@@ -246,10 +248,21 @@
 
       <div>
         <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Dirección</label>
-        <input id="sucursalStreet" placeholder="ej: San Martín 1234, Rosario"
+        <input id="sucursalAddressInput" placeholder="Buscar dirección..."
           style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
             font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
           onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+      <!-- MAPA -->
+      <div id="sucursalMapContainer" style="height:200px;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div id="sucursalMap" style="height:100%;width:100%;"></div>
+      </div>
+
+      <div id="sucursalAddressConfirm" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;
+        border-radius:12px;padding:10px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:2px;">Ubicación confirmada</div>
+        <div id="sucursalAddressText" style="font-size:13px;color:#374151;"></div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -293,9 +306,8 @@
         Guardar sucursal
       </button>
     </div>
-
   </div>
-</div>
+</div>  
 <!-- PUNTOENVÍO -->
 <section id="deliveriesSection" style="margin-bottom:24px;">
 
