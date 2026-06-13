@@ -2916,7 +2916,11 @@ app.get('/delivery/cliente/:token', (req, res) => {
     apartment,
     reference_notes,
     lat,
-    lng
+    lng,
+    instagram_url,
+    tiktok_url,
+    facebook_url,
+    website_url
   } = req.body;
   
       let opening_hours = null;
@@ -2953,7 +2957,7 @@ app.get('/delivery/cliente/:token', (req, res) => {
   }
   
     try {
-      const result = await pool.query(
+     const result = await pool.query(
     `UPDATE stores
      SET 
        name = COALESCE($1, name),
@@ -2971,8 +2975,12 @@ app.get('/delivery/cliente/:token', (req, res) => {
        logo_url = COALESCE($13, logo_url),
        cover_url = COALESCE($14, cover_url),
        subcategory_ids = COALESCE($15, subcategory_ids),
-      opening_hours = COALESCE($16, opening_hours)
-     WHERE id = $17 AND user_id = $18
+       opening_hours = COALESCE($16, opening_hours),
+       instagram_url = COALESCE($17, instagram_url),
+       tiktok_url = COALESCE($18, tiktok_url),
+       facebook_url = COALESCE($19, facebook_url),
+       website_url = COALESCE($20, website_url)
+     WHERE id = $21 AND user_id = $22
      RETURNING *`,
    [
     name,
@@ -2991,6 +2999,10 @@ app.get('/delivery/cliente/:token', (req, res) => {
     cover_url,
     subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
     opening_hours,
+    instagram_url || null,
+    tiktok_url    || null,
+    facebook_url  || null,
+    website_url   || null,
     req.params.id,
     req.user.id
   ]
