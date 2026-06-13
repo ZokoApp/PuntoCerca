@@ -4802,7 +4802,121 @@ app.delete('/api/image-tags/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Error eliminando tag' });
   }
 });
+/* ================================
+   SUCURSALES
+================================ */
 
+// GET sucursales de una tienda (público)
+app.get('/api/stores/:id/sucursales', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM sucursales WHERE store_id = $1 ORDER BY created_at ASC`,
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET SUCURSALES:', err.message);
+    res.status(500).json({ error: 'Error obteniendo sucursales' });
+  }
+});
+
+// POST crear sucursal
+app.post('/api/sucursales', authMiddleware, async (req, res) => {
+  try {
+    const { store_id, name, street, local, city, lat, lng, phone, opening_hours } = req.body;
+    if (!store_id || !name) return res.status(400).json({ error: 'Faltan datos requeridos' });
+
+    // verificar ownership
+    const check = await pool.query(
+      `SELECT id FROM stores WHERE id = $1 AND user_id = $2`,
+      [store_id, req.user.id]
+    );
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const result = await pool.query(`
+      INSERT INTO sucursales (store_id, name, street, local, city, lat, lng, phone, opening_hours)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `, [
+      store_id,
+      name,
+      street || null,
+      local  || null,
+      city   || null,
+      lat    || null,
+      lng    || null,
+      phone  || null,
+      opening_hours ? JSON.stringify(opening_hours) : null
+    ]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error creando sucursal' });
+  }
+});
+
+// PUT editar sucursal
+app.put('/api/sucursales/:id', authMiddleware, async (req, res) => {
+  try {
+    const { name, street, local, city, lat, lng, phone, opening_hours } = req.body;
+
+    // verificar ownership
+    const check = await pool.query(`
+      SELECT s.id FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.id = $1 AND st.user_id = $2
+    `, [req.params.id, req.user.id]);
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const result = await pool.query(`
+      UPDATE sucursales SET
+        name          = COALESCE($1, name),
+        street        = COALESCE($2, street),
+        local         = COALESCE($3, local),
+        city          = COALESCE($4, city),
+        lat           = COALESCE($5, lat),
+        lng           = COALESCE($6, lng),
+        phone         = COALESCE($7, phone),
+        opening_hours = COALESCE($8, opening_hours)
+      WHERE id = $9
+      RETURNING *
+    `, [
+      name          || null,
+      street        || null,
+      local         || null,
+      city          || null,
+      lat           || null,
+      lng           || null,
+      phone         || null,
+      opening_hours ? JSON.stringify(opening_hours) : null,
+      req.params.id
+    ]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR PUT SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error actualizando sucursal' });
+  }
+});
+
+// DELETE sucursal
+app.delete('/api/sucursales/:id', authMiddleware, async (req, res) => {
+  try {
+    const check = await pool.query(`
+      SELECT s.id FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.id = $1 AND st.user_id = $2
+    `, [req.params.id, req.user.id]);
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    await pool.query(`DELETE FROM sucursales WHERE id = $1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error eliminando sucursal' });
+  }
+});
   /* ================================
      START
   ================================ */
