@@ -1,56 +1,57 @@
 // ============================
 // PRODUCTOS DESTACADOS
 // ============================
-export function loadProducts(){
-
+export function loadProducts() {
   fetch('/api/products?featured=true')
   .then(res => res.json())
   .then(products => {
-
     const container = document.getElementById("products");
-    if(!container) return;
-
+    if (!container) return;
     container.innerHTML = "";
 
-   products.forEach(product => {
+    products.forEach(product => {
+      // normalizar imágenes
+      let imgs = [];
+      if (Array.isArray(product.images) && product.images.length) {
+        imgs = product.images;
+      } else if (typeof product.images === 'string') {
+        try { imgs = JSON.parse(product.images); } catch { imgs = []; }
+      }
+      if (!imgs.length && product.image_url) imgs = [product.image_url];
+      imgs = [...new Set(imgs)].filter(Boolean);
 
-  const card = document.createElement("div");
-  card.className = "pc-card";
+      const card = document.createElement("div");
+      card.className = "pc-card";
 
-  card.innerHTML = `
-    <div class="pc-card-img">
-      <img src="${product.image_url}" alt="${product.name}">
-    </div>
-
-    <div class="pc-card-body">
-      <div>
-        <div class="pc-title">${product.name}</div>
-        <div class="pc-store">${product.store_name || ""}</div>
-      </div>
-
-      <div>
-        <div class="pc-price">
-          ${window.renderPriceHTML(product)}
+      card.innerHTML = `
+        <div class="pc-card-img" style="overflow:hidden;border-radius:12px 12px 0 0;">
+          ${window.buildCarousel ? window.buildCarousel(imgs, product.name) : `<img src="${imgs[0] || '/img/default.png'}" style="width:100%;height:200px;object-fit:cover;">`}
         </div>
 
-        <div class="pc-rating">
-          ${
-            product.rating_avg
-              ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
-              : "Sin valoraciones"
-          }
+        <div class="pc-card-body">
+          <div>
+            <div class="pc-title">${product.name}</div>
+            <div class="pc-store">${product.store_name || ""}</div>
+          </div>
+          <div>
+            <div class="pc-price">
+              ${window.renderPriceHTML(product)}
+            </div>
+            <div class="pc-rating">
+              ${product.rating_avg
+                ? `⭐ ${parseFloat(product.rating_avg).toFixed(1)} (${product.rating_count || 0})`
+                : "Sin valoraciones"}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  `;
+      `;
 
-  card.addEventListener("click", () => {
-    window.location.href = `/product/${product.slug || product.id}`;
-  });
+      card.addEventListener("click", () => {
+        window.location.href = `/product/${product.slug || product.id}`;
+      });
 
-  container.appendChild(card);
-});
-
+      container.appendChild(card);
+    });
   })
   .catch(err => console.error("Error cargando productos:", err));
 }
