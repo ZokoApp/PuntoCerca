@@ -621,16 +621,10 @@ function handleUIByRole(store) {
 
     if (whatsappBtn) {
       whatsappBtn.style.display = "inline-block";
-
-      if (currentUser) {
-        if (store.phone) {
-          whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g, "")}`;
-        }
-      } else {
-        whatsappBtn.onclick = (e) => {
-          e.preventDefault();
-          window.location.href = "/login";
-        };
+      if (store.phone) {
+        whatsappBtn.href = `https://wa.me/${store.phone.replace(/\D/g, "")}`;
+        whatsappBtn.target = "_blank";
+        whatsappBtn.rel = "noopener noreferrer";
       }
     }
 
