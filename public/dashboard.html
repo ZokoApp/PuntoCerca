@@ -194,7 +194,108 @@
     </section>
 
   
+<!-- SUCURSALES -->
+<section class="panel-card" style="margin-bottom:24px;">
+  <div class="panel-head">
+    <div>
+      <h2 style="display:flex;align-items:center;gap:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 2.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z"/>
+        </svg>
+        Sucursales
+      </h2>
+      <p>Gestioná las distintas ubicaciones de tu comercio</p>
+    </div>
+    <button onclick="openSucursalModal()" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;border:none;padding:10px 18px;
+      border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+      + Nueva sucursal
+    </button>
+  </div>
 
+  <div id="sucursalesList">
+    <div style="text-align:center;padding:20px;color:#9ca3af;">Cargando...</div>
+  </div>
+</section>
+
+<!-- MODAL SUCURSAL -->
+<div id="sucursalModal" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:24px;padding:28px;max-width:480px;
+    width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h3 id="sucursalModalTitle" style="font-size:18px;font-weight:800;color:#111827;margin:0;">Nueva sucursal</h3>
+      <button onclick="closeSucursalModal()" style="background:#f3f4f6;border:none;
+        width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+
+    <input type="hidden" id="sucursalId">
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Nombre de la sucursal *</label>
+        <input id="sucursalName" placeholder="ej: Sucursal Centro, Local Norte..."
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Dirección</label>
+        <input id="sucursalStreet" placeholder="ej: San Martín 1234, Rosario"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Local</label>
+          <input id="sucursalLocal" placeholder="ej: Local 3"
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Ciudad</label>
+          <input id="sucursalCity" placeholder="ej: Rosario"
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Teléfono <span style="color:#d1d5db;font-weight:400;">(si es distinto al principal)</span></label>
+        <input id="sucursalPhone" type="tel" placeholder="ej: 3413001234"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button onclick="closeSucursalModal()" style="flex:1;padding:13px;
+        border:1.5px solid #e5e7eb;border-radius:14px;font-size:14px;
+        font-weight:700;cursor:pointer;background:white;color:#374151;">
+        Cancelar
+      </button>
+      <button onclick="saveSucursal()" id="saveSucursalBtn" style="flex:2;padding:13px;
+        border:none;border-radius:14px;font-size:14px;font-weight:700;
+        cursor:pointer;color:white;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        box-shadow:0 4px 14px rgba(234,88,12,0.3);">
+        Guardar sucursal
+      </button>
+    </div>
+
+  </div>
+</div>
 <!-- PUNTOENVÍO -->
 <section id="deliveriesSection" style="margin-bottom:24px;">
 
