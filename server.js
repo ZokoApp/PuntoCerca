@@ -2353,6 +2353,25 @@ app.get("/api/events/:id", async (req, res) => {
   }
 });
 
+// GET todas las sucursales con datos de la tienda madre (para mapa principal)
+app.get('/api/sucursales/map', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.name, s.street, s.local, s.city, s.lat, s.lng, s.phone,
+             st.name  AS store_name,
+             st.slug  AS store_slug,
+             st.logo_url AS store_logo
+      FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET SUCURSALES MAP:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
 app.put(
   "/api/events/:id",
   authMiddleware,
