@@ -7,6 +7,79 @@ import { SUBCATEGORY_MAP } from '../data/categories.js';
   export let activeCard = null;
 
   const usedPositions = {};
+function buildCarousel(images, productSlug) {
+  if (!images || images.length <= 1) {
+    return `<img src="${images?.[0] || '/img/default.png'}" 
+      style="width:100%;height:180px;object-fit:cover;display:block;"
+      onerror="this.src='/img/default.png'">`;
+  }
+
+  const id = `car_${Math.random().toString(36).slice(2,8)}`;
+
+  const slides = images.map((url, i) => `
+    <div style="min-width:100%;height:180px;flex-shrink:0;">
+      <img src="${url}" onerror="this.src='/img/default.png'"
+        style="width:100%;height:180px;object-fit:cover;display:block;">
+    </div>
+  `).join('');
+
+  const dots = images.map((_, i) => `
+    <div data-i="${i}" style="
+      width:${i===0?'18px':'6px'};height:6px;border-radius:999px;
+      background:${i===0?'white':'rgba(255,255,255,0.5)'};
+      transition:all 0.2s;cursor:pointer;
+    " onclick="carouselGo('${id}',${i})"></div>
+  `).join('');
+
+  return `
+    <div id="${id}" style="position:relative;overflow:hidden;border-radius:0;user-select:none;">
+      <div class="car-inner" style="display:flex;transition:transform 0.3s ease;will-change:transform;">
+        ${slides}
+      </div>
+      <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+        display:flex;gap:4px;align-items:center;">
+        ${dots}
+      </div>
+      <div style="position:absolute;inset:0;" 
+        ontouchstart="carTouchStart(event,'${id}')"
+        ontouchend="carTouchEnd(event,'${id}',${images.length})">
+      </div>
+    </div>
+  `;
+}
+
+window._carState = {};
+
+window.carouselGo = function(id, idx) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const inner = el.querySelector('.car-inner');
+  const dots = el.querySelectorAll('[data-i]');
+  const total = inner.children.length;
+  idx = Math.max(0, Math.min(idx, total - 1));
+  window._carState[id] = idx;
+  inner.style.transform = `translateX(-${idx * 100}%)`;
+  dots.forEach((d, i) => {
+    d.style.width = i === idx ? '18px' : '6px';
+    d.style.background = i === idx ? 'white' : 'rgba(255,255,255,0.5)';
+  });
+};
+
+window.carTouchStart = function(e, id) {
+  window._carState[id + '_x'] = e.touches[0].clientX;
+};
+
+window.carTouchEnd = function(e, id, total) {
+  const startX = window._carState[id + '_x'];
+  if (startX == null) return;
+  const diff = startX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) < 40) return;
+  const cur = window._carState[id] || 0;
+  const next = diff > 0
+    ? Math.min(cur + 1, total - 1)
+    : Math.max(cur - 1, 0);
+  carouselGo(id, next);
+};
 
 function getStoreStatusInfo(store) {
 
@@ -271,7 +344,7 @@ card.className = "card";
 card.setAttribute("data-id", store.id);
 
 card.innerHTML = `
-  <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
+  ${buildCarousel(p.images?.length > 1 ? p.images : [p.image_url || '/img/default.png'], p.slug)}
 
   <div class="card-content">
 
