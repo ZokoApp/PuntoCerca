@@ -2295,22 +2295,70 @@ function renderTagDots(tags, itemId) {
       position:absolute;left:${tag.x_percent}%;top:${tag.y_percent}%;
       transform:translate(-50%,-50%);z-index:10;cursor:pointer;
     `;
-    dot.innerHTML = `
-      <style>
-        @keyframes tagPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.6);}70%{box-shadow:0 0 0 8px rgba(255,255,255,0);}}
-      </style>
-      <div style="
-        width:26px;height:26px;border-radius:50%;background:white;
-        box-shadow:0 2px 8px rgba(0,0,0,0.35);
-        display:flex;align-items:center;justify-content:center;
-        animation:tagPulse 2s infinite;
-      ">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#ea580c">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
-        </svg>
-      </div>
-    `;
 
+    // ── PRECIO ──────────────────────────────
+    if (tag.type === 'price') {
+      dot.innerHTML = `
+        <div style="
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          color:white;padding:8px 18px;border-radius:999px;
+          font-size:15px;font-weight:800;white-space:nowrap;
+          box-shadow:0 3px 14px rgba(0,0,0,0.3);
+          text-shadow:0 1px 2px rgba(0,0,0,0.15);
+        ">${tag.label || '$0'}</div>
+      `;
+      dot.onclick = (e) => { e.stopPropagation(); };
+
+    // ── LINK ────────────────────────────────
+    } else if (tag.type === 'link') {
+      let hostname = 'Ver enlace';
+      try { hostname = new URL(tag.url).hostname.replace('www.',''); } catch(e) {}
+      dot.innerHTML = `
+        <div style="
+          background:rgba(255,255,255,0.93);backdrop-filter:blur(10px);
+          border-radius:16px;padding:10px 14px;
+          display:flex;align-items:center;gap:9px;
+          box-shadow:0 4px 16px rgba(0,0,0,0.2);
+          min-width:150px;max-width:220px;
+        ">
+          <div style="width:32px;height:32px;border-radius:8px;background:#f0f9ff;
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#0ea5e9">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+            </svg>
+          </div>
+          <div style="min-width:0;">
+            <div style="font-size:10px;color:#6b7280;font-weight:600;">Visitar enlace</div>
+            <div style="font-size:12px;font-weight:700;color:#111827;
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;">
+              ${tag.label || hostname}
+            </div>
+          </div>
+        </div>
+      `;
+      dot.onclick = (e) => { e.stopPropagation(); if (tag.url) window.open(tag.url, '_blank'); };
+
+    // ── PRODUCTO (dot original) ──────────────
+    } else {
+      dot.innerHTML = `
+        <style>
+          @keyframes tagPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.6);}70%{box-shadow:0 0 0 8px rgba(255,255,255,0);}}
+        </style>
+        <div style="
+          width:26px;height:26px;border-radius:50%;background:white;
+          box-shadow:0 2px 8px rgba(0,0,0,0.35);
+          display:flex;align-items:center;justify-content:center;
+          animation:tagPulse 2s infinite;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#ea580c">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+          </svg>
+        </div>
+      `;
+      dot.onclick = (e) => { e.stopPropagation(); showTagPopup(tag, dot); };
+    }
+
+    // botón eliminar (solo dueño)
     if (isOwner) {
       const del = document.createElement('button');
       del.style.cssText = `
@@ -2322,7 +2370,7 @@ function renderTagDots(tags, itemId) {
       del.textContent = '✕';
       del.onclick = async (e) => {
         e.stopPropagation();
-        if (!confirm('¿Eliminar este link?')) return;
+        if (!confirm('¿Eliminar este sticker?')) return;
         await fetch(`/api/image-tags/${tag.id}`, { method:'DELETE', credentials:'include' });
         loadTagsForItem(itemId);
       };
@@ -2331,7 +2379,6 @@ function renderTagDots(tags, itemId) {
       dot.onmouseleave = () => { del.style.display = 'none'; };
     }
 
-    dot.addEventListener('click', (e) => { e.stopPropagation(); showTagPopup(tag, dot); });
     wrapper.appendChild(dot);
   });
 }
@@ -2432,23 +2479,52 @@ async function openTagCreator(x, y, itemId) {
 
   modal.innerHTML = `
     <div style="background:white;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;">
+
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <h3 style="font-size:16px;font-weight:800;color:#111827;margin:0;">Agregar link</h3>
+        <h3 style="font-size:16px;font-weight:800;color:#111827;margin:0;">Agregar sticker</h3>
         <button onclick="document.getElementById('tagCreatorModal').remove()"
           style="background:#f3f4f6;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
       </div>
 
-      <div style="display:flex;gap:6px;margin-bottom:20px;background:#f8fafc;border-radius:12px;padding:4px;">
-        <button id="tabProducts" onclick="switchTagTab('products')"
-          style="flex:1;padding:9px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-          Mis productos
-        </button>
-        <button id="tabUrl" onclick="switchTagTab('url')"
-          style="flex:1;padding:9px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:#9ca3af;">
-          URL externa
-        </button>
+      <!-- TIPO DE STICKER -->
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:10px;">Tipo</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+
+          <button id="typeBtn_product" onclick="switchTagType('product')" style="
+            padding:12px 8px;border:2px solid #ea580c;border-radius:14px;
+            background:#fff7ed;cursor:pointer;display:flex;flex-direction:column;
+            align-items:center;gap:6px;transition:all 0.15s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#ea580c">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+            </svg>
+            <span style="font-size:11px;font-weight:700;color:#ea580c;">Producto</span>
+          </button>
+
+          <button id="typeBtn_price" onclick="switchTagType('price')" style="
+            padding:12px 8px;border:2px solid #e5e7eb;border-radius:14px;
+            background:white;cursor:pointer;display:flex;flex-direction:column;
+            align-items:center;gap:6px;transition:all 0.15s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#6b7280">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span style="font-size:11px;font-weight:700;color:#6b7280;">Precio</span>
+          </button>
+
+          <button id="typeBtn_link" onclick="switchTagType('link')" style="
+            padding:12px 8px;border:2px solid #e5e7eb;border-radius:14px;
+            background:white;cursor:pointer;display:flex;flex-direction:column;
+            align-items:center;gap:6px;transition:all 0.15s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#6b7280">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+            </svg>
+            <span style="font-size:11px;font-weight:700;color:#6b7280;">Link</span>
+          </button>
+
+        </div>
       </div>
 
+      <!-- PANEL PRODUCTO -->
       <div id="tagPanelProducts">
         ${products.length ? `
           <input id="tagProductSearch" placeholder="Buscar producto..."
@@ -2480,17 +2556,34 @@ async function openTagCreator(x, y, itemId) {
         ` : `<p style="text-align:center;color:#9ca3af;padding:24px 0;font-size:14px;">No tenés productos cargados todavía</p>`}
       </div>
 
-      <div id="tagPanelUrl" style="display:none;">
+      <!-- PANEL PRECIO -->
+      <div id="tagPanelPrice" style="display:none;">
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">Texto del precio</label>
+        <input id="tagPriceLabel" type="text" placeholder="ej: $14.000, Desde $5.000, Oferta 2x1..."
+          style="width:100%;padding:12px 16px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        <div style="margin-top:16px;padding:14px;background:#fff7ed;border-radius:14px;border:1px solid #fed7aa;">
+          <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;font-weight:600;">Vista previa</div>
+          <div style="display:inline-block;background:linear-gradient(135deg,#ea580c,#f97316);
+            color:white;padding:8px 18px;border-radius:999px;font-size:15px;font-weight:800;">
+            $14.000
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL LINK -->
+      <div id="tagPanelLink" style="display:none;">
         <div style="margin-bottom:14px;">
           <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">URL</label>
-          <input id="tagUrlInput" type="url" placeholder="https://..."
+          <input id="tagUrlInput" type="url" placeholder="https://wa.me/... o cualquier link"
             style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
               font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
             onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Etiqueta</label>
-          <input id="tagLabelInput" type="text" placeholder="ej: Ver más, Comprar ahora..."
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Etiqueta <span style="color:#d1d5db;font-weight:400;">(opcional)</span></label>
+          <input id="tagLabelInput" type="text" placeholder="ej: Pedí por WhatsApp, Ver menú..."
             style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
               font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
             onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
@@ -2502,7 +2595,7 @@ async function openTagCreator(x, y, itemId) {
           font-size:14px;font-weight:700;cursor:pointer;color:white;
           background:linear-gradient(135deg,#ea580c,#f97316);
           box-shadow:0 4px 14px rgba(234,88,12,0.3);">
-        Agregar link →
+        Agregar sticker →
       </button>
     </div>
   `;
@@ -2510,20 +2603,34 @@ async function openTagCreator(x, y, itemId) {
   document.body.appendChild(modal);
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
   window._selectedTagProductId = null;
+  window._currentTagType = 'product';
 }
+window.switchTagType = function(type) {
+  window._currentTagType = type;
 
-window.switchTagTab = function(tab) {
-  const isP = tab === 'products';
-  document.getElementById('tagPanelProducts').style.display = isP ? 'block' : 'none';
-  document.getElementById('tagPanelUrl').style.display      = isP ? 'none'  : 'block';
-  const tp = document.getElementById('tabProducts');
-  const tu = document.getElementById('tabUrl');
-  tp.style.background  = isP ? 'white'       : 'transparent';
-  tp.style.color       = isP ? '#111827'      : '#9ca3af';
-  tp.style.boxShadow   = isP ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
-  tu.style.background  = isP ? 'transparent' : 'white';
-  tu.style.color       = isP ? '#9ca3af'     : '#111827';
-  tu.style.boxShadow   = isP ? 'none'        : '0 1px 3px rgba(0,0,0,0.1)';
+  // resetear todos los botones
+  ['product','price','link'].forEach(t => {
+    const btn = document.getElementById(`typeBtn_${t}`);
+    if (!btn) return;
+    btn.style.borderColor = '#e5e7eb';
+    btn.style.background  = 'white';
+    btn.querySelector('span').style.color = '#6b7280';
+    btn.querySelector('svg').style.stroke  = '#6b7280';
+  });
+
+  // activar el seleccionado
+  const active = document.getElementById(`typeBtn_${type}`);
+  if (active) {
+    active.style.borderColor = '#ea580c';
+    active.style.background  = '#fff7ed';
+    active.querySelector('span').style.color = '#ea580c';
+    active.querySelector('svg').style.stroke  = '#ea580c';
+  }
+
+  // mostrar panel correspondiente
+  document.getElementById('tagPanelProducts').style.display = type === 'product' ? 'block' : 'none';
+  document.getElementById('tagPanelPrice').style.display    = type === 'price'   ? 'block' : 'none';
+  document.getElementById('tagPanelLink').style.display     = type === 'link'    ? 'block' : 'none';
 };
 
 window.selectTagProduct = function(el) {
@@ -2549,24 +2656,43 @@ window.filterTagProducts = function(q) {
 
 window.confirmAddTag = async function(x, y, itemId) {
   const btn  = document.getElementById('tagConfirmBtn');
-  const isProd = document.getElementById('tagPanelProducts').style.display !== 'none';
+  const type = window._currentTagType || 'product';
   let body;
 
-  if (isProd) {
+  if (type === 'product') {
     if (!window._selectedTagProductId) { showToast('Seleccioná un producto', 'error'); return; }
     body = {
       highlight_item_id: itemId,
       x_percent: x, y_percent: y,
-      product_id: parseInt(window._selectedTagProductId)
+      product_id: parseInt(window._selectedTagProductId),
+      type: 'product'
     };
-  } else {
+
+  } else if (type === 'price') {
+    const label = document.getElementById('tagPriceLabel')?.value.trim();
+    if (!label) { showToast('Escribí el precio', 'error'); return; }
+    body = {
+      highlight_item_id: itemId,
+      x_percent: x, y_percent: y,
+      label,
+      type: 'price'
+    };
+
+  } else if (type === 'link') {
     const url   = document.getElementById('tagUrlInput')?.value.trim();
     const label = document.getElementById('tagLabelInput')?.value.trim();
     if (!url) { showToast('Ingresá una URL', 'error'); return; }
-    body = { highlight_item_id: itemId, x_percent: x, y_percent: y, url, label: label || 'Ver más' };
+    body = {
+      highlight_item_id: itemId,
+      x_percent: x, y_percent: y,
+      url,
+      label: label || 'Visitar enlace',
+      type: 'link'
+    };
   }
 
-  btn.textContent = 'Guardando...'; btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
 
   try {
     const res = await fetch('/api/image-tags', {
@@ -2576,11 +2702,11 @@ window.confirmAddTag = async function(x, y, itemId) {
     });
     if (!res.ok) { showToast('Error', 'error'); return; }
     document.getElementById('tagCreatorModal')?.remove();
-    showToast('Link agregado', 'success');
+    showToast('Sticker agregado', 'success');
     loadTagsForItem(itemId);
   } catch(e) {
     showToast('Error de conexión', 'error');
   } finally {
-    if (btn) { btn.textContent = 'Agregar link →'; btn.disabled = false; }
+    if (btn) { btn.textContent = 'Agregar sticker →'; btn.disabled = false; }
   }
 };
