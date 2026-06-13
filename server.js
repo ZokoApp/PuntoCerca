@@ -4700,7 +4700,7 @@ app.get('/api/image-tags', async (req, res) => {
 // POST crear tag
 app.post('/api/image-tags', authMiddleware, async (req, res) => {
   try {
-    const { highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id } = req.body;
+    const { highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id, type } = req.body;
 
     if (!highlight_item_id && !pizarra_id) {
       return res.status(400).json({ error: 'Se requiere highlight_item_id o pizarra_id' });
@@ -4709,7 +4709,7 @@ app.post('/api/image-tags', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Posición requerida' });
     }
 
-    // verificar que la imagen pertenece al usuario
+    // verificar ownership
     if (highlight_item_id) {
       const check = await pool.query(`
         SELECT i.id FROM highlight_items i
@@ -4729,8 +4729,8 @@ app.post('/api/image-tags', authMiddleware, async (req, res) => {
 
     const result = await pool.query(`
       INSERT INTO image_tags
-        (highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id, type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
       highlight_item_id || null,
@@ -4739,10 +4739,10 @@ app.post('/api/image-tags', authMiddleware, async (req, res) => {
       y_percent,
       label || null,
       url || null,
-      product_id || null
+      product_id || null,
+      type || 'product'
     ]);
 
-    // enriquecer con datos del producto si tiene
     let tag = result.rows[0];
     if (tag.product_id) {
       const prodRes = await pool.query(
@@ -4751,13 +4751,7 @@ app.post('/api/image-tags', authMiddleware, async (req, res) => {
       );
       if (prodRes.rows.length) {
         const p = prodRes.rows[0];
-        tag = {
-          ...tag,
-          product_name: p.name,
-          product_price: p.price,
-          product_image: p.image_url,
-          product_slug: p.slug
-        };
+        tag = { ...tag, product_name: p.name, product_price: p.price, product_image: p.image_url, product_slug: p.slug };
       }
     }
 
