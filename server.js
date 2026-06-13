@@ -3041,30 +3041,39 @@ app.get('/delivery/cliente/:token', (req, res) => {
   
   
   app.get('/api/stores/:id/products', async (req, res) => {
-    try {
-  
-      const result = await pool.query(`
-        SELECT 
-          p.*,
-          s.name AS store_name,
-          AVG(r.rating)::numeric(10,2) AS rating_avg,
-          COUNT(r.rating) AS rating_count
-        FROM products p
-        LEFT JOIN stores s ON s.id = p.store_id
-        LEFT JOIN product_ratings r ON r.product_id = p.id
-        WHERE p.store_id = $1
-        GROUP BY p.id, s.name
-        ORDER BY p.id DESC
-      `, [req.params.id]);
-  
-      res.json(result.rows);
-  
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error obteniendo productos" });
-    }
-  });
-  
+  try {
+    const result = await pool.query(`
+      SELECT 
+        p.*,
+        s.name AS store_name,
+        AVG(r.rating)::numeric(10,2) AS rating_avg,
+        COUNT(r.rating) AS rating_count
+      FROM products p
+      LEFT JOIN stores s ON s.id = p.store_id
+      LEFT JOIN product_ratings r ON r.product_id = p.id
+      WHERE p.store_id = $1
+      GROUP BY p.id, s.name
+      ORDER BY p.id DESC
+    `, [req.params.id]);
+
+    const products = result.rows.map(p => {
+      if (p.images && typeof p.images === 'string') {
+        try { p.images = JSON.parse(p.images); } catch { p.images = []; }
+      }
+      if (!Array.isArray(p.images)) p.images = [];
+      if (p.image_url && !p.images.includes(p.image_url)) {
+        p.images = [p.image_url, ...p.images];
+      }
+      p.images = [...new Set(p.images)].filter(Boolean);
+      return p;
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo productos" });
+  }
+});
   /* ================================
      PÁGINAS
   ================================ */
