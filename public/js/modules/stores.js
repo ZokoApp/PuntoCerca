@@ -333,6 +333,63 @@ window.location.href = `/${store.slug}`;
           container.appendChild(card);
       });
 
+    // ── SUCURSALES EN MAPA ──────────────────────
+      try {
+        const sucRes = await fetch('/api/sucursales/map');
+        const sucursales = await sucRes.json();
+
+        sucursales.forEach(s => {
+          const adjustedLatLng = getAdjustedLatLng(s.lat, s.lng);
+          bounds.push(adjustedLatLng);
+
+          const icon = L.divIcon({
+            className: 'custom-store-marker',
+            html: `
+              <div style="position:relative;width:48px;height:48px;">
+                <div style="
+                  width:44px;height:44px;border-radius:50%;
+                  border:2.5px solid #ea580c;
+                  background:${s.store_logo
+                    ? `url('${s.store_logo}') center/cover no-repeat`
+                    : 'linear-gradient(135deg,#ea580c,#f97316)'};
+                  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+                "></div>
+                <div style="
+                  position:absolute;bottom:-1px;right:-1px;
+                  width:18px;height:18px;
+                  background:#ea580c;
+                  border-radius:50%;
+                  border:2px solid white;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:8px;font-weight:900;color:white;
+                ">S</div>
+              </div>
+            `,
+            iconSize: [48, 48],
+            iconAnchor: [24, 48],
+            popupAnchor: [0, -50]
+          });
+
+          const addressParts = [s.street, s.local ? `Local ${s.local}` : null, s.city]
+            .filter(Boolean).join(' · ');
+
+          const marker = L.marker(adjustedLatLng, { icon })
+            .addTo(map)
+            .bindPopup(`
+              <b>${s.name}</b><br>
+              <span style="font-size:12px;color:#6b7280;">${s.store_name}</span><br>
+              ${addressParts ? `<span style="font-size:11px;color:#9ca3af;">${addressParts}</span>` : ''}
+            `);
+
+          marker.on('click', () => {
+            window.location.href = `/${s.store_slug}`;
+          });
+        });
+      } catch(e) {
+        console.error('Error cargando sucursales en mapa:', e);
+      }
+      // ────────────────────────────────────────────
+
       if(bounds.length){
           map.fitBounds(bounds, {
               padding: [50,50],
