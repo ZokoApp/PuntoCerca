@@ -949,9 +949,14 @@ if (!stats.length) {
     if (container) container.innerHTML = '<p style="color:#9ca3af;font-size:14px;">Error cargando estadísticas</p>';
   }
 }
+
 /* ================================
    SUCURSALES
 ================================ */
+
+let sucursalMap = null;
+let sucursalMarker = null;
+let sucursalAutocomplete = null;
 
 async function loadSucursales() {
   if (!myStore) return;
@@ -992,6 +997,12 @@ async function loadSucursales() {
             ${s.street}${s.local ? ` · Local ${s.local}` : ''}${s.city ? ` · ${s.city}` : ''}
           </div>` : ''}
           ${s.phone ? `<div style="font-size:12px;color:#ea580c;font-weight:600;margin-top:2px;">${s.phone}</div>` : ''}
+          ${s.lat && s.lng ? `<div style="font-size:11px;color:#9ca3af;margin-top:2px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#16a34a" style="display:inline;vertical-align:middle;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            Ubicación en mapa confirmada
+          </div>` : `<div style="font-size:11px;color:#f59e0b;margin-top:2px;">Sin ubicación en mapa</div>`}
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;">
           <button onclick="openSucursalModal(${JSON.stringify(s).replace(/"/g, '&quot;')})"
@@ -1014,39 +1025,176 @@ async function loadSucursales() {
   }
 }
 
-window.openSucursalModal = function(sucursal = null) {
+window.openSucursalModal = async function(sucursal = null) {
   const modal = document.getElementById('sucursalModal');
   modal.style.display = 'flex';
 
-  document.getElementById('sucursalId').value     = sucursal?.id    || '';
-  document.getElementById('sucursalName').value   = sucursal?.name  || '';
-  document.getElementById('sucursalStreet').value = sucursal?.street || '';
-  document.getElementById('sucursalLocal').value  = sucursal?.local  || '';
-  document.getElementById('sucursalCity').value   = sucursal?.city   || '';
-  document.getElementById('sucursalPhone').value  = sucursal?.phone  || '';
+  // limpiar campos
+  document.getElementById('sucursalId').value            = sucursal?.id     || '';
+  document.getElementById('sucursalName').value          = sucursal?.name   || '';
+  document.getElementById('sucursalAddressInput').value  = sucursal?.street || '';
+  document.getElementById('sucursalLocal').value         = sucursal?.local  || '';
+  document.getElementById('sucursalCity').value          = sucursal?.city   || '';
+  document.getElementById('sucursalPhone').value         = sucursal?.phone  || '';
+  document.getElementById('sucursalLat').value           = sucursal?.lat    || '';
+  document.getElementById('sucursalLng').value           = sucursal?.lng    || '';
+  document.getElementById('sucursalModalTitle').textContent = sucursal ? 'Editar sucursal' : 'Nueva sucursal';
 
-  document.getElementById('sucursalModalTitle').textContent =
-    sucursal ? 'Editar sucursal' : 'Nueva sucursal';
+  // mostrar dirección confirmada si ya tiene
+  const confirm = document.getElementById('sucursalAddressConfirm');
+  const confirmText = document.getElementById('sucursalAddressText');
+  if (sucursal?.street && sucursal?.lat) {
+    confirm.style.display = 'block';
+    confirmText.textContent = sucursal.street;
+  } else {
+    confirm.style.display = 'none';
+  }
+
+  // inicializar mapa
+  await initSucursalMap(
+    sucursal?.lat ? parseFloat(sucursal.lat) : -32.9442,
+    sucursal?.lng ? parseFloat(sucursal.lng) : -60.6505,
+    sucursal?.street || null
+  );
 };
+
+async function initSucursalMap(lat, lng, address) {
+  // cargar Google Maps si no está
+  if (!window.google?.maps) {
+    const keyRes = await fetch('/api/google-maps-key');
+    const keyData = await keyRes.json();
+
+    if (!document.getElementById('gmapsSucursal')) {
+      await new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.id = 'gmapsSucursal';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${keyData.key}&libraries=places`;
+        script.async = true;
+        script.onload = resolve;
+        document.body.appendChild(script);
+      });
+    }
+  }
+
+  // inicializar Leaflet
+  setTimeout(() => {
+    if (sucursalMap) {
+      sucursalMap.setView([lat, lng], lat === -32.9442 ? 13 : 16);
+      if (sucursalMarker) {
+        sucursalMarker.setLatLng([lat, lng]);
+      }
+      sucursalMap.invalidateSize();
+    } else {
+      sucursalMap = L.map('sucursalMap', { zoomControl: true, attributionControl: false })
+        .setView([lat, lng], lat === -32.9442 ? 13 : 16);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 19
+      }).addTo(sucursalMap);
+
+      sucursalMarker = L.marker([lat, lng], { draggable: true }).addTo(sucursalMap);
+
+      sucursalMarker.on('dragend', async () => {
+        const pos = sucursalMarker.getLatLng();
+        document.getElementById('sucursalLat').value = pos.lat;
+        document.getElementById('sucursalLng').value = pos.lng;
+        await reverseSucursal(pos.lat, pos.lng);
+      });
+
+      sucursalMap.on('click', async (e) => {
+        const { lat, lng } = e.latlng;
+        sucursalMarker.setLatLng([lat, lng]);
+        document.getElementById('sucursalLat').value = lat;
+        document.getElementById('sucursalLng').value = lng;
+        await reverseSucursal(lat, lng);
+      });
+    }
+
+    // autocomplete
+    const input = document.getElementById('sucursalAddressInput');
+    if (window.google?.maps && !sucursalAutocomplete) {
+      sucursalAutocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['address'],
+        componentRestrictions: { country: 'ar' }
+      });
+
+      sucursalAutocomplete.addListener('place_changed', () => {
+        const place = sucursalAutocomplete.getPlace();
+        if (!place.geometry) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const fullAddress = place.formatted_address || place.name;
+
+        document.getElementById('sucursalLat').value = lat;
+        document.getElementById('sucursalLng').value = lng;
+        document.getElementById('sucursalAddressInput').value = fullAddress;
+
+        // extraer ciudad
+        const cityComp = place.address_components?.find(c =>
+          c.types.includes('locality') || c.types.includes('administrative_area_level_2')
+        );
+        if (cityComp && !document.getElementById('sucursalCity').value) {
+          document.getElementById('sucursalCity').value = cityComp.long_name;
+        }
+
+        sucursalMap.setView([lat, lng], 16);
+        sucursalMarker.setLatLng([lat, lng]);
+
+        const confirm = document.getElementById('sucursalAddressConfirm');
+        document.getElementById('sucursalAddressText').textContent = fullAddress;
+        confirm.style.display = 'block';
+      });
+    }
+
+    if (address) {
+      setTimeout(() => sucursalMap.invalidateSize(), 200);
+    }
+  }, 100);
+}
+
+async function reverseSucursal(lat, lng) {
+  try {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const address = results[0].formatted_address;
+        document.getElementById('sucursalAddressInput').value = address;
+        document.getElementById('sucursalAddressText').textContent = address;
+        document.getElementById('sucursalAddressConfirm').style.display = 'block';
+      }
+    });
+  } catch(e) {}
+}
 
 window.closeSucursalModal = function() {
   document.getElementById('sucursalModal').style.display = 'none';
+  sucursalAutocomplete = null;
+  if (sucursalMap) {
+    sucursalMap.remove();
+    sucursalMap = null;
+    sucursalMarker = null;
+  }
 };
 
 window.saveSucursal = async function() {
   const btn  = document.getElementById('saveSucursalBtn');
   const id   = document.getElementById('sucursalId').value;
   const name = document.getElementById('sucursalName').value.trim();
+  const lat  = document.getElementById('sucursalLat').value;
+  const lng  = document.getElementById('sucursalLng').value;
 
   if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
 
   const body = {
     store_id: myStore.id,
     name,
-    street: document.getElementById('sucursalStreet').value.trim() || null,
-    local:  document.getElementById('sucursalLocal').value.trim()  || null,
-    city:   document.getElementById('sucursalCity').value.trim()   || null,
-    phone:  document.getElementById('sucursalPhone').value.trim()  || null,
+    street: document.getElementById('sucursalAddressInput').value.trim() || null,
+    local:  document.getElementById('sucursalLocal').value.trim()        || null,
+    city:   document.getElementById('sucursalCity').value.trim()         || null,
+    phone:  document.getElementById('sucursalPhone').value.trim()        || null,
+    lat:    lat  || null,
+    lng:    lng  || null,
   };
 
   btn.textContent = 'Guardando...';
