@@ -237,6 +237,10 @@ if (store) {
   if (store.video_url) previewVideo(store.video_url, "videoUrlPreview");
   document.getElementById("apartment").value = store.apartment || "";
   document.getElementById("references").value = store.reference_notes || "";
+  document.getElementById("instagramUrl").value = store.instagram_url || "";
+  document.getElementById("tiktokUrl").value     = store.tiktok_url    || "";
+  document.getElementById("facebookUrl").value   = store.facebook_url  || "";
+  document.getElementById("websiteUrl").value    = store.website_url   || "";
 
   // previews
   document.getElementById("logoPreview").src =
@@ -708,6 +712,10 @@ formData.append(
     formData.append("lat", selectedLat || "");
     formData.append("lng", selectedLng || "");
     formData.append("video_url", document.getElementById("videoUrl").value.trim());
+    formData.append("instagram_url", document.getElementById("instagramUrl")?.value.trim() || "");
+    formData.append("tiktok_url",    document.getElementById("tiktokUrl")?.value.trim()    || "");
+    formData.append("facebook_url",  document.getElementById("facebookUrl")?.value.trim()  || "");
+    formData.append("website_url",   document.getElementById("websiteUrl")?.value.trim()   || "");
 
     if(logoInput.files[0]){
       formData.append("logo", logoInput.files[0]);
