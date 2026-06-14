@@ -21,7 +21,7 @@ window.buildCarousel = function(images, altText, height) {
   `).join('');
 
   const dots = imgs.map((_, i) => `
-    <div data-i="${i}" onclick="event.stopPropagation();carouselGo('${id}',${i})" style="
+    <div data-i="${i}" data-car="${id}" style="
       width:${i===0?'16px':'6px'};height:6px;border-radius:999px;
       background:${i===0?'white':'rgba(255,255,255,0.5)'};
       transition:all 0.2s;cursor:pointer;flex-shrink:0;">
@@ -29,73 +29,101 @@ window.buildCarousel = function(images, altText, height) {
   `).join('');
 
   return `
-    <div id="${id}" style="position:relative;overflow:hidden;height:${h}px;cursor:grab;"
-      ontouchstart="carStart(event,'${id}')"
-      ontouchmove="carMove(event,'${id}')"
-      ontouchend="carEnd(event,'${id}',${imgs.length})"
-      onmousedown="carStart(event,'${id}')"
-      onmousemove="carMove(event,'${id}')"
-      onmouseup="carEnd(event,'${id}',${imgs.length})"
-      onmouseleave="window._carState['${id}_dragging']=false"
-      onclick="event.stopPropagation()">
-
-      <div class="car-inner-${id}" style="display:flex;height:${h}px;transition:transform 0.3s ease;will-change:transform;">
+    <div id="${id}" data-car-total="${imgs.length}"
+      style="position:relative;overflow:hidden;height:${h}px;cursor:grab;user-select:none;">
+      <div class="car-inner-${id}"
+        style="display:flex;height:${h}px;transition:transform 0.3s ease;will-change:transform;">
         ${slides}
       </div>
-
       <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
         display:flex;gap:4px;align-items:center;
         background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);
-        padding:4px 8px;border-radius:999px;pointer-events:all;z-index:3;">
+        padding:4px 8px;border-radius:999px;z-index:3;">
         ${dots}
       </div>
     </div>
   `;
 };
 
-window.carStart = function(e, id) {
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  window._carState[id + '_x'] = x;
-  window._carState[id + '_dragging'] = true;
-  window._carSwiped = false;
-};
-
-window.carMove = function(e, id) {
-  if (!window._carState[id + '_dragging']) return;
-  if (e.touches) e.preventDefault();
-};
-
-window.carEnd = function(e, id, total) {
-  if (!window._carState[id + '_dragging']) return;
-  window._carState[id + '_dragging'] = false;
-
-  const startX = window._carState[id + '_x'];
-  if (startX == null) return;
-
-  const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-  const diff = startX - endX;
-
-  if (Math.abs(diff) < 30) return;
-
-  window._carSwiped = true;
-  setTimeout(() => { window._carSwiped = false; }, 300);
-
-  const cur = window._carState[id] || 0;
-  const next = diff > 0 ? Math.min(cur + 1, total - 1) : Math.max(cur - 1, 0);
-  carouselGo(id, next);
-};
-
 window.carouselGo = function(id, idx) {
   const el = document.getElementById(id);
   if (!el) return;
-  const inner = el.querySelector(`.car-inner-${id}`);
+  const inner = el.querySelector('.car-inner-' + id);
   if (!inner) return;
-  const total = inner.children.length;
-  idx = Math.max(0, Math.min(idx, total - 1));
+  idx = Math.max(0, Math.min(idx, inner.children.length - 1));
   window._carState[id] = idx;
   inner.style.transform = `translateX(-${idx * 100}%)`;
   el.querySelectorAll('[data-i]').forEach((d, i) => {
     d.style.width = i === idx ? '16px' : '6px';
     d.style.background = i === idx ? 'white' : 'rgba(255,255,255,0.5)';
+  });
+};
+
+window.initCarousels = function() {
+  document.querySelectorAll('[data-car-total]').forEach(el => {
+    if (el._carInit) return;
+    el._carInit = true;
+
+    const id = el.id;
+    const total = parseInt(el.dataset.carTotal);
+    let startX = null;
+    let isDragging = false;
+
+    // dots
+    el.querySelectorAll('[data-i]').forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        carouselGo(id, parseInt(dot.dataset.i));
+      });
+    });
+
+    // TOUCH
+    el.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (startX === null) return;
+      if (Math.abs(startX - e.touches[0].clientX) > 8) {
+        e.preventDefault(); // bloquea scroll horizontal del padre
+      }
+    }, { passive: false });
+
+    el.addEventListener('touchend', (e) => {
+      if (startX === null) return;
+      const diff = startX - e.changedTouches[0].clientX;
+      startX = null;
+      if (Math.abs(diff) < 30) return;
+      window._carSwiped = true;
+      setTimeout(() => { window._carSwiped = false; }, 300);
+      const cur = window._carState[id] || 0;
+      carouselGo(id, diff > 0 ? Math.min(cur+1, total-1) : Math.max(cur-1, 0));
+    }, { passive: true });
+
+    // MOUSE desktop
+    el.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      isDragging = true;
+      el.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      el.style.cursor = 'grab';
+      const diff = startX - e.clientX;
+      startX = null;
+      if (Math.abs(diff) < 30) return;
+      window._carSwiped = true;
+      setTimeout(() => { window._carSwiped = false; }, 300);
+      const cur = window._carState[id] || 0;
+      carouselGo(id, diff > 0 ? Math.min(cur+1, total-1) : Math.max(cur-1, 0));
+    });
+
+    // bloquear navegación del card al swipear
+    el.addEventListener('click', (e) => {
+      if (window._carSwiped) { e.stopPropagation(); e.preventDefault(); }
+    });
   });
 };
