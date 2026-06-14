@@ -61,7 +61,7 @@ async function loadStore(){
     const qrImg = document.getElementById('catalogQR');
     if (qrImg) {
       qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
-      qrImg.style.display = 'block';
+     document.getElementById('qrWrapper').style.display = 'block';
       document.getElementById('catalogQRUrl').textContent = qrUrl;
     }
 
@@ -337,15 +337,53 @@ window.shareWhatsApp = function(url, tipo) {
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-window.descargarQR = function() {
-  const img = document.getElementById('catalogQR');
-  if (!img || !img.src) return;
-  const a = document.createElement('a');
-  a.href = img.src;
-  a.download = 'qr-catalogo-puntocerca.png';
-  a.click();
-};
+window.descargarQR = async function() {
+  const qrEl = document.getElementById('catalogQR');
+  if (!qrEl?.src) return;
 
+  try {
+    const size = 400;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // QR
+    const qrImg = new Image();
+    qrImg.crossOrigin = 'anonymous';
+    await new Promise((res, rej) => {
+      qrImg.onload = res; qrImg.onerror = rej;
+      qrImg.src = qrEl.src;
+    });
+    ctx.drawImage(qrImg, 0, 0, size, size);
+
+    // Fondo blanco para logo
+    const logoSize = 80;
+    const cx = size / 2;
+    const cy = size / 2;
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.roundRect(cx - logoSize/2 - 6, cy - logoSize/2 - 6, logoSize + 12, logoSize + 12, 10);
+    ctx.fill();
+
+    // Logo
+    const logo = new Image();
+    await new Promise(res => { logo.onload = res; logo.onerror = res; logo.src = '/img/favicon.png'; });
+    ctx.drawImage(logo, cx - logoSize/2, cy - logoSize/2, logoSize, logoSize);
+
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'qr-puntocerca.png';
+    a.click();
+
+  } catch(err) {
+    // fallback si hay error CORS
+    const a = document.createElement('a');
+    a.href = document.getElementById('catalogQR').src;
+    a.download = 'qr-catalogo.png';
+    a.click();
+  }
+};
 let currentDeliveryId = null;
 
 window.editarObservaciones = function(deliveryId, observacionesActuales) {
