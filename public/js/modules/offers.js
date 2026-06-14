@@ -53,6 +53,7 @@ export function loadProducts() {
 
       container.appendChild(card);
     });
+     if (window.initCarousels) initCarousels();
   })
   .catch(err => console.error("Error cargando productos:", err));
 }
