@@ -24,7 +24,7 @@ export function loadProducts() {
       card.className = "pc-card";
 
       card.innerHTML = `
-        <div class="pc-card-img" style="overflow:hidden;border-radius:12px 12px 0 0;">
+        <div class="pc-card-img" style="position:relative;height:220px;overflow:hidden;">
           ${window.buildCarousel ? window.buildCarousel(imgs, product.name) : `<img src="${imgs[0] || '/img/default.png'}" style="width:100%;height:200px;object-fit:cover;">`}
         </div>
 
