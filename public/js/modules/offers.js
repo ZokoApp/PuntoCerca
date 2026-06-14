@@ -46,9 +46,10 @@ export function loadProducts() {
         </div>
       `;
 
-      card.addEventListener("click", () => {
-        window.location.href = `/product/${product.slug || product.id}`;
-      });
+     card.addEventListener("click", () => {
+    if (window._carSwiped) return;
+    window.location.href = `/product/${product.slug || product.id}`;
+  });
 
       container.appendChild(card);
     });
