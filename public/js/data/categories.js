@@ -8,6 +8,7 @@ export const CATEGORIES = {
     { id: 115, name: "Donas" },
      { id: 98, name: "Rotiseria" },
     { id: 108, name: "Hamburgueseria" },
+        { id: 123, name: "Pancheria" },
     { id: 5, name: "Heladería" }
     
   ],
