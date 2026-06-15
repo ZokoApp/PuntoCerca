@@ -107,7 +107,7 @@ export function loadProducts() {
 
   products.forEach(product => {
       // si tiene video → card especial
-      if (product.video_url) {
+     if (product.video_url || product.video_file_url) {
         container.appendChild(buildVideoCard(product));
         return;
       }
@@ -156,10 +156,8 @@ export function loadProducts() {
       container.appendChild(card);
     });
      if (window.initCarousels) initCarousels();
-  })
-  .catch(err => console.error("Error cargando productos:", err));
-}
-// Intersection Observer para autoplay de videos al hacer scroll
+
+    // Intersection Observer para autoplay de videos al hacer scroll
     const videoObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target.querySelector('video');
@@ -172,6 +170,9 @@ export function loadProducts() {
     container.querySelectorAll('.pc-card').forEach(card => {
       if (card.querySelector('video')) videoObserver.observe(card);
     });
+  })
+  .catch(err => console.error("Error cargando productos:", err));
+}
 function startOfferTimers() {
   const timers = document.querySelectorAll(".offer-timer");
 
