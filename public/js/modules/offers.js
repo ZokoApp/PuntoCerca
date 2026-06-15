@@ -39,9 +39,10 @@ function buildVideoCard(product) {
   card.innerHTML = `
     <img src="${thumb}" onerror="this.src='/img/default.png'"
       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
-    <div style="position:absolute;inset:0;
+   <div style="position:absolute;inset:0;
       background:linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.55) 55%,rgba(0,0,0,0.82) 100%);">
     </div>
+    ${badge}
     <div style="position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);
       width:46px;height:46px;background:rgba(255,255,255,0.92);border-radius:50%;
       display:flex;align-items:center;justify-content:center;
