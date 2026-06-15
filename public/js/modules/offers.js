@@ -23,57 +23,69 @@ const PLATFORM_BADGE = {
 function buildVideoCard(product) {
   const platform = getVideoPlatform(product.video_url);
   const ytId = platform === 'youtube' ? getYoutubeId(product.video_url) : null;
-  const thumb = ytId
-    ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
-    : (product.image_url || '/img/default.png');
-  const badge = PLATFORM_BADGE[platform] || '';
 
   const discount = product.old_price && product.price && product.old_price > product.price
-    ? Math.round((1 - product.price / product.old_price) * 100)
-    : null;
+    ? Math.round((1 - product.price / product.old_price) * 100) : null;
 
-  const card = document.createElement('div');
-  card.className = 'pc-card';
-  card.style.cssText = 'height:300px;position:relative;overflow:hidden;cursor:pointer;';
+  const priceHTML = !product.price || isNaN(parseFloat(product.price))
+    ? 'Consultar'
+    : `$${Number(product.price).toLocaleString('es-AR')}`;
 
-  card.innerHTML = `
-    <img src="${thumb}" onerror="this.src='/img/default.png'"
-      style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
-   <div style="position:absolute;inset:0;
-      background:linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.55) 55%,rgba(0,0,0,0.82) 100%);">
-    </div>
-    ${badge}
-    <div style="position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);
-      width:46px;height:46px;background:rgba(255,255,255,0.92);border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 4px 16px rgba(0,0,0,0.25);">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#ea580c;margin-left:3px;">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-    </div>
+  const overlay = `
     <div style="position:absolute;bottom:0;left:0;right:0;
       background:white;border-radius:0 0 12px 12px;
       padding:8px 10px;display:flex;gap:8px;align-items:center;">
       <img src="${product.image_url || '/img/default.png'}" onerror="this.src='/img/default.png'"
-        style="width:44px;height:44px;border-radius:8px;object-fit:cover;
-        flex-shrink:0;border:1px solid #f0f0f0;">
+        style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #f0f0f0;">
       <div style="flex:1;min-width:0;">
         <div style="font-size:11px;font-weight:700;color:#111;line-height:1.2;
-          overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${product.name}
-        </div>
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${product.name}</div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:3px;">
-          <span style="font-size:13px;font-weight:800;color:#ea580c;">
-            ${!product.price || isNaN(parseFloat(product.price))
-              ? 'Consultar'
-              : `$${Number(product.price).toLocaleString('es-AR')}`}
-          </span>
-          ${discount ? `<span style="background:#16a34a;color:white;font-size:9px;
-            font-weight:800;padding:1px 5px;border-radius:4px;">${discount}% OFF</span>` : ''}
+          <span style="font-size:13px;font-weight:800;color:#ea580c;">${priceHTML}</span>
+          ${discount ? `<span style="background:#16a34a;color:white;font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;">${discount}% OFF</span>` : ''}
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
+
+  const card = document.createElement('div');
+  card.className = 'pc-card';
+  card.style.cssText = 'height:300px;position:relative;overflow:hidden;cursor:pointer;background:#000;';
+
+  if (product.video_file_url) {
+    // ✅ VIDEO SUBIDO — autoplay real
+    card.innerHTML = `
+      <video autoplay muted playsinline loop
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <source src="${product.video_file_url}" type="video/mp4">
+      </video>
+      <div style="position:absolute;inset:0;
+        background:linear-gradient(to bottom,transparent 55%,rgba(0,0,0,0.25) 100%);">
+      </div>
+      ${overlay}`;
+  } else {
+    // 🔗 LINK EXTERNO — thumbnail estático
+    const thumb = ytId
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : (product.image_url || '/img/default.png');
+    const badge = PLATFORM_BADGE[platform] || '';
+
+    card.innerHTML = `
+      <img src="${thumb}" onerror="this.src='/img/default.png'"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+      <div style="position:absolute;inset:0;
+        background:linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.55) 55%,rgba(0,0,0,0.82) 100%);">
+      </div>
+      ${badge}
+      <div style="position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);
+        width:46px;height:46px;background:rgba(255,255,255,0.92);border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#ea580c;margin-left:3px;">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>
+      ${overlay}`;
+  }
 
   card.addEventListener('click', () => {
     if (window._carSwiped) return;
@@ -82,7 +94,6 @@ function buildVideoCard(product) {
 
   return card;
 }
-
 // ============================
 // PRODUCTOS DESTACADOS
 // ============================
@@ -148,6 +159,19 @@ export function loadProducts() {
   })
   .catch(err => console.error("Error cargando productos:", err));
 }
+// Intersection Observer para autoplay de videos al hacer scroll
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (!video) return;
+        if (entry.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      });
+    }, { threshold: 0.5 });
+
+    container.querySelectorAll('.pc-card').forEach(card => {
+      if (card.querySelector('video')) videoObserver.observe(card);
+    });
 function startOfferTimers() {
   const timers = document.querySelectorAll(".offer-timer");
 
