@@ -1294,9 +1294,7 @@ app.get("/api/stores/:id/events", async (req, res) => {
       counter++;
     }
 
-    const mainImage = images[0] || null;
-
-    let offerCreatedAt = null;
+   let offerCreatedAt = null;
     let offerExpiresAt = null;
 
     const parsedIsOffer = is_offer === "true" || is_offer === true;
@@ -1977,11 +1975,11 @@ if (stock !== undefined && stock !== null && stock !== "") {
   
       
       let images = [];
-  
-      if (req.files && req.files.length > 0) {
-        images = req.files.map(file => file.path);
+      if (req.files?.images?.length > 0) {
+        images = req.files.images.map(file => file.path);
       }
-  
+
+      const videoFilePath = req.files?.video_file?.[0]?.path || null;
       const mainImage = images[0] || null;
       const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
   
