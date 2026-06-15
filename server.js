@@ -1234,7 +1234,10 @@ app.get("/api/stores/:id/events", async (req, res) => {
   
   
   
-  app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
+  app.post('/api/products', authMiddleware, uploadProduct.fields([
+  { name: "images", maxCount: 5 },
+  { name: "video_file", maxCount: 1 }
+]), async (req, res) => {
   try {
 
     const {
@@ -1259,11 +1262,14 @@ app.get("/api/stores/:id/events", async (req, res) => {
       ? parseInt(stock)
       : null;
 
-    let images = [];
+   let images = [];
+      if (req.files?.images?.length > 0) {
+        images = req.files.images.map(file => file.path);
+      }
 
-    if (req.files && req.files.length > 0) {
-      images = req.files.map(file => file.path);
-    }
+      const videoFilePath = req.files?.video_file?.[0]?.path || null;
+      const mainImage = images[0] || null;
+      const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
 
     const baseSlug = name
       .toLowerCase()
@@ -1301,8 +1307,8 @@ app.get("/api/stores/:id/events", async (req, res) => {
     }
     const result = await pool.query(
       `INSERT INTO products
-        (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug, video_url)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+       (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug, video_url, video_file_url)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
       RETURNING *`,
       [
         name,
@@ -1322,7 +1328,8 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
         offerCreatedAt,
         offerExpiresAt,
         slug,
-        video_url || null
+        video_url || null,
+        videoFilePath
       ]
     );
 
@@ -1840,7 +1847,10 @@ try {
   
   
   
-  app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
+app.put('/api/products/:id', authMiddleware, uploadProduct.fields([
+  { name: "images", maxCount: 5 },
+  { name: "video_file", maxCount: 1 }
+]), async (req, res) => {
     try {
   
     const { 
@@ -1993,8 +2003,9 @@ if (stock !== undefined && stock !== null && stock !== "") {
            offer_expires_at = COALESCE($12, offer_expires_at),
            image_url = COALESCE($13, image_url),
            images = COALESCE($14, images),
-           video_url = COALESCE($15, video_url)
-         WHERE id = $16
+           video_url = COALESCE($15, video_url),
+           video_file_url = COALESCE($16, video_file_url)
+         WHERE id = $17
          RETURNING *`,
         [
           name || null,
@@ -2012,6 +2023,7 @@ if (stock !== undefined && stock !== null && stock !== "") {
           mainImage,
           imagesValue,
           video_url || null,
+          videoFilePath,
           req.params.id
         ]
       );
