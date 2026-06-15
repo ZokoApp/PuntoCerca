@@ -133,6 +133,16 @@
       document.getElementById("extra").value = description;
       document.getElementById("video_url").value = product.video_url || "";
 
+      // video file existente
+      if (product.video_file_url) {
+        const preview = document.getElementById('currentVideoPreview');
+        const el = document.getElementById('currentVideoEl');
+        if (preview && el) {
+          el.src = product.video_file_url;
+          preview.classList.remove('hidden');
+        }
+      }
+
       // categorías
       loadCategories(product.category, product.subcategory_id);
   
@@ -210,7 +220,12 @@
       }
   
       formData.append("is_offer", document.getElementById("isOffer").checked);
-      formData.append("video_url", document.getElementById("video_url")?.value?.trim() || "");
+     formData.append("video_url", document.getElementById("video_url")?.value?.trim() || "");
+
+      const videoFile = document.getElementById("video_file")?.files?.[0];
+      if (videoFile) {
+        formData.append("video_file", videoFile);
+      }
 
       const files = document.getElementById("images").files;
   
