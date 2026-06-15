@@ -337,12 +337,12 @@ if (product.video_file_url || product.video_url) {
           <path d="M8 5v14l11-7z"/>
         </svg>
       </div>`;
-    vThumb.onclick = () => {
+   vThumb.onclick = () => {
       setActiveThumb(vThumb);
-      showVideo(product.video_url);
+      showVideo(product.video_url, product.video_file_url);
     };
     thumbsContainer.appendChild(vThumb);
-    showVideo(product.video_url);
+    showVideo(product.video_url, product.video_file_url);
     setActiveThumb(vThumb);
   } else {
     mainImage.src = images[0] || '/img/default.png';
