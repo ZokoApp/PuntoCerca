@@ -131,7 +131,8 @@
       }
   
       document.getElementById("extra").value = description;
-  
+      document.getElementById("video_url").value = product.video_url || "";
+
       // categorías
       loadCategories(product.category, product.subcategory_id);
   
@@ -209,7 +210,8 @@
       }
   
       formData.append("is_offer", document.getElementById("isOffer").checked);
-  
+      formData.append("video_url", document.getElementById("video_url")?.value?.trim() || "");
+
       const files = document.getElementById("images").files;
   
       for (let i = 0; i < files.length; i++) {
