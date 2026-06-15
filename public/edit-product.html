@@ -124,15 +124,37 @@
         rows="4"></textarea>
     </div>
 
-    <!-- VIDEO URL -->
+    <<!-- VIDEO -->
     <div>
-      <label class="text-sm font-medium text-gray-700">Video del producto (opcional)</label>
-      <input id="video_url" type="text"
-        placeholder="https://youtube.com/watch?v=... o instagram.com/reel/..."
-        class="w-full border p-3 rounded-lg mt-1">
-      <p class="text-xs text-gray-400 mt-1">YouTube o Instagram — aparece en el card con precio superpuesto</p>
-    </div>
+      <label class="text-sm font-medium text-gray-700">Video del producto</label>
 
+      <!-- Preview video existente -->
+      <div id="currentVideoPreview" class="hidden mt-2 mb-2">
+        <video id="currentVideoEl" controls style="width:100%;border-radius:8px;max-height:200px;"></video>
+        <p class="text-xs text-gray-400 mt-1">Video actual</p>
+      </div>
+
+      <!-- Subir nuevo video -->
+      <input type="file" id="video_file" accept="video/mp4,video/mov,video/webm"
+        class="w-full border p-3 rounded-lg mt-1"
+        onchange="previewNewVideo(this)">
+      <p class="text-xs text-gray-400 mt-1">MP4, MOV o WEBM · Máximo 50MB · Se reproduce automático</p>
+
+      <div id="newVideoPreview" class="hidden mt-2">
+        <video id="newVideoEl" controls style="width:100%;border-radius:8px;max-height:180px;"></video>
+      </div>
+
+      <!-- Separador -->
+      <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+        <span class="text-xs text-gray-400">o link externo</span>
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+      </div>
+
+      <input id="video_url" type="text"
+        placeholder="YouTube · Instagram · TikTok (sin autoplay)"
+        class="w-full border p-3 rounded-lg">
+    </div>
     <!-- BOTONES -->
 
     <!-- BOTONES -->
@@ -161,6 +183,16 @@
     Guardando cambios...
   </div>
 </div>
+  <script>
+function previewNewVideo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('newVideoPreview');
+  const el = document.getElementById('newVideoEl');
+  el.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+}
+</script>
 
 <script type="module" src="/js/edit-product.js"></script>
 
