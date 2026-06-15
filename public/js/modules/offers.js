@@ -64,7 +64,9 @@ function buildVideoCard(product) {
         </div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:3px;">
           <span style="font-size:13px;font-weight:800;color:#ea580c;">
-            $${Number(product.price || 0).toLocaleString('es-AR')}
+            ${!product.price || isNaN(parseFloat(product.price))
+              ? 'Consultar'
+              : `$${Number(product.price).toLocaleString('es-AR')}`}
           </span>
           ${discount ? `<span style="background:#16a34a;color:white;font-size:9px;
             font-weight:800;padding:1px 5px;border-radius:4px;">${discount}% OFF</span>` : ''}
