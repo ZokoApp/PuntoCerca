@@ -1208,19 +1208,20 @@ app.get("/api/stores/:id/events", async (req, res) => {
   try {
 
     const {
-      name,
-      price,
-      old_price,
-      store_id,
-      brand,
-      size,
-      stock,
-      extra,
-      category,
-      colors,
-      is_offer,
-      subcategory_id 
-    } = req.body;
+  name,
+  price,
+  old_price,
+  store_id,
+  brand,
+  size,
+  stock,
+  extra,
+  category,
+  colors,
+  is_offer,
+  subcategory_id,
+  video_url
+} = req.body;
 
     const parsedPrice = price && price !== "" ? parseFloat(price) : null;
     const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
@@ -1270,8 +1271,8 @@ app.get("/api/stores/:id/events", async (req, res) => {
     }
     const result = await pool.query(
       `INSERT INTO products
-        (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug, video_url)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
       RETURNING *`,
       [
         name,
@@ -1290,7 +1291,8 @@ app.get("/api/stores/:id/events", async (req, res) => {
         parsedIsOffer,
         offerCreatedAt,
         offerExpiresAt,
-        slug
+        slug,
+        video_url || null
       ]
     );
 
@@ -1811,18 +1813,19 @@ try {
   app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
     try {
   
-      const { 
-        name, 
-        price, 
-        old_price, 
-        brand,
-        size, 
-        stock, 
-        extra, 
-        category,
-        colors,
-        is_offer
-      } = req.body;
+    const { 
+      name, 
+      price, 
+      old_price, 
+      brand,
+      size, 
+      stock, 
+      extra, 
+      category,
+      colors,
+      is_offer,
+      video_url
+    } = req.body;
   
       // 🔥 VALIDAR PRODUCTO
       const productData = await pool.query(
@@ -1959,8 +1962,9 @@ if (stock !== undefined && stock !== null && stock !== "") {
            offer_created_at = COALESCE($11, offer_created_at),
            offer_expires_at = COALESCE($12, offer_expires_at),
            image_url = COALESCE($13, image_url),
-           images = COALESCE($14, images)
-         WHERE id = $15
+           images = COALESCE($14, images),
+           video_url = COALESCE($15, video_url)
+         WHERE id = $16
          RETURNING *`,
         [
           name || null,
@@ -1977,6 +1981,7 @@ if (stock !== undefined && stock !== null && stock !== "") {
           offerExpiresAt,
           mainImage,
           imagesValue,
+          video_url || null,
           req.params.id
         ]
       );
