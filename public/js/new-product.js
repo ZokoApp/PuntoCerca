@@ -130,7 +130,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     formData.append("image_url", imageUrl || "");
     formData.append("extra", JSON.stringify({ model, sku, material, description, sizes }));
     formData.append("colors", JSON.stringify(colors));
-    formData.append("video_url", document.getElementById("video_url")?.value?.trim() || "");
+   formData.append("video_url", document.getElementById("video_url")?.value?.trim() || "");
+
+    const videoFile = document.getElementById("video_file")?.files?.[0];
+    if (videoFile) {
+      formData.append("video_file", videoFile);
+    }
 
     for (let file of files) {
       formData.append("images", file);
