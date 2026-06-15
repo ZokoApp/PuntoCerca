@@ -72,7 +72,7 @@ function setActiveThumb(el) {
   el.style.border = '2px solid #ea580c';
 }
 
-function showVideo(url) {
+function showVideo(url, fileUrl) {
   const vc = document.getElementById('videoContainer');
   const zc = document.getElementById('zoomContainer');
   const ve = document.getElementById('videoEmbed');
@@ -80,6 +80,17 @@ function showVideo(url) {
   vc.classList.remove('hidden');
   zc?.classList.add('hidden');
 
+  // VIDEO SUBIDO — autoplay real
+  if (fileUrl) {
+    ve.innerHTML = `
+      <video autoplay muted playsinline controls loop
+        style="width:100%;height:100%;object-fit:contain;background:#000;">
+        <source src="${fileUrl}" type="video/mp4">
+      </video>`;
+    return;
+  }
+
+  // LINK EXTERNO
   const platform = getVideoPlatform(url);
 
   if (platform === 'youtube') {
@@ -306,10 +317,12 @@ async function init() {
     : [product.image_url]).filter(Boolean);
 
   // VIDEO THUMB (primero si hay video)
-  if (product.video_url) {
+if (product.video_file_url || product.video_url) {
     const platform = getVideoPlatform(product.video_url);
     const ytId = platform === 'youtube' ? getYouTubeId(product.video_url) : null;
-    const vSrc = ytId
+    const vSrc = product.video_file_url
+      ? (product.image_url || '/img/default.png')
+      : ytId
       ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
       : (images[0] || '/img/default.png');
 
