@@ -105,10 +105,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const material = document.getElementById("checkMaterial")?.checked
       ? document.getElementById("material")?.value.trim() : "";
 
-    // imágenes
+  // imágenes
     const files = document.getElementById("productImages")?.files || [];
     if (files.length > 5) {
       showToast("Máximo 5 imágenes permitidas", "warning");
+      return;
+    }
+
+    const video_url = document.getElementById("video_url")?.value?.trim() || "";
+    if (video_url && files.length === 0 && !imageUrl) {
+      showToast("Si agregás un video, tenés que subir al menos una imagen del producto", "warning");
       return;
     }
 
