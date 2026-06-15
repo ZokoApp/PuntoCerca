@@ -6,11 +6,27 @@ function getYoutubeId(url) {
   return m ? m[1] : null;
 }
 
+function getVideoPlatform(url) {
+  if (!url) return null;
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/instagram\.com/.test(url)) return 'instagram';
+  if (/tiktok\.com/.test(url)) return 'tiktok';
+  return null;
+}
+
+const PLATFORM_BADGE = {
+  youtube:   `<div style="position:absolute;top:8px;left:8px;background:#ff0000;color:white;font-size:9px;font-weight:800;padding:3px 7px;border-radius:6px;letter-spacing:0.03em;">▶ YouTube</div>`,
+  instagram: `<div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;font-size:9px;font-weight:800;padding:3px 7px;border-radius:6px;">▶ Instagram</div>`,
+  tiktok:    `<div style="position:absolute;top:8px;left:8px;background:#010101;color:white;font-size:9px;font-weight:800;padding:3px 7px;border-radius:6px;">♪ TikTok</div>`
+};
+
 function buildVideoCard(product) {
-  const ytId = getYoutubeId(product.video_url);
+  const platform = getVideoPlatform(product.video_url);
+  const ytId = platform === 'youtube' ? getYoutubeId(product.video_url) : null;
   const thumb = ytId
     ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
     : (product.image_url || '/img/default.png');
+  const badge = PLATFORM_BADGE[platform] || '';
 
   const discount = product.old_price && product.price && product.old_price > product.price
     ? Math.round((1 - product.price / product.old_price) * 100)
