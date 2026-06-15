@@ -49,6 +49,87 @@ async function checkAuth() {
   } catch {}
 }
 
+// =============================
+// VIDEO HELPERS
+// =============================
+function getVideoPlatform(url) {
+  if (!url) return null;
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/tiktok\.com/.test(url)) return 'tiktok';
+  if (/instagram\.com/.test(url)) return 'instagram';
+  return null;
+}
+
+function getYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
+  return m ? m[1] : null;
+}
+
+function setActiveThumb(el) {
+  document.getElementById('thumbsContainer')
+    ?.querySelectorAll('img, [data-vthumb]')
+    .forEach(t => t.style.border = '2px solid #e5e7eb');
+  el.style.border = '2px solid #ea580c';
+}
+
+function showVideo(url) {
+  const vc = document.getElementById('videoContainer');
+  const zc = document.getElementById('zoomContainer');
+  const ve = document.getElementById('videoEmbed');
+  if (!vc || !ve) return;
+  vc.classList.remove('hidden');
+  zc?.classList.add('hidden');
+
+  const platform = getVideoPlatform(url);
+
+  if (platform === 'youtube') {
+    const ytId = getYouTubeId(url);
+    ve.innerHTML = `<iframe
+      src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1"
+      style="width:100%;height:100%;border:0;"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>`;
+
+  } else if (platform === 'tiktok') {
+    const ttMatch = url.match(/video\/(\d+)/);
+    ve.style.overflow = 'auto';
+    ve.innerHTML = ttMatch ? `
+      <blockquote class="tiktok-embed" cite="${url}" data-video-id="${ttMatch[1]}"
+        style="max-width:605px;min-width:325px;margin:0 auto;">
+        <section></section>
+      </blockquote>` : `<a href="${url}" target="_blank">Ver en TikTok</a>`;
+    if (!document.querySelector('script[src*="tiktok.com/embed"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.tiktok.com/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    }
+
+  } else if (platform === 'instagram') {
+    ve.style.overflow = 'auto';
+    ve.innerHTML = `
+      <blockquote class="instagram-media"
+        data-instgrm-permalink="${url}" data-instgrm-version="14"
+        style="max-width:540px;min-width:326px;margin:0 auto;">
+      </blockquote>`;
+    if (!document.querySelector('script[src*="instagram.com/embed"]')) {
+      const s = document.createElement('script');
+      s.src = '//www.instagram.com/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    } else if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    }
+  }
+}
+
+function showImage(src) {
+  document.getElementById('videoContainer')?.classList.add('hidden');
+  const zc = document.getElementById('zoomContainer');
+  zc?.classList.remove('hidden');
+  document.getElementById('productImage').src = src;
+}
+
 async function init() {
 
   await checkAuth();
@@ -216,26 +297,53 @@ async function init() {
   storeLink.innerText = product.store_name;
   storeLink.href = `/${product.store_slug}`;
 
-  const mainImage = document.getElementById("productImage");
+ const mainImage = document.getElementById("productImage");
   const thumbsContainer = document.getElementById("thumbsContainer");
-
-  const images = product.images && product.images.length > 0
-    ? product.images
-    : [product.image_url];
-
-  mainImage.src = images[0];
   thumbsContainer.innerHTML = "";
+
+  const images = (product.images && product.images.length > 0
+    ? product.images
+    : [product.image_url]).filter(Boolean);
+
+  // VIDEO THUMB (primero si hay video)
+  if (product.video_url) {
+    const platform = getVideoPlatform(product.video_url);
+    const ytId = platform === 'youtube' ? getYouTubeId(product.video_url) : null;
+    const vSrc = ytId
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : (images[0] || '/img/default.png');
+
+    const vThumb = document.createElement('div');
+    vThumb.setAttribute('data-vthumb', '1');
+    vThumb.style.cssText = 'position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid #ea580c;flex-shrink:0;';
+    vThumb.innerHTML = `
+      <img src="${vSrc}" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);
+        display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:white;">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>`;
+    vThumb.onclick = () => {
+      setActiveThumb(vThumb);
+      showVideo(product.video_url);
+    };
+    thumbsContainer.appendChild(vThumb);
+    showVideo(product.video_url);
+    setActiveThumb(vThumb);
+  } else {
+    mainImage.src = images[0] || '/img/default.png';
+  }
 
   images.forEach((imgUrl) => {
     const thumb = document.createElement("img");
-
     thumb.src = imgUrl;
     thumb.className = "w-16 h-16 object-cover rounded-lg border cursor-pointer bg-white p-1";
-
+    thumb.style.border = '2px solid #e5e7eb';
     thumb.onclick = () => {
-      mainImage.src = imgUrl;
+      setActiveThumb(thumb);
+      showImage(imgUrl);
     };
-
     thumbsContainer.appendChild(thumb);
   });
 
@@ -331,61 +439,7 @@ ${window.location.href}`;
 
   });
 
-// VIDEO PLAYER
-  if (product.video_url) {
-    const videoSection = document.getElementById('videoSection');
-    const videoEmbed = document.getElementById('videoEmbed');
 
-    if (videoSection && videoEmbed) {
-      videoSection.classList.remove('hidden');
-
-      const url = product.video_url;
-
-      // YOUTUBE
-      const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
-      if (ytMatch) {
-        videoEmbed.innerHTML = `
-          <iframe
-            src="https://www.youtube.com/embed/${ytMatch[1]}"
-            style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>`;
-
-      // TIKTOK
-      } else if (url.includes('tiktok.com')) {
-        const ttMatch = url.match(/video\/(\d+)/);
-        videoEmbed.style.paddingBottom = '0';
-        videoEmbed.style.height = 'auto';
-        videoEmbed.style.background = 'transparent';
-        videoEmbed.innerHTML = ttMatch ? `
-          <blockquote class="tiktok-embed" cite="${url}" data-video-id="${ttMatch[1]}"
-            style="width:100%;min-width:325px;max-width:605px;margin:0 auto;">
-            <section></section>
-          </blockquote>` : `<a href="${url}" target="_blank">Ver en TikTok</a>`;
-        const s = document.createElement('script');
-        s.src = 'https://www.tiktok.com/embed.js';
-        s.async = true;
-        document.body.appendChild(s);
-
-      // INSTAGRAM
-      } else if (url.includes('instagram.com')) {
-        videoEmbed.style.paddingBottom = '0';
-        videoEmbed.style.height = 'auto';
-        videoEmbed.style.background = 'transparent';
-        videoEmbed.innerHTML = `
-          <blockquote class="instagram-media"
-            data-instgrm-permalink="${url}"
-            data-instgrm-version="14"
-            style="width:100%;min-width:326px;max-width:540px;margin:0 auto;">
-          </blockquote>`;
-        const s = document.createElement('script');
-        s.src = '//www.instagram.com/embed.js';
-        s.async = true;
-        document.body.appendChild(s);
-      }
-    }
-  }
 
   loadComments(product.id);
   loadRelated(product);
