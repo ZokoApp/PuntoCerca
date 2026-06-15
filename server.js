@@ -96,6 +96,36 @@ const uploadPizarra = multer({
   storage: pizarraStorage,
   limits: { fileSize: 5 * 1024 * 1024, files: 1 }
 });
+
+// ================================
+// PRODUCT VIDEO + IMAGES STORAGE
+// ================================
+
+const productStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    if (file.mimetype.startsWith('video/')) {
+      return {
+        folder: 'puntocerca/product-videos',
+        resource_type: 'video',
+        allowed_formats: ['mp4', 'mov', 'webm'],
+      };
+    }
+    return {
+      folder: 'puntocerca',
+      resource_type: 'image',
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    };
+  }
+});
+
+const uploadProduct = multer({
+  storage: productStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB para videos
+    files: 6 // 5 imágenes + 1 video
+  }
+});
   /* ================================
      TOKEN CONFIG
   ================================ */
