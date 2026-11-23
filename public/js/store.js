@@ -920,7 +920,7 @@ function setupMap(store) {
 
   storeMap = L.map("storeMap").setView([lat, lng], 16);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19
   }).addTo(storeMap);
 

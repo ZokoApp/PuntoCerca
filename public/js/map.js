@@ -8,7 +8,7 @@ const map = L.map("mapFull", {
 }).setView([-32.95, -60.66], 13);
 
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
     maxZoom:19
   }

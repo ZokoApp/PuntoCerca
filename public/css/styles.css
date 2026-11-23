@@ -980,3 +980,10 @@ header {
   background: white !important;
   box-shadow: 0 1px 12px rgba(0,0,0,0.08) !important;
 }
+
+/* ================================
+   MAPA — ESTILO GRIS SUAVE (tipo Uber)
+================================ */
+.leaflet-tile-pane {
+  filter: grayscale(0.3) brightness(1.05) saturate(0.8);
+}

@@ -477,8 +477,7 @@ function showMap() {
   document.getElementById('fabContainer').style.display = 'flex';
   map = L.map('map', { zoomControl: false, attributionControl: false, rotate: true, bearing: 0, touchRotate: false })
     .setView([-32.9442, -60.6505], 14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd', maxZoom: 19
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   }).addTo(map);
   L.control.zoom({ position: 'topright' }).addTo(map);
 }
