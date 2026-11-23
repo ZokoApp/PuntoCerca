@@ -319,3 +319,17 @@ window.PcNav = (() => {
 
   return { start, stop };
 })();
+
+/* ── DELEGACIÓN DE CLICK PARA BOTÓN IR ── */
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pc-nav-btn');
+  if (!btn) return;
+  const lat = parseFloat(btn.dataset.lat);
+  const lng = parseFloat(btn.dataset.lng);
+  const name = btn.dataset.name || 'Destino';
+  if (!window.PcNav || !window._pcMap) {
+    alert('Navegación no disponible');
+    return;
+  }
+  PcNav.start(window._pcMap, lat, lng, name);
+});

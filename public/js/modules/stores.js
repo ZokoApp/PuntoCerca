@@ -500,23 +500,8 @@ if (store.subcategory_ids) {
         <a href="${store.slug ? `/${store.slug}` : `/store/${store.id}`}" class="btn-primary" style="flex:1;text-align:center;">
           Ver tienda
         </a>
-        ${store.lat && store.lng ? `
-          <button onclick="
-            if(window.PcNav && window._pcMap){
-              PcNav.start(window._pcMap, ${store.lat}, ${store.lng}, '${store.name.replace(/'/g,\"\\'\")}');
-            } else { alert('Navegación no disponible'); }
-          " style="
-            background:#22c55e;color:white;border:none;border-radius:12px;
-            padding:12px 18px;font-size:14px;font-weight:800;cursor:pointer;
-            display:flex;align-items:center;gap:6px;white-space:nowrap;
-          ">
-            <svg viewBox='0 0 24 24' style='width:18px;height:18px;fill:white;'>
-              <path d='M21.71 11.29l-9-9a1 1 0 00-1.42 0l-9 9a1 1 0 000 1.42l9 9a1 1 0 001.42 0l9-9a1 1 0 000-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 011-1h5V7.5l3.5 3.5-3.5 3.5z'/>
-            </svg>
-            IR
-          </button>
-        ` : ''}
-      </div>
+        ${store.lat && store.lng ? `<button class="pc-nav-btn" data-lat="${store.lat}" data-lng="${store.lng}" data-name="${store.name}" style="background:#22c55e;color:white;border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;">&#9658; IR</button>` : ''}
+      </div>      </div>
 
     </div>
   `;
