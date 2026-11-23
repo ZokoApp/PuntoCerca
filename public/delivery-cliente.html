@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento de pedido - PuntoCerca</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
+body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+.navbar {
+  background:white;
+  border-bottom:1px solid #e5e7eb;
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+  z-index:1000;
+  position:relative;
+}
+.brand { font-size:18px; font-weight:900; color:#111; text-decoration:none; letter-spacing:-0.03em; }
+.brand span { color:#ea580c; }
+
+.status-bar {
+  padding:10px 20px;
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+  display:none;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.status-bar.pending { background:#fff7ed; color:#ea580c; }
+.status-bar.active  { background:#f0fdf4; color:#16a34a; }
+.status-bar.delivered { background:#eff6ff; color:#2563eb; }
+
+#mapWrap {
+  flex:1;
+  position:relative;
+  display:none;
+}
+#map { width:100%; height:100%; }
+
+.dest-badge {
+  position:absolute;
+  top:14px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1000;
+  background:rgba(255,255,255,0.96);
+  border:1px solid #e5e7eb;
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:12px;
+  font-weight:600;
+  color:#374151;
+  box-shadow:0 4px 16px rgba(0,0,0,0.10);
+  white-space:nowrap;
+  max-width:calc(100% - 40px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:none;
+}
+
+.state-wrap {
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+  .leaflet-div-icon-clean {
+  background: none !important;
+  border: none !important;
+}
+.state-card {
+  max-width:360px;
+  width:100%;
+  background:white;
+  border-radius:24px;
+  padding:40px 32px;
+  text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.08);
+  border:1px solid #f1f5f9;
+}
+.state-icon {
+  width:64px;height:64px;
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
+.state-card h1 { font-size:20px;font-weight:800;color:#111827;margin-bottom:8px; }
+.state-card p { font-size:14px;color:#6b7280;line-height:1.6; }
+.leaflet-div-icon {
+  background: none !important;
+  border: none !important;
+}
+@keyframes pulseDot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(1.6); }
+}
+@keyframes motoFloat {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-5px); }
+}
+@keyframes shadowAnim {
+  0%,100% { transform:translateX(-50%) scaleX(1); opacity:0.3; }
+  50% { transform:translateX(-50%) scaleX(0.65); opacity:0.12; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="
+      width:34px;height:34px;
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:15px;font-weight:900;letter-spacing:-0.03em;line-height:1;">
+        <span style="color:#111;">Punto</span><span style="color:#ea580c;">Envío</span>
+      </div>
+      <div style="font-size:10px;color:#9ca3af;font-weight:600;letter-spacing:0.02em;">por PuntoCerca</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;" id="navRight">
+    <div style="width:7px;height:7px;border-radius:50%;background:#9ca3af;" id="navDot"></div>
+    <span id="navText" style="font-size:12px;font-weight:700;color:#9ca3af;">Cargando</span>
+  </div>
+</nav>
+
+<div class="status-bar" id="statusBar"></div>
+
+<div id="mapWrap">
+  <div id="map"></div>
+  <div class="dest-badge" id="destBadge"></div>
+</div>
+
+<div id="statePending" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+ <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+</svg>
+    </div>
+    <h1>Preparando tu pedido</h1>
+    <p>El repartidor aún no inició el recorrido. Esta página se actualizará automáticamente.</p>
+  </div>
+</div>
+
+<div id="stateDelivered" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#f0fdf4;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+   <h1>¡Pedido entregado!</h1>
+<p>Tu pedido llegó correctamente.</p>
+<p style="margin-top:12px;font-size:12px;color:#d1d5db;">
+  <span style="font-weight:800;color:#ea580c;">Punto</span><span style="font-weight:800;color:#9ca3af;">Envío</span> · por PuntoCerca
+</p>
+  </div>
+</div>
+
+<div id="stateError" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    </div>
+    <h1>Link inválido</h1>
+    <p>Este link no existe o ya expiró.</p>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const token = window.location.pathname.split('/').pop();
+const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5ODMzMzUyYmRjYTQzM2M4OGE4MzY2MmQwZTI2NTZiIiwiaCI6Im11cm11cjY0In0=';
+
+let map = null;
+let marker = null;
+let destMarker = null;
+let routeLayer = null;
+let pollingInterval = null;
+let mapInitialized = false;
+let lastLat = null;
+let lastLng = null;
+
+// ÍCONO MOTO
+function getMotoIcon() {
+  return L.divIcon({
+    html: `
+      <div style="position:relative;width:56px;height:64px;display:flex;flex-direction:column;align-items:center;">
+        <div style="
+          width:52px;height:52px;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          border-radius:50%;
+          border:3px solid white;
+          box-shadow:0 6px 20px rgba(234,88,12,0.40);
+          display:flex;align-items:center;justify-content:center;
+          animation:motoFloat 1.8s ease-in-out infinite;
+          position:relative;z-index:2;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+          </svg>
+        </div>
+        <div style="
+          width:28px;height:7px;
+          background:rgba(234,88,12,0.20);
+          border-radius:50%;
+          animation:shadowAnim 1.8s ease-in-out infinite;
+          margin-top:2px;
+        "></div>
+      </div>
+    `,
+    iconSize: [56, 64],
+    iconAnchor: [28, 52],
+    className: 'leaflet-div-icon-clean'
+  });
+}
+
+function getDestIcon() {
+  return L.divIcon({
+    html: `
+      <div style="
+        width:44px;height:44px;
+        background:white;
+        border-radius:50%;
+        border:3px solid #ea580c;
+        box-shadow:0 4px 16px rgba(234,88,12,0.25);
+        display:flex;align-items:center;justify-content:center;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    className: ''
+  });
+}
+
+// INIT
+async function init() {
+  await poll();
+  pollingInterval = setInterval(poll, 3000);
+}
+
+// POLLING
+async function poll() {
+  try {
+    const res = await fetch(`/api/deliveries/track/${token}`);
+    if (!res.ok) { stopPolling(); showState('error'); return; }
+
+    const delivery = await res.json();
+
+    if (delivery.status === 'delivered') {
+      stopPolling();
+      showState('delivered');
+      return;
+    }
+
+    if (delivery.status === 'pending' || !delivery.lat || !delivery.lng) {
+      showState('pending');
+      return;
+    }
+
+    // ACTIVO
+    const lat = parseFloat(delivery.lat);
+    const lng = parseFloat(delivery.lng);
+
+    updateMap(lat, lng, delivery);
+
+  } catch (err) {
+    console.error('Error polling:', err);
+  }
+}
+
+// ACTUALIZAR MAPA
+async function updateMap(lat, lng, delivery) {
+  // mostrar mapa
+  document.getElementById('statePending').style.display = 'none';
+  document.getElementById('mapWrap').style.display = 'block';
+
+  // status bar
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar active';
+  bar.style.display = 'flex';
+  bar.innerHTML = `
+    <div style="width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulseDot 1.5s infinite;"></div>
+    Repartidor en camino — ubicación en tiempo real
+  `;
+
+  // nav
+  document.getElementById('navDot').style.cssText = 'width:7px;height:7px;border-radius:50%;background:#16a34a;animation:pulseDot 1.5s infinite;';
+  document.getElementById('navText').textContent = 'En camino';
+
+  if (!mapInitialized) {
+    // crear mapa
+    map = L.map('map', { zoomControl: false, attributionControl: false })
+      .setView([lat, lng], 16);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    // marcador moto
+    marker = L.marker([lat, lng], { icon: getMotoIcon() }).addTo(map);
+
+    // destino
+    if (delivery.dest_lat && delivery.dest_lng) {
+      const dLat = parseFloat(delivery.dest_lat);
+      const dLng = parseFloat(delivery.dest_lng);
+
+      destMarker = L.marker([dLat, dLng], { icon: getDestIcon() }).addTo(map);
+
+      if (delivery.dest_address) {
+        const badge = document.getElementById('destBadge');
+        badge.textContent = '📍 ' + delivery.dest_address;
+        badge.style.display = 'block';
+      }
+
+      await drawRoute(lat, lng, dLat, dLng);
+    }
+
+    mapInitialized = true;
+    lastLat = lat;
+    lastLng = lng;
+
+  } else {
+    // solo actualizar si cambió la posición
+    if (lat !== lastLat || lng !== lastLng) {
+      marker.setLatLng([lat, lng]);
+      lastLat = lat;
+      lastLng = lng;
+
+      // redibujar ruta
+      if (delivery.dest_lat && delivery.dest_lng) {
+        await drawRoute(lat, lng, parseFloat(delivery.dest_lat), parseFloat(delivery.dest_lng));
+      }
+    }
+  }
+}
+
+// RUTA
+async function drawRoute(fromLat, fromLng, toLat, toLng) {
+  try {
+    const res = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`
+    );
+    const data = await res.json();
+    if (!data.features?.[0]) return;
+
+    const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+    if (routeLayer) map.removeLayer(routeLayer);
+    routeLayer = L.polyline(coords, {
+      color: '#ea580c',
+      weight: 4,
+      opacity: 0.8,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }).addTo(map);
+
+  } catch (err) {
+    console.error('Error ruta cliente:', err);
+  }
+}
+
+// ESTADOS
+function showState(state) {
+  document.getElementById('mapWrap').style.display = 'none';
+  document.getElementById('statePending').style.display = 'none';
+  document.getElementById('stateDelivered').style.display = 'none';
+  document.getElementById('stateError').style.display = 'none';
+
+  const bar = document.getElementById('statusBar');
+
+  if (state === 'pending') {
+    document.getElementById('statePending').style.display = 'flex';
+    bar.className = 'status-bar pending';
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div style="width:7px;height:7px;border-radius:50%;background:#ea580c;"></div>
+      Preparando tu pedido...
+    `;
+    document.getElementById('navText').textContent = 'Preparando';
+  }
+
+  if (state === 'delivered') {
+    document.getElementById('stateDelivered').style.display = 'flex';
+    bar.className = 'status-bar delivered';
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div style="width:7px;height:7px;border-radius:50%;background:#2563eb;"></div>
+      Pedido entregado
+    `;
+    document.getElementById('navText').textContent = 'Entregado';
+  }
+
+  if (state === 'error') {
+    document.getElementById('stateError').style.display = 'flex';
+    bar.style.display = 'none';
+  }
+}
+
+function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

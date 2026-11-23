@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/dashboard.css">
+   <link rel="icon" type="image/png" href="/img/favicon.png">
 </head>
 <body class="dashboard-page">
 
@@ -23,6 +24,9 @@
       <a href="/new-product" class="sidebar-link">Crear producto</a>
       <a href="#" id="editStoreLink" class="sidebar-link">Editar tienda</a>
       <a href="/" class="sidebar-link">Ver marketplace</a>
+      <a href="/delete-store" class="sidebar-link" style="color:#ef4444;">
+  Eliminar tienda</a>
+
     </nav>
   </aside>
 
@@ -70,6 +74,10 @@
       </div>
 
       <div class="quick-actions-grid">
+        <a href="/new-event.html" class="quick-action action-primary">
+  <span class="quick-action-title">+ Crear evento</span>
+  <span class="quick-action-text">Publicá eventos con fecha y horario</span>
+</a>
         <a href="/new-product" class="quick-action action-primary">
           <span class="quick-action-title">+ Agregar producto</span>
           <span class="quick-action-text">Publicá un nuevo producto</span>
@@ -84,34 +92,450 @@
           <span class="quick-action-title">Ver mi tienda</span>
           <span class="quick-action-text">Abrí tu perfil público</span>
         </a>
+
+        <button id="openCatalogModal" class="quick-action quick-action-button" type="button">
+  <span class="quick-action-title">📘 Cargar catálogo PDF</span>
+  <span class="quick-action-text">Subí la carta, menú o catálogo de tu comercio</span>
+</button>
+
+<div class="quick-action" style="cursor:default;grid-row:span 2;">
+  <span class="quick-action-title">QR de tu catálogo</span>
+  <span class="quick-action-text" style="margin-bottom:12px;">Escaneá para ver el catálogo</span>
+  <div id="qrWrapper" style="display:none;position:relative;width:140px;height:140px;margin:8px 0;">
+  <img id="catalogQR" crossorigin="anonymous"
+    style="width:140px;height:140px;border-radius:10px;display:block;">
+  <div style="
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:34px;height:34px;background:white;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 4px white;
+  ">
+    <img src="/img/favicon.png" style="width:28px;height:28px;object-fit:contain;">
+  </div>
+</div>
+  <p id="catalogQRUrl" style="font-size:10px;color:#9ca3af;word-break:break-all;margin:6px 0;"></p>
+  <button onclick="descargarQR()" style="background:#111827;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;">
+    Descargar QR
+  </button>
+</div>
       </div>
     </section>
+
+    <!-- VIDEOS -->
+<section class="panel-card" style="margin-bottom:24px;">
+  <div class="panel-head">
+    <div>
+     <h2 style="display:flex;align-items:center;gap:8px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+  Videos del local
+</h2>
+      <p>Agregá links de YouTube o Instagram. Se muestran en tu perfil público.</p>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input
+      id="newVideoUrl"
+      type="url"
+      placeholder="https://www.youtube.com/watch?v=... o https://www.instagram.com/reel/..."
+      style="flex:1;min-width:200px;padding:10px 14px;border:1px solid #e5e7eb;
+        border-radius:10px;font-size:14px;"
+    />
+    <button onclick="addStoreVideo()" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;border:none;padding:10px 20px;
+      border-radius:10px;font-size:13px;font-weight:700;
+      cursor:pointer;white-space:nowrap;
+    ">+ Agregar</button>
+  </div>
+
+  <div id="storeVideosList">
+    <div style="text-align:center;padding:16px;color:#9ca3af;">Cargando...</div>
+  </div>
+</section>
+
+    <!-- PIZARRA DEL DÍA -->
+<section class="panel-card" style="margin-bottom:24px;">
+  <div class="panel-head">
+    <div>
+     <h2 style="display:flex;align-items:center;gap:8px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" /></svg>
+  La Pizarra de Hoy
+</h2>
+      <p>Publicá el menú o novedades del día. Desaparece automáticamente a medianoche.</p>
+    </div>
+  </div>
+<!-- ESTADÍSTICAS DESTACADOS -->
+<div class="panel-card" style="margin-bottom:24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <h2 class="panel-title" style="display:flex;align-items:center;gap:8px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
+  Estadísticas de Destacados
+</h2>
+    <a id="hlStatsProfileLink" href="#" target="_blank"
+      style="font-size:13px;color:#ea580c;font-weight:600;text-decoration:none;">
+      Ver perfil →
+    </a>
+  </div>
+  <div id="highlightStatsContainer">
+    <p style="color:#9ca3af;font-size:14px;">Cargando estadísticas...</p>
+  </div>
+</div>
+  
+  <div id="pizarraContent">
+    <div style="text-align:center;padding:20px;color:#9ca3af;">Cargando...</div>
+  </div>
+</section>
 
     <section id="productsSection" class="panel-card">
       <div class="panel-head panel-head--space">
         <div>
           <h2>Mis productos</h2>
 
-          <div class="dashboard-section">
-  <h2>Tiendas que seguís</h2>
-  <div id="followingStores"></div>
-</div>
+        
           <p>Listado completo de lo publicado en tu tienda</p>
         </div>
 
         <a href="/new-product" class="btn-primary">+ Nuevo producto</a>
       </div>
 
+    
+
       <div id="dashboardProducts" class="dashboard-products-grid"></div>
     </section>
 
-    <div class="dashboard-section">
+  
+<!-- SUCURSALES -->
+<section class="panel-card" style="margin-bottom:24px;">
+  <div class="panel-head">
+    <div>
+      <h2 style="display:flex;align-items:center;gap:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 2.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z"/>
+        </svg>
+        Sucursales
+      </h2>
+      <p>Gestioná las distintas ubicaciones de tu comercio</p>
+    </div>
+    <button onclick="openSucursalModal()" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;border:none;padding:10px 18px;
+      border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+      + Nueva sucursal
+    </button>
+  </div>
+
+  <div id="sucursalesList">
+    <div style="text-align:center;padding:20px;color:#9ca3af;">Cargando...</div>
+  </div>
+</section>
+
+<!-- MODAL SUCURSAL -->
+<div id="sucursalModal" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:24px;padding:28px;max-width:480px;
+    width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);max-height:92vh;overflow-y:auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h3 id="sucursalModalTitle" style="font-size:18px;font-weight:800;color:#111827;margin:0;">Nueva sucursal</h3>
+      <button onclick="closeSucursalModal()" style="background:#f3f4f6;border:none;
+        width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+
+    <input type="hidden" id="sucursalId">
+    <input type="hidden" id="sucursalLat">
+    <input type="hidden" id="sucursalLng">
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Nombre de la sucursal *</label>
+        <input id="sucursalName" placeholder="ej: Sucursal Centro, Local Norte..."
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Dirección</label>
+        <input id="sucursalAddressInput" placeholder="Buscar dirección..."
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+      <!-- MAPA -->
+      <div id="sucursalMapContainer" style="height:200px;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div id="sucursalMap" style="height:100%;width:100%;"></div>
+      </div>
+
+      <div id="sucursalAddressConfirm" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;
+        border-radius:12px;padding:10px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:2px;">Ubicación confirmada</div>
+        <div id="sucursalAddressText" style="font-size:13px;color:#374151;"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Local</label>
+          <input id="sucursalLocal" placeholder="ej: Local 3"
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Ciudad</label>
+          <input id="sucursalCity" placeholder="ej: Rosario"
+            style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+              font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px;">Teléfono <span style="color:#d1d5db;font-weight:400;">(si es distinto al principal)</span></label>
+        <input id="sucursalPhone" type="tel" placeholder="ej: 3413001234"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;
+            font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#ea580c'" onblur="this.style.borderColor='#e5e7eb'">
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button onclick="closeSucursalModal()" style="flex:1;padding:13px;
+        border:1.5px solid #e5e7eb;border-radius:14px;font-size:14px;
+        font-weight:700;cursor:pointer;background:white;color:#374151;">
+        Cancelar
+      </button>
+      <button onclick="saveSucursal()" id="saveSucursalBtn" style="flex:2;padding:13px;
+        border:none;border-radius:14px;font-size:14px;font-weight:700;
+        cursor:pointer;color:white;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        box-shadow:0 4px 14px rgba(234,88,12,0.3);">
+        Guardar sucursal
+      </button>
+    </div>
+  </div>
+</div>  
+<!-- PUNTOENVÍO -->
+<section id="deliveriesSection" style="margin-bottom:24px;">
+
+  <!-- HEADER BANNER -->
+  <div style="
+    background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
+    border-radius:20px 20px 0 0;
+    padding:24px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  ">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="
+        width:46px;height:46px;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        border-radius:14px;
+        display:flex;align-items:center;justify-content:center;
+        flex-shrink:0;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+        </svg>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:white;font-size:20px;font-weight:900;letter-spacing:-0.03em;">Punto</span>
+          <span style="color:#f97316;font-size:20px;font-weight:900;letter-spacing:-0.03em;">Envío</span>
+          <span style="
+            background:rgba(249,115,22,0.2);
+            color:#fb923c;
+            font-size:10px;
+            font-weight:800;
+            padding:3px 8px;
+            border-radius:999px;
+            letter-spacing:0.05em;
+          ">BETA</span>
+        </div>
+        <p style="margin:2px 0 0;color:#9ca3af;font-size:13px;">Seguimiento en tiempo real para tus repartos</p>
+      </div>
+    </div>
+
+    <button id="btnNewDelivery" type="button" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;
+      border:none;
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow:0 6px 20px rgba(234,88,12,0.35);
+      transition:all 0.2s ease;
+      white-space:nowrap;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nuevo envío
+    </button>
+  </div>
+
+  <!-- BODY -->
+  <div style="
+    background:white;
+    border-radius:0 0 20px 20px;
+    border:1px solid #e5e7eb;
+    border-top:none;
+    padding:20px;
+  ">
+    <div id="deliveriesList"></div>
+  </div>
+
+</section>
+
+<!-- MODAL NUEVO ENVÍO -->
+<div id="deliveryModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;">
+ <div style="background:white;border-radius:24px;padding:32px;max-width:480px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="font-size:20px;font-weight:900;color:#111827;">Nuevo envío</h2>
+      <button id="closeDeliveryModal" style="background:#f3f4f6;border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:8px;">
+        Dirección del cliente
+      </label>
+      <input id="deliveryAddress" type="text" placeholder="Buscar dirección..."
+        style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;">
+      <p style="font-size:12px;color:#9ca3af;margin-top:6px;">Escribí la dirección del Envio</p>
+      <div style="margin-top:16px;">
+  <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:8px;">
+    Observaciones para el repartidor
+  </label>
+  <textarea id="deliveryObservaciones" placeholder="Ej: Llamar al timbre 3 veces, dejar con portero, llamar 10 min antes..."
+    style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none;resize:none;height:80px;font-family:inherit;"></textarea>
+  <p style="font-size:12px;color:#9ca3af;margin-top:6px;">Opcional — el repartidor las verá antes de salir</p>
+</div>
+    </div>
+
+    <div id="deliveryMapContainer" style="height:220px;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:20px;">
+      <div id="deliveryMap" style="height:100%;width:100%;"></div>
+    </div>
+
+    <div id="selectedAddressBox" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+      <p style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:2px;">Destino confirmado</p>
+      <p id="selectedAddressText" style="font-size:13px;color:#374151;"></p>
+    </div>
+
+    <button id="btnConfirmDelivery" 
+      style="width:100%;padding:16px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(234,88,12,0.28);opacity:0.5;"
+      disabled>
+      Generar links de envío
+    </button>
+
+  </div>
+</div>
+
+<div class="dashboard-section">
   <h2>Tiendas que seguís</h2>
   <div id="followingStores"></div>
 </div>
 
   </main>
+  <!-- =========================
+     MODAL CATALOGO PDF
+========================= -->
+<div id="catalogModal" class="catalog-modal hidden">
 
-  <script src="/js/dashboard.js"></script>
+  <div class="catalog-modal-content">
+
+    <div class="catalog-modal-header">
+      <h2>📘 Catálogo PDF</h2>
+
+      <button
+        id="closeCatalogModal"
+        class="catalog-close"
+        type="button"
+      >
+        ✕
+      </button>
+    </div>
+
+    <form id="catalogForm" class="catalog-form">
+
+      <div class="catalog-form-group">
+        <label>Título del catálogo</label>
+
+        <input
+          type="text"
+          id="catalogTitle"
+          placeholder="Ej: Menú 2026 / Lista de precios"
+        >
+      </div>
+
+      <div class="catalog-form-group">
+
+        <label>Archivo PDF</label>
+
+        <div class="catalog-upload">
+
+          <input
+            type="file"
+            id="catalogPdf"
+            accept="application/pdf"
+          >
+
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="catalog-submit"
+      >
+        Guardar catálogo
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+  <!-- MODAL OBSERVACIONES -->
+<div id="obsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,0.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0;">Observaciones</h3>
+      <button onclick="cerrarObsModal()" style="background:#f3f4f6;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Instrucciones para el repartidor</p>
+    <textarea id="obsModalTexto" placeholder="Ej: Llamar al timbre 3 veces, dejar con portero..."
+      style="width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:14px;outline:none;resize:none;height:100px;font-family:inherit;box-sizing:border-box;"
+      onfocus="this.style.borderColor='#ea580c'"
+      onblur="this.style.borderColor='#e0e0e0'">
+    </textarea>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="cerrarObsModal()" style="flex:1;padding:13px;background:#f3f4f6;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;color:#374151;">
+        Cancelar
+      </button>
+      <button onclick="guardarObservaciones()" style="flex:1;padding:13px;background:linear-gradient(135deg,#ea580c,#f97316);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
+  <div id="toastContainer" class="fixed top-5 right-5 z-[9999] space-y-3"></div>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="/js/delivery-monitor.js"></script>
+<script type="module" src="/js/dashboard.js"></script>
 </body>
+
 </html>

@@ -1,1148 +1,608 @@
-const express = require('express');
-const cors = require('cors');
-const pool = require('./db');
-const bcrypt = require('bcrypt');
-const { Resend } = require('resend');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
-const csrf = require('csurf');
-const multer = require("multer");
-const path = require("path");
-
-
-
-
 require('dotenv').config();
+  const crypto = require("crypto");
+  
+  const express = require('express');
+  const cors = require('cors');
+  const pool = require('./db');
+  const bcrypt = require('bcrypt');
+  const { Resend } = require('resend');
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  
+  const { v4: uuidv4 } = require('uuid');
+  const jwt = require('jsonwebtoken');
+  const rateLimit = require('express-rate-limit');
+  const cookieParser = require('cookie-parser');
+  const csrf = require('csurf');
+  const multer = require("multer");
+  const path = require("path");
+  const fs = require("fs");
 
+  
+  const app = express();
+  app.set('trust proxy', 1);
+  const PORT = process.env.PORT || 3000;
+  
+  const cloudinary = require("cloudinary").v2;
+  const { CloudinaryStorage } = require("multer-storage-cloudinary");
+  
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  
+  const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: "puntocerca",
+      allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    },
+  });
+  
+  const upload = multer({
+    storage,
+    limits: { files: 5 }
+  });
+// ================================
+// PDF STORAGE
+// ================================
 
-
-const app = express();
-app.set('trust proxy', 1);
-const PORT = process.env.PORT || 3000;
-
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+const pdfStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: "puntocerca/catalogs",
+      resource_type: "auto",
+      format: "pdf"
+    };
+  },
+});
+const uploadPDF = multer({
+  storage: pdfStorage,
+  limits: {
+    fileSize: 25 * 1024 * 1024 // 25MB
+  }
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+const eventStorage = new CloudinaryStorage({
+  cloudinary,
   params: {
-    folder: "puntocerca",
+    folder: "puntocerca/events",
     allowed_formats: ["jpg", "png", "jpeg", "webp"],
   },
 });
 
-const upload = multer({
-  storage,
-  limits: { files: 5 }
-});
-/* ================================
-   TOKEN CONFIG
-================================ */
-
-const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY = "7d";
-
-/* ================================
-   RATE LIMIT
-================================ */
-
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 200,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Demasiadas solicitudes. Intenta más tarde." }
+const uploadEvent = multer({
+ storage: eventStorage,
+  limits: { 
+    fileSize: 2 * 1024 * 1024, // 2MB
+    files: 1
+  }
 });
 
-const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Demasiados intentos. Espera 15 minutos." }
+// ================================
+// PIZARRA STORAGE
+// ================================
+
+const pizarraStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "puntocerca/pizarras",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
 });
 
-/* ================================
-   MIDDLEWARES
-================================ */
+const uploadPizarra = multer({
+  storage: pizarraStorage,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 }
+});
 
-app.use(cors({
-    origin: process.env.BASE_URL,
-    credentials: true
-}));
+// ================================
+// PRODUCT VIDEO + IMAGES STORAGE
+// ================================
 
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.static('public'));
-app.use('/api/', apiLimiter);
-
-/* ================================
-   CSRF CONFIG
-================================ */
-
-const csrfProtection = csrf({
-    cookie: {
-        httpOnly: false,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production"
+const productStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    if (file.mimetype.startsWith('video/')) {
+      return {
+        folder: 'puntocerca/product-videos',
+        resource_type: 'video',
+        allowed_formats: ['mp4', 'mov', 'webm'],
+      };
     }
-});
-
-/* ================================
-   AUTH HELPERS
-================================ */
-
-function generateAccessToken(user) {
-    return jwt.sign(
-        { id: user.id, role: user.role, name: user.name },
-        process.env.JWT_SECRET,
-        { expiresIn: ACCESS_TOKEN_EXPIRY }
-    );
-}
-
-function generateRefreshToken(user) {
-    return jwt.sign(
-        { id: user.id },
-        process.env.JWT_REFRESH_SECRET,
-        { expiresIn: REFRESH_TOKEN_EXPIRY }
-    );
-}
-
-/* ================================
-   AUTH MIDDLEWARE
-================================ */
-
-function authMiddleware(req, res, next) {
-
-    const token = req.cookies.access_token;
-
-    if (!token) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token expirado o inválido" });
-    }
-}
-
-function requireRole(role) {
-    return (req, res, next) => {
-        if (!req.user) return res.status(401).json({ error: "No autorizado" });
-        if (req.user.role !== role) return res.status(403).json({ error: "Acceso prohibido" });
-        next();
+    return {
+      folder: 'puntocerca',
+      resource_type: 'image',
+      allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     };
-}
-
-/* ================================
-   CSRF TOKEN ENDPOINT
-================================ */
-
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-    res.json({ csrfToken: req.csrfToken() });
-});
-
-
-
-app.get('/new-product', (req, res) => {
-  res.sendFile(__dirname + '/public/new-product.html');
-});
-
-app.get('/edit-product/:id', (req, res) => {
-  res.sendFile(__dirname + '/public/edit-product.html');
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(__dirname + '/public/dashboard.html');
-});
-
-app.get('/edit-store', (req, res) => {
-  res.sendFile(__dirname + '/public/edit-store.html');
-});
-
-app.delete('/api/products/:id', authMiddleware, async (req, res) => {
-  try {
-
-    const productId = req.params.id;
-
-    // 🔒 aseguramos que el producto sea del usuario
-    const result = await pool.query(
-      `DELETE FROM products 
-       WHERE id = $1 
-       AND store_id IN (
-         SELECT id FROM stores WHERE user_id = $2
-       )
-       RETURNING *`,
-      [productId, req.user.id]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Producto no encontrado o no autorizado" });
-    }
-
-    res.json({ message: "Producto eliminado" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error eliminando producto" });
   }
 });
 
-
-
-
-/* ================================
-   REGISTER
-================================ */
-
-app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
-
-    const { name, email, password, role } = req.body;
-
-    try {
-
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        const emailToken = uuidv4();
-
-        const userResult = await pool.query(
-    `INSERT INTO users (name,email,password_hash,role,email_token,email_verified)
-     VALUES ($1,$2,$3,$4,$5,false)
-     RETURNING id`,
-    [name, email, passwordHash, role, emailToken]
-);
-
-const userId = userResult.rows[0].id;
-
-if (role === "seller") {
-    const slug = name
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '');
-
-    await pool.query(
-        `INSERT INTO stores (user_id, name, slug)
-         VALUES ($1, $2, $3)`,
-        [userId, name, slug]
-    );
-}
-
-        const verificationLink =
-            `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
-
-        const data = await resend.emails.send({
-  from: "onboarding@resend.dev",
-  to: email,
-  subject: "Verifica tu cuenta - PuntoCerca",
-  html: `
-    <h2>Verifica tu cuenta</h2>
-    <p>Haz click en el siguiente enlace:</p>
-    <a href="${verificationLink}">
-      Verificar Email
-    </a>
-  `
-});
-
-console.log("RESEND RESPONSE:", data);
-
-        res.status(201).json({
-            message: "Usuario creado. Revisa tu email para verificar tu cuenta."
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        if (error.code === '23505') {
-            return res.status(400).json({ error: "El email ya está en uso" });
-        }
-
-        res.status(500).json({ error: "Error en registro" });
-    }
-});
-
-
-
-
-
-
-app.get('/product/:id', (req, res) => {
-    res.sendFile(__dirname + '/public/product.html');
-});
-
-/* ================================
-   LOGIN
-================================ */
-
-app.post('/api/login', loginLimiter, csrfProtection, async (req, res) => {
-
-    const { email, password } = req.body;
-
-    try {
-
-        const result = await pool.query(
-            `SELECT * FROM users WHERE email = $1`,
-            [email]
-        );
-
-        if (!result.rows.length)
-            return res.status(400).json({ error: "Usuario no encontrado" });
-
-        const user = result.rows[0];
-
-        const match = await bcrypt.compare(password, user.password_hash);
-        if (!match)
-            return res.status(400).json({ error: "Contraseña incorrecta" });   
-        
-        if (!user.email_verified) {
-    return res.status(403).json({
-        error: "Debes verificar tu email antes de iniciar sesión."
-    });
-}
-
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
-
-        // Guardar refresh token en DB
-        await pool.query(
-            `UPDATE users SET refresh_token = $1 WHERE id = $2`,
-            [refreshToken, user.id]
-        );
-
-        res.cookie("access_token", accessToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 15 * 60 * 1000
-        });
-
-        res.cookie("refresh_token", refreshToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        res.json({ message: "Login correcto" });
-
-    } catch (error) {
-        res.status(500).json({ error: "Error en login" });
-    }
-});
-
-/* ================================
-   RESEND VERIFICATION EMAIL
-================================ */
-
-app.post('/api/resend-verification', csrfProtection, async (req, res) => {
-
-    const { email } = req.body;
-
-    try {
-
-        const result = await pool.query(
-            `SELECT * FROM users WHERE email = $1`,
-            [email]
-        );
-
-        if (!result.rows.length) {
-            return res.status(404).json({
-                error: "Usuario no encontrado"
-            });
-        }
-
-        const user = result.rows[0];
-
-        if (user.email_verified) {
-            return res.json({
-                message: "El email ya está verificado."
-            });
-        }
-
-        const emailToken = uuidv4();
-
-        await pool.query(
-            `UPDATE users
-             SET email_token = $1
-             WHERE id = $2`,
-            [emailToken, user.id]
-        );
-
-        const verificationLink =
-            `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
-
-        await resend.emails.send({
-  from: "onboarding@resend.dev",
-  to: email,
-  subject: "Verifica tu cuenta - PuntoCerca",
-  html: `
-    <h2>Verifica tu cuenta</h2>
-    <p>Haz click en el siguiente enlace:</p>
-    <a href="${verificationLink}">
-      Verificar Email
-    </a>
-  `
-});
-
-        res.json({
-            message: "Email de verificación reenviado."
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            error: "Error enviando email"
-        });
-
-    }
-
-});
-
-/* ================================
-   REFRESH TOKEN
-================================ */
-
-app.post('/api/refresh', async (req, res) => {
-
-    const token = req.cookies.refresh_token;
-
-    if (!token)
-        return res.status(401).json({ error: "Refresh token requerido" });
-
-    try {
-
-        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-
-        const result = await pool.query(
-            `SELECT * FROM users WHERE id = $1`,
-            [decoded.id]
-        );
-
-        if (!result.rows.length)
-            return res.status(403).json({ error: "Usuario no válido" });
-
-        const user = result.rows[0];
-
-        if (user.refresh_token !== token)
-            return res.status(403).json({ error: "Refresh token inválido" });
-
-        // ROTACIÓN
-        const newAccessToken = generateAccessToken(user);
-        const newRefreshToken = generateRefreshToken(user);
-
-        await pool.query(
-            `UPDATE users SET refresh_token = $1 WHERE id = $2`,
-            [newRefreshToken, user.id]
-        );
-
-        res.cookie("access_token", newAccessToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 15 * 60 * 1000
-        });
-
-        res.cookie("refresh_token", newRefreshToken, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: false,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        res.json({ message: "Token renovado" });
-
-    } catch {
-        return res.status(403).json({ error: "Refresh inválido o expirado" });
-    }
-});
-
-/* ================================
-   LOGOUT
-================================ */
-
-app.post('/api/logout', async (req, res) => {
-
-    const refreshToken = req.cookies.refresh_token;
-
-    if (refreshToken) {
-        await pool.query(
-            `UPDATE users SET refresh_token = NULL WHERE refresh_token = $1`,
-            [refreshToken]
-        );
-    }
-
-    res.clearCookie("access_token");
-    res.clearCookie("refresh_token");
-
-    res.json({ message: "Logout correcto" });
-});
-
-/* ================================
-   WHO AM I
-================================ */
-
-app.get('/api/me', authMiddleware, async (req, res) => {
-  try {
-
-    const result = await pool.query(
-      `SELECT id, name, email, role FROM users WHERE id = $1`,
-      [req.user.id]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo usuario" });
+const uploadProduct = multer({
+  storage: productStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB para videos
+    files: 6 // 5 imágenes + 1 video
   }
 });
-
- app.post('/api/favorites', authMiddleware, async (req, res) => {
-
-  const { store_id } = req.body;
-
-  try {
-
-    await pool.query(
-      `INSERT INTO favorites (user_id, store_id)
-       VALUES ($1,$2)
-       ON CONFLICT DO NOTHING`,
-      [req.user.id, store_id]
-    );
-
-    res.json({ message: "Guardado en favoritos" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error guardando favorito" });
-  }
-
-});
-
-app.get('/api/products/:id', async (req, res) => {
-  const id = req.params.id;
-
-  try {
-
-    // 🔥 producto + tienda
-    const result = await pool.query(`
-      SELECT 
-  p.*, 
-  s.name as store_name,
-  s.phone as store_phone
-FROM products p
-LEFT JOIN stores s ON p.store_id = s.id
-WHERE p.id = $1
-    `, [id]);
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
-
-    const product = result.rows[0];
-
-    // 🔥 imágenes
-    if (product.images && typeof product.images === "string") {
-      try {
-        product.images = JSON.parse(product.images);
-      } catch {
-        product.images = [];
+  /* ================================
+     TOKEN CONFIG
+  ================================ */
+  
+  const ACCESS_TOKEN_EXPIRY = "15m";
+  const REFRESH_TOKEN_EXPIRY = "7d";
+  
+  /* ================================
+     RATE LIMIT
+  ================================ */
+  
+  const apiLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 200,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { error: "Demasiadas solicitudes. Intenta más tarde." }
+  });
+  
+  const loginLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { error: "Demasiados intentos. Espera 15 minutos." }
+  });
+  
+  /* ================================
+     MIDDLEWARES
+  ================================ */
+  
+  app.use(cors({
+      origin: process.env.BASE_URL,
+      credentials: true
+  }));
+  
+  app.use(express.json());
+  app.use(cookieParser());
+  app.use(express.static('public'));
+  app.use('/api/', apiLimiter);
+  
+  /* ================================
+     CSRF CONFIG
+  ================================ */
+  
+  const csrfProtection = csrf({
+      cookie: {
+          httpOnly: false,
+          sameSite: "strict",
+          secure: process.env.NODE_ENV === "production"
       }
-    }
-
-    // 🔥 rating promedio
-    const ratingResult = await pool.query(`
-      SELECT 
-        AVG(rating)::numeric(10,2) as avg,
-        COUNT(*) as count
-      FROM product_ratings
-      WHERE product_id = $1
-    `, [id]);
-
-    product.rating_avg = ratingResult.rows[0].avg;
-    product.rating_count = ratingResult.rows[0].count;
-
-    // 🔥 rating del usuario
-    let userRating = null;
-
-    if (req.cookies.access_token) {
+  });
+  
+  /* ================================
+     AUTH HELPERS
+  ================================ */
+  
+  function generateAccessToken(user) {
+      return jwt.sign(
+          { id: user.id, role: user.role, name: user.name },
+          process.env.JWT_SECRET,
+          { expiresIn: ACCESS_TOKEN_EXPIRY }
+      );
+  }
+  
+  function generateRefreshToken(user) {
+      return jwt.sign(
+          { id: user.id },
+          process.env.JWT_REFRESH_SECRET,
+          { expiresIn: REFRESH_TOKEN_EXPIRY }
+      );
+  }
+  
+  /* ================================
+     AUTH MIDDLEWARE
+  ================================ */
+  
+  function authMiddleware(req, res, next) {
+  
+      const token = req.cookies.access_token;
+  
+      if (!token) {
+          return res.status(401).json({ error: "No autorizado" });
+      }
+  
       try {
-        const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
-
-        const userRes = await pool.query(`
-          SELECT rating 
-          FROM product_ratings 
-          WHERE user_id = $1 AND product_id = $2
-        `, [decoded.id, id]);
-
-        if (userRes.rows.length) {
-          userRating = userRes.rows[0].rating;
-        }
-
-      } catch {}
-    }
-
-    product.user_rating = userRating;
-
-    let isFavorite = false;
-
-if (req.cookies.access_token) {
-  try {
-    const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
-
-    const favRes = await pool.query(
-      `SELECT 1 FROM product_favorites 
-       WHERE user_id = $1 AND product_id = $2`,
-      [decoded.id, id]
-    );
-
-    isFavorite = favRes.rows.length > 0;
-
-  } catch {}
-}
-
-product.is_favorite = isFavorite;
-
-    res.json(product);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error del servidor" });
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          req.user = decoded;
+          next();
+      } catch {
+          return res.status(401).json({ error: "Token expirado o inválido" });
+      }
   }
-});
-
-app.put('/api/products/:id', authMiddleware, upload.array("images", 5), async (req, res) => {
-  try {
-
-    const { 
-      name, 
-      price, 
-      brand, 
-      size, 
-      stock, 
-      extra, 
-      category,
-      colors,
-      is_offer
-    } = req.body;
-
-    let images = [];
-
-    if (req.files && req.files.length > 0) {
-      images = req.files.map(file => file.path);
-    }
-
-    const mainImage = images[0] || null;
-
-    const result = await pool.query(
-  `UPDATE stores
-   SET 
-     name = COALESCE($1, name),
-     description = COALESCE($2, description),
-     phone = COALESCE($3, phone),
-     city = COALESCE($4, city),
-     category = COALESCE($5, category),
-     subcategory_id = COALESCE($6, subcategory_id),
-     street = COALESCE($7, street),
-     local = COALESCE($8, local),
-     apartment = COALESCE($9, apartment),
-     reference_notes = COALESCE($10, reference_notes),
-     lat = COALESCE($11, lat),
-     lng = COALESCE($12, lng),
-     logo_url = COALESCE($13, logo_url),
-     cover_url = COALESCE($14, cover_url),
-     subcategory_ids = COALESCE($15, subcategory_ids)
-   WHERE id = $16 AND user_id = $17
-   RETURNING *`,
-  [
-    name,
-    description,
-    phone,
-    city,
-    category,
-    subcategory_id,
-    street,
-    local,
-    apartment,
-    reference_notes,
-    lat || null,
-    lng || null,
-    logo_url,
-    cover_url,
-    subcategory_ids ? JSON.stringify(subcategoriesToSave) : null,
-    req.params.id,
-    req.user.id
-  ]
-);
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error actualizando producto" });
-  }
-});
-
-app.post('/api/products', authMiddleware, upload.array("images", 5), async (req, res) => {
-
-  try {
-
-    const { 
-      name, 
-      price, 
-      store_id, 
-      brand, 
-      size, 
-      stock, 
-      extra, 
-      category,
-      colors,
-      is_offer
-    } = req.body;
-
-    let images = [];
-
-    if (req.files && req.files.length > 0) {
-      images = req.files.map(file => file.path);
-    }
-
-    const mainImage = images[0] || null;
-
-    const result = await pool.query(
-  `INSERT INTO products
-(name, price, image_url, images, store_id, brand, size, stock, extra, colors, category, is_offer)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-RETURNING *`,
-  [
-    name,
-    price,
-    mainImage,
-    JSON.stringify(images),
-    store_id,
-    brand,
-    size,
-    stock ? parseInt(stock) : 0,
-    extra,
-    colors || "[]",
-    category,
-    is_offer === "true" || is_offer === true
-  ]
-);
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error("ERROR CREANDO PRODUCTO:", error);
-    res.status(500).json({ error: "Error creando producto" });
+  
+  function requireRole(role) {
+      return (req, res, next) => {
+          if (!req.user) return res.status(401).json({ error: "No autorizado" });
+          if (req.user.role !== role) return res.status(403).json({ error: "Acceso prohibido" });
+          next();
+      };
   }
 
-});
+/* ================================
+   NOTIFICATION HELPER
+================================ */
 
-
-app.post('/api/products/:id/comments', async (req, res) => {
-
-  const { content } = req.body;
-
-  await pool.query(
-    `INSERT INTO comments (product_id, content)
-     VALUES ($1,$2)`,
-    [req.params.id, content]
-  );
-
-  res.json({ ok: true });
-});
-
-app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
-  const productId = req.params.id;
-  const userId = req.user.id;
-  const { rating } = req.body;
-
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating inválido" });
-  }
-
+async function createNotification(userId, type, title, message, link = null) {
   try {
-
-    // 🔥 INSERT o UPDATE automático
     await pool.query(`
-      INSERT INTO product_ratings (user_id, product_id, rating)
-      VALUES ($1,$2,$3)
-      ON CONFLICT (user_id, product_id)
-      DO UPDATE SET rating = EXCLUDED.rating
-    `, [userId, productId, rating]);
-
-    // 🔥 recalcular promedio
-    const result = await pool.query(`
-      SELECT 
-        AVG(rating)::numeric(10,2) as avg,
-        COUNT(*) as count
-      FROM product_ratings
-      WHERE product_id = $1
-    `, [productId]);
-
-    res.json({
-      avg: result.rows[0].avg,
-      count: result.rows[0].count
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error rating" });
+      INSERT INTO notifications (user_id, type, title, message, link)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [userId, type, title, message, link]);
+  } catch (error) {
+    console.error("ERROR CREATE NOTIFICATION:", error);
   }
-});
+}
+  
+  /* ================================
+     CSRF TOKEN ENDPOINT
+  ================================ */
+  
+  app.get('/api/csrf-token', csrfProtection, (req, res) => {
+      res.json({ csrfToken: req.csrfToken() });
+  });
+  
+  
+  
+  app.get('/new-product', (req, res) => {
+    res.sendFile(__dirname + '/public/new-product.html');
+  });
+  
+  app.get('/edit-product/:id', (req, res) => {
+    res.sendFile(__dirname + '/public/edit-product.html');
+  });
+  
+  app.get('/dashboard', (req, res) => {
+    res.sendFile(__dirname + '/public/dashboard.html');
+  });
+  
+  app.get('/edit-store', (req, res) => {
+    res.sendFile(__dirname + '/public/edit-store.html');
+  });
+  
+  app.delete('/api/products/:id', authMiddleware, async (req, res) => {
+    try {
+  
+      const productId = req.params.id;
+  
+      // 🔒 aseguramos que el producto sea del usuario
+      const result = await pool.query(
+        `DELETE FROM products 
+         WHERE id = $1 
+         AND store_id IN (
+           SELECT id FROM stores WHERE user_id = $2
+         )
+         RETURNING *`,
+        [productId, req.user.id]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Producto no encontrado o no autorizado" });
+      }
+  
+      res.json({ message: "Producto eliminado" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error eliminando producto" });
+    }
+  });
+  
+  
+  
+  
+  /* ================================
+     REGISTER
+  ================================ */
+  app.post('/api/register', loginLimiter, csrfProtection, async (req, res) => {
+  
+      const { name, email, password, role } = req.body;
+  
+      try {
+  
+          const passwordHash = await bcrypt.hash(password, 10);
+          const emailToken = uuidv4();
+  
+          // ✅ SOLO CREA USUARIO (NO TIENDA)
+          await pool.query(
+              `INSERT INTO users (name,email,password_hash,role,email_token,email_verified)
+               VALUES ($1,$2,$3,$4,$5,false)`,
+              [name, email, passwordHash, role, emailToken]
+          );
+  
+          const verificationLink =
+              `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
+  
+          await resend.emails.send({
+              from: "PuntoCerca <no-reply@puntocerca.com.ar>",
+              to: email,
+              subject: "Verifica tu cuenta - PuntoCerca",
+              html: `
+              
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
 
-app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
-  try {
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
 
-    const { rating } = req.body;
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#ea580c,#f97316);padding:40px 40px 30px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:900;letter-spacing:-0.5px;">
+                <span style="color:#fff3e0;">Punto</span>Cerca
+              </h1>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                Conectando comercios con personas
+              </p>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:40px;">
+
+              <h2 style="margin:0 0 12px;font-size:22px;color:#111827;font-weight:800;">
+                ¡Verificá tu cuenta! 👋
+              </h2>
+
+              <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">
+                Gracias por registrarte en <strong style="color:#ea580c;">PuntoCerca</strong>. 
+                Para activar tu cuenta y empezar a conectar con comercios cerca tuyo, 
+                hacé click en el botón de abajo.
+              </p>
+
+              <!-- BOTÓN -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:20px 0;">
+                    <a href="${verificationLink}"
+                      style="display:inline-block;background:linear-gradient(135deg,#ea580c,#f97316);color:#ffffff;text-decoration:none;font-size:16px;font-weight:800;padding:16px 40px;border-radius:999px;box-shadow:0 8px 20px rgba(234,88,12,0.35);">
+                      ✅ Verificar mi cuenta
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;text-align:center;">
+                O copiá este enlace en tu navegador:
+              </p>
+              <p style="margin:0 0 24px;font-size:12px;color:#d1d5db;text-align:center;word-break:break-all;">
+                ${verificationLink}
+              </p>
+
+              <!-- ALERTA -->
+              <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;">
+                <p style="margin:0;font-size:13px;color:#92400e;">
+                  ⚠️ Si no creaste una cuenta en PuntoCerca, ignorá este mensaje.
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
+              <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;">
+                © PuntoCerca · Todos los derechos reservados
+              </p>
+              <p style="margin:0;font-size:12px;color:#d1d5db;">
+                contacto@puntocerca.com.ar
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+`
+          });
+  
+          res.status(201).json({
+              message: "Usuario creado. Revisa tu email para verificar tu cuenta."
+          });
+  
+      } catch (error) {
+          console.error(error);
+  
+          if (error.code === '23505') {
+              return res.status(400).json({ error: "El email ya está en uso" });
+          }
+  
+          res.status(500).json({ error: "Error en registro" });
+      }
+  });
+  
+  
+  // ⭐ RATE STORE
+  app.post('/api/stores/:id/rate', authMiddleware, async (req, res) => {
     const storeId = req.params.id;
     const userId = req.user.id;
+    const { rating } = req.body;
+  
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating inválido" });
+    }
+  
+    try {
+      await pool.query(`
+        INSERT INTO store_ratings (user_id, store_id, rating)
+        VALUES ($1,$2,$3)
+        ON CONFLICT (user_id, store_id)
+        DO UPDATE SET rating = EXCLUDED.rating
+      `, [userId, storeId, rating]);
+  
+      const result = await pool.query(`
+        SELECT 
+          AVG(rating)::numeric(10,2) as avg,
+          COUNT(*) as count
+        FROM store_ratings
+        WHERE store_id = $1
+      `, [storeId]);
+  
+      res.json({
+        avg: result.rows[0].avg || 0,
+        count: result.rows[0].count || 0
+      });
+  
+    } catch (err) {
+      console.error("ERROR RATE:", err);
+      res.status(500).json({ error: "Error rating tienda" });
+    }
+  });
+  
+  // ⭐ GET RATING
+  app.get('/api/stores/:id/rating', async (req, res) => {
+    try {
+      const storeId = req.params.id;
+  
+      const result = await pool.query(`
+        SELECT 
+          AVG(rating)::numeric(10,2) as avg,
+          COUNT(*) as count
+        FROM store_ratings
+        WHERE store_id = $1
+      `, [storeId]);
+  
+      let user_rating = null;
+  
+      if (req.cookies.access_token) {
+        try {
+          const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
+  
+          const userRes = await pool.query(`
+            SELECT rating
+            FROM store_ratings
+            WHERE user_id = $1 AND store_id = $2
+            LIMIT 1
+          `, [decoded.id, storeId]);
+  
+          if (userRes.rows.length > 0) {
+            user_rating = userRes.rows[0].rating;
+          }
+        } catch (err) {
+          // si el token no sirve, no rompemos la respuesta
+        }
+      }
+  
+      res.json({
+        avg: result.rows[0].avg || 0,
+        count: Number(result.rows[0].count) || 0,
+        user_rating
+      });
+  
+    } catch (err) {
+      console.error("ERROR GET RATING:", err);
+      res.status(500).json({ error: "Error obteniendo rating" });
+    }
+  });
 
-    await pool.query(
-      `INSERT INTO ratings (user_id, store_id, rating)
-       VALUES ($1,$2,$3)`,
-      [userId, storeId, rating]
-    );
-
-    const result = await pool.query(
-      `SELECT AVG(rating) as avg, COUNT(*) as count
-       FROM ratings
-       WHERE store_id = $1`,
-      [storeId]
-    );
-
-    const avg = result.rows[0].avg;
-    const count = result.rows[0].count;
-
-    await pool.query(
-      `UPDATE stores
-       SET rating_avg = $1, rating_count = $2
-       WHERE id = $3`,
-      [avg, count, storeId]
-    );
-
-    res.json({ avg, count });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error rating tienda" });
-  }
-});
-
- app.get('/api/product-favorites', authMiddleware, async (req, res) => {
-
+app.get("/api/stores/:id/events", async (req, res) => {
   try {
+
+    const storeId = req.params.id;
 
     const result = await pool.query(`
-      SELECT products.*
-      FROM product_favorites
-      JOIN products ON products.id = product_favorites.product_id
-      WHERE product_favorites.user_id = $1
-    `, [req.user.id]);
+      SELECT *
+      FROM store_events
+      WHERE store_id = $1
+      AND end_at >= NOW()
+      ORDER BY start_at ASC
+    `, [storeId]);
 
     res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error" });
-  }
-
-});
-
-
-
-
-app.delete('/api/product-favorite/:id', authMiddleware, async (req, res) => {
-
-  try {
-
-    await pool.query(
-      `DELETE FROM product_favorites 
-       WHERE user_id = $1 AND product_id = $2`,
-      [req.user.id, req.params.id]
-    );
-
-    res.json({ message: "Eliminado de favoritos" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error" });
-  }
-
-});
-
-
- app.get('/api/favorites', authMiddleware, async (req, res) => {
-
-  try {
-
-    const result = await pool.query(`
-      SELECT stores.*
-      FROM favorites
-      JOIN stores ON stores.id = favorites.store_id
-      WHERE favorites.user_id = $1
-    `, [req.user.id]);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo favoritos" });
-  }
-
-});
-
-app.post('/api/follow', authMiddleware, async (req, res) => {
-
-  const { store_id } = req.body;
-
-  try {
-
-    await pool.query(
-      `INSERT INTO follows (user_id, store_id)
-       VALUES ($1,$2)
-       ON CONFLICT DO NOTHING`,
-      [req.user.id, store_id]
-    );
-
-    res.json({ message: "Siguiendo tienda" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error siguiendo tienda" });
-  }
-
-});
-
-app.post('/api/product-favorite', authMiddleware, async (req, res) => {
-  try {
-
-    const { product_id } = req.body;
-
-    await pool.query(
-      `INSERT INTO product_favorites (user_id, product_id)
-       VALUES ($1,$2)
-       ON CONFLICT DO NOTHING`,
-      [req.user.id, product_id]
-    );
-
-    res.json({ message: "Guardado" });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error" });
+    console.error("ERROR STORE EVENTS:", err);
+    res.status(500).json({ error: "Error cargando eventos" });
   }
 });
-
-app.get('/api/is-following/:storeId', authMiddleware, async (req, res) => {
-
-  const result = await pool.query(
-    `SELECT 1 FROM follows WHERE user_id=$1 AND store_id=$2`,
-    [req.user.id, req.params.storeId]
-  );
-
-  res.json({ following: result.rows.length > 0 });
-
-});
-
-app.get('/api/store-followers/:storeId', async (req, res) => {
-
-  const result = await pool.query(
-    `SELECT COUNT(*) FROM follows WHERE store_id=$1`,
-    [req.params.storeId]
-  );
-
-  res.json({ count: result.rows[0].count });
-
-});
-
-app.post('/api/product-view/:id', async (req, res) => {
-
-  await pool.query(
-    `UPDATE products SET views = COALESCE(views,0) + 1 WHERE id=$1`,
-    [req.params.id]
-  );
-
-  res.json({ ok:true });
-
-});
-
-
-app.delete('/api/follow/:storeId', authMiddleware, async (req, res) => {
-
-  try {
-
-    await pool.query(
-      `DELETE FROM follows
-       WHERE user_id = $1 AND store_id = $2`,
-      [req.user.id, req.params.storeId]
-    );
-
-    res.json({ message: "Dejaste de seguir" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error" });
-  }
-
-});
-
-app.get('/api/following', authMiddleware, async (req, res) => {
-
-  try {
-
-    const result = await pool.query(`
-      SELECT stores.*
-      FROM follows
-      JOIN stores ON stores.id = follows.store_id
-      WHERE follows.user_id = $1
-    `, [req.user.id]);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo seguidos" });
-  }
-
-});
-
-/* ================================
-   GET STORES
-================================ */
-
-app.get('/api/stores', async (req, res) => {
-  try {
-
-    const { category, subcategory_id } = req.query;
-
-    let query = `SELECT * FROM stores`;
-    const conditions = [];
-    const values = [];
-
-    if (category) {
-      values.push(category);
-      conditions.push(`category = $${values.length}`);
-    }
-
-    if (subcategory_id) {
-  values.push(JSON.stringify([subcategory_id]));
-
-  conditions.push(`
-    subcategory_ids @> $${values.length}::jsonb
-  `);
-}
-
-    if (conditions.length) {
-      query += " WHERE " + conditions.join(" AND ");
-    }
-
-    const result = await pool.query(query, values);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo tiendas" });
-  }
-});
-
-
-
-/* ================================
-   GET MY STORE
-================================ */
-
-app.get('/api/my-store', authMiddleware, async (req, res) => {
-
+  
+  
+  app.get('/product/:id', (req, res) => {
+      res.sendFile(__dirname + '/public/product.html');
+  });
+  
+  app.get('/api/products/slug/:slug', async (req, res) => {
+  
     try {
-
-        const result = await pool.query(
-            `SELECT * FROM stores WHERE user_id = $1 LIMIT 1`,
-            [req.user.id]
-        );
-
-        if (!result.rows.length) {
-            return res.status(404).json({
-                error: "No tienes tienda creada"
-            });
+  
+      const result = await pool.query(
+        `SELECT 
+          p.*, 
+          s.name as store_name,
+          s.phone as store_phone,
+          s.slug as store_slug
+         FROM products p
+         LEFT JOIN stores s ON p.store_id = s.id
+         WHERE p.slug = $1`,
+        [req.params.slug]
+      );
+  
+      
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Producto no encontrado" });
+      }
+  
+      const product = result.rows[0];
+  
+      // parse images
+      if (product.images && typeof product.images === "string") {
+        try {
+          product.images = JSON.parse(product.images);
+        } catch {
+          product.images = [];
         }
-
-        res.json(result.rows[0]);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Error obteniendo tienda"
-        });
+      }
+  
+      if (product.slug) {
+    return res.json({
+      ...product,
+      redirect_slug: product.slug
+    });
+  }
+  
+  res.json(product);
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error del servidor" });
     }
-
-});
-
-/* ================================
-   GET STORE BY ID
-================================ */
-
-app.get('/api/stores/:id', async (req, res) => {
-
+  });
+  
+  
+  app.post('/api/stores',
+    authMiddleware,
+    upload.fields([
+      { name: "logo", maxCount: 1 },
+      { name: "cover", maxCount: 1 }
+    ]),
+    async (req, res) => {
+  
     try {
-
-        const result = await pool.query(
-            `SELECT * FROM stores WHERE id = $1`,
-            [req.params.id]
-        );
-
-        if (!result.rows.length) {
-            return res.status(404).json({
-                error: "Tienda no encontrada"
-            });
-        }
-
-        res.json(result.rows[0]);
-
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            error: "Error obteniendo tienda"
-        });
-
-    }
-
-});
-
-app.put('/api/stores/:id',
-  authMiddleware,
-  upload.fields([
-    { name: "logo", maxCount: 1 },
-    { name: "cover", maxCount: 1 }
-  ]),
-  async (req, res) => {
-
-  console.log("BODY:", req.body);
-console.log("FILES:", req.files);
-
- const { 
+  
+      const { 
   name, 
   description, 
   phone, 
@@ -1157,51 +617,2436 @@ console.log("FILES:", req.files);
   lat,
   lng
 } = req.body;
-
-let logo_url = null;
-let cover_url = null;
-
-// archivos
-if (req.files?.logo) {
-  logo_url = req.files.logo[0].path;
-}
-
-if (req.files?.cover) {
-  cover_url = req.files.cover[0].path;
-}
-
-let subcategoriesToSave = null;
-
-if (subcategory_ids) {
-  try {
-    subcategoriesToSave = JSON.parse(subcategory_ids);
-  } catch {
-    subcategoriesToSave = null;
+  
+  let opening_hours = null;
+  
+  if (req.body.opening_hours) {
+    try {
+      opening_hours = JSON.parse(req.body.opening_hours);
+    } catch (e) {
+      opening_hours = null;
+    }
   }
+  
+  let subcategoriesToSave = null;
+  
+  if (subcategory_ids) {
+    try {
+      subcategoriesToSave = JSON.parse(subcategory_ids).map(Number);
+    } catch {
+      subcategoriesToSave = null;
+    }
+  }
+  
+      // 🔒 evitar duplicados
+      const existing = await pool.query(
+        `SELECT id FROM stores WHERE user_id = $1`,
+        [req.user.id]
+      );
+  
+      if (existing.rows.length > 0) {
+        return res.status(400).json({
+          error: "Ya tienes una tienda creada"
+        });
+      }
+  
+      // 🔥 GENERAR SLUG
+      const baseSlug = name
+        .toLowerCase()
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+  
+      let slug = baseSlug;
+      let counter = 1;
+  
+      while (true) {
+        const check = await pool.query(
+          `SELECT id FROM stores WHERE slug = $1`,
+          [slug]
+        );
+  
+        if (check.rows.length === 0) break;
+  
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+  
+      let logo_url = null;
+      let cover_url = null;
+  
+      if (req.files?.logo) {
+        logo_url = req.files.logo[0].path;
+      }
+  
+      if (req.files?.cover) {
+        cover_url = req.files.cover[0].path;
+      }
+  
+      const result = await pool.query(
+        `INSERT INTO stores 
+  (user_id, name, slug, description, phone, city, category, subcategory_ids, street, local, apartment, reference_notes, lat, lng, logo_url, cover_url, opening_hours)
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        RETURNING *`,
+        [
+          req.user.id,
+          name,
+          slug,
+          description,
+          phone,
+          city,
+          category,
+          subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
+          street,
+          local,
+          apartment,
+          reference_notes,
+          lat || null,
+          lng || null,
+          logo_url,
+          cover_url,
+          opening_hours
+        ]
+      );
+  
+      res.status(201).json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error creando tienda" });
+    }
+  
+  });
+  /* ================================
+     LOGIN
+  ================================ */
+  
+  app.post('/api/login', loginLimiter, csrfProtection, async (req, res) => {
+  
+      const { email, password } = req.body;
+  
+      try {
+  
+          const result = await pool.query(
+              `SELECT * FROM users WHERE email = $1`,
+              [email]
+          );
+  
+          if (!result.rows.length)
+              return res.status(400).json({ error: "Usuario no encontrado" });
+  
+          const user = result.rows[0];
+  
+          const match = await bcrypt.compare(password, user.password_hash);
+          if (!match)
+              return res.status(400).json({ error: "Contraseña incorrecta" });   
+          
+          if (!user.email_verified) {
+      return res.status(403).json({
+          error: "Debes verificar tu email antes de iniciar sesión."
+      });
+  }
+  
+          const accessToken = generateAccessToken(user);
+          const refreshToken = generateRefreshToken(user);
+  
+          // Guardar refresh token en DB
+          await pool.query(
+              `UPDATE users SET refresh_token = $1 WHERE id = $2`,
+              [refreshToken, user.id]
+          );
+  
+          const isProd = process.env.NODE_ENV === "production";
+  
+  res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      sameSite: "lax",   // 🔥 antes: "strict"
+      secure: isProd,    // 🔥 antes: false
+      maxAge: 15 * 60 * 1000
+  });
+  
+  res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+  
+          res.json({ message: "Login correcto" });
+  
+      } catch (error) {
+          res.status(500).json({ error: "Error en login" });
+      }
+  });
+  
+  /* ================================
+     RESEND VERIFICATION EMAIL
+  ================================ */
+  
+  app.post('/api/resend-verification', csrfProtection, async (req, res) => {
+  
+      const { email } = req.body;
+  
+      try {
+  
+          const result = await pool.query(
+              `SELECT * FROM users WHERE email = $1`,
+              [email]
+          );
+  
+          if (!result.rows.length) {
+              return res.status(404).json({
+                  error: "Usuario no encontrado"
+              });
+          }
+  
+          const user = result.rows[0];
+  
+          if (user.email_verified) {
+              return res.json({
+                  message: "El email ya está verificado."
+              });
+          }
+  
+          const emailToken = uuidv4();
+  
+          await pool.query(
+              `UPDATE users
+               SET email_token = $1
+               WHERE id = $2`,
+              [emailToken, user.id]
+          );
+  
+          const verificationLink =
+              `${process.env.BASE_URL}/api/verify-email?token=${emailToken}`;
+  
+          await resend.emails.send({
+    from: "PuntoCerca <no-reply@puntocerca.com.ar>",
+    to: email,
+    subject: "Verifica tu cuenta - PuntoCerca",
+    html: `
+      <h2>Verifica tu cuenta</h2>
+      <p>Haz click en el siguiente enlace:</p>
+      <a href="${verificationLink}">
+        Verificar Email
+      </a>
+    `
+  });
+  
+          res.json({
+              message: "Email de verificación reenviado."
+          });
+  
+      } catch (error) {
+  
+          console.error(error);
+  
+          res.status(500).json({
+              error: "Error enviando email"
+          });
+  
+      }
+  
+  });
+  
+  /* ================================
+     REFRESH TOKEN
+  ================================ */
+  
+  app.post('/api/refresh', async (req, res) => {
+  
+      const token = req.cookies.refresh_token;
+  
+      if (!token)
+          return res.status(401).json({ error: "Refresh token requerido" });
+  
+      try {
+  
+          const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+  
+          const result = await pool.query(
+              `SELECT * FROM users WHERE id = $1`,
+              [decoded.id]
+          );
+  
+          if (!result.rows.length)
+              return res.status(403).json({ error: "Usuario no válido" });
+  
+          const user = result.rows[0];
+  
+          if (user.refresh_token !== token)
+              return res.status(403).json({ error: "Refresh token inválido" });
+  
+          // ROTACIÓN
+          const newAccessToken = generateAccessToken(user);
+          const newRefreshToken = generateRefreshToken(user);
+  
+          await pool.query(
+              `UPDATE users SET refresh_token = $1 WHERE id = $2`,
+              [newRefreshToken, user.id]
+          );
+  
+          const isProd = process.env.NODE_ENV === "production";
+  
+  res.cookie("access_token", newAccessToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 15 * 60 * 1000
+  });
+  
+  res.cookie("refresh_token", newRefreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+  
+          res.json({ message: "Token renovado" });
+  
+      } catch {
+          return res.status(403).json({ error: "Refresh inválido o expirado" });
+      }
+  });
+  
+  /* ================================
+     LOGOUT
+  ================================ */
+  
+  app.post('/api/logout', async (req, res) => {
+  
+      const refreshToken = req.cookies.refresh_token;
+  
+      if (refreshToken) {
+          await pool.query(
+              `UPDATE users SET refresh_token = NULL WHERE refresh_token = $1`,
+              [refreshToken]
+          );
+      }
+  
+      const isProd = process.env.NODE_ENV === "production";
+  
+  res.clearCookie("access_token", {
+    sameSite: "lax",
+    secure: isProd
+  });
+  
+  res.clearCookie("refresh_token", {
+    sameSite: "lax",
+    secure: isProd
+  });
+  
+      res.json({ message: "Logout correcto" });
+  });
+  
+  /* ================================
+     WHO AM I
+  ================================ */
+  
+  app.get('/api/me', authMiddleware, async (req, res) => {
+    try {
+  
+      const result = await pool.query(
+        `SELECT id, name, email, role, avatar_url FROM users WHERE id = $1`,
+        [req.user.id]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo usuario" });
+    }
+  });
+  
+  // ================================
+  // UPDATE USER
+  // ================================
+  app.put('/api/users/me', authMiddleware, async (req, res) => {
+    try {
+  
+      const { name, password } = req.body;
+  
+      let passwordHash = null;
+  
+      if (password && password.trim() !== "") {
+        passwordHash = await bcrypt.hash(password, 10);
+      }
+  
+      const result = await pool.query(
+        `UPDATE users
+         SET 
+           name = COALESCE($1, name),
+           password_hash = COALESCE($2, password_hash)
+         WHERE id = $3
+         RETURNING id, name, email, role, avatar_url`,
+        [
+          name || null,
+          passwordHash,
+          req.user.id
+        ]
+      );
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error actualizando usuario" });
+    }
+  });
+  
+  app.put('/api/users/avatar', authMiddleware, upload.single("avatar"), async (req, res) => {
+    try {
+  
+      if (!req.file) {
+        return res.status(400).json({ error: "No se recibió ninguna imagen" });
+      }
+  
+      const avatar_url = req.file.path;
+  
+      const result = await pool.query(
+        `UPDATE users
+         SET avatar_url = $1
+         WHERE id = $2
+         RETURNING id, name, email, role, avatar_url`,
+        [avatar_url, req.user.id]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+  
+      res.json({
+        message: "Avatar actualizado correctamente",
+        user: result.rows[0]
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error actualizando avatar" });
+    }
+  });
+  
+  
+  // ================================
+  // DELETE USER (PRO)
+  // ================================
+  app.delete('/api/users/me', authMiddleware, async (req, res) => {
+    try {
+  
+      const userId = req.user.id;
+  
+      // 🔥 1. eliminar favoritos productos
+      await pool.query(
+        `DELETE FROM product_favorites WHERE user_id = $1`,
+        [userId]
+      );
+  
+      // 🔥 2. eliminar follows
+      await pool.query(
+        `DELETE FROM follows WHERE user_id = $1`,
+        [userId]
+      );
+  
+      // 🔥 3. eliminar favoritos tiendas
+      await pool.query(
+        `DELETE FROM favorites WHERE user_id = $1`,
+        [userId]
+      );
+  
+      // 🔥 4. eliminar ratings productos
+      await pool.query(
+        `DELETE FROM product_ratings WHERE user_id = $1`,
+        [userId]
+      );
+  
+      // 🔥 5. eliminar tiendas del usuario
+      const stores = await pool.query(
+        `SELECT id FROM stores WHERE user_id = $1`,
+        [userId]
+      );
+  
+      for (const store of stores.rows) {
+  
+        // productos de la tienda
+        await pool.query(
+          `DELETE FROM products WHERE store_id = $1`,
+          [store.id]
+        );
+  
+        // follows a esa tienda
+        await pool.query(
+          `DELETE FROM follows WHERE store_id = $1`,
+          [store.id]
+        );
+  
+        // favoritos a esa tienda
+        await pool.query(
+          `DELETE FROM favorites WHERE store_id = $1`,
+          [store.id]
+        );
+      }
+  
+      // 🔥 6. eliminar tiendas
+      await pool.query(
+        `DELETE FROM stores WHERE user_id = $1`,
+        [userId]
+      );
+  
+      // 🔥 7. eliminar usuario
+      await pool.query(
+        `DELETE FROM users WHERE id = $1`,
+        [userId]
+      );
+  
+      // limpiar cookies
+      res.clearCookie("access_token");
+      res.clearCookie("refresh_token");
+  
+      res.json({ message: "Cuenta eliminada correctamente" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error eliminando cuenta" });
+    }
+  });
+  
+   app.post('/api/favorites', authMiddleware, async (req, res) => {
+  
+    const { store_id } = req.body;
+  
+    try {
+  
+      await pool.query(
+        `INSERT INTO favorites (user_id, store_id)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
+        [req.user.id, store_id]
+      );
+  
+      res.json({ message: "Guardado en favoritos" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error guardando favorito" });
+    }
+  
+  });
+  
+  app.get('/api/products/:id', async (req, res) => {
+    const id = req.params.id;
+  
+    try {
+  
+      // 🔥 producto + tienda
+      const result = await pool.query(`
+        SELECT 
+    p.*, 
+    s.name as store_name,
+    s.phone as store_phone,
+    s.slug as store_slug
+  FROM products p
+  LEFT JOIN stores s ON p.store_id = s.id
+  WHERE p.id = $1
+      `, [id]);
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Producto no encontrado" });
+      }
+  
+      const product = result.rows[0];
+  
+      // 🔥 imágenes
+      if (product.images && typeof product.images === "string") {
+        try {
+          product.images = JSON.parse(product.images);
+        } catch {
+          product.images = [];
+        }
+      }
+  
+      // 🔥 rating promedio
+      const ratingResult = await pool.query(`
+        SELECT 
+          AVG(rating)::numeric(10,2) as avg,
+          COUNT(*) as count
+        FROM product_ratings
+        WHERE product_id = $1
+      `, [id]);
+  
+      product.rating_avg = ratingResult.rows[0].avg;
+      product.rating_count = ratingResult.rows[0].count;
+  
+      // 🔥 rating del usuario
+      let userRating = null;
+  
+      if (req.cookies.access_token) {
+        try {
+          const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
+  
+          const userRes = await pool.query(`
+            SELECT rating 
+            FROM product_ratings 
+            WHERE user_id = $1 AND product_id = $2
+          `, [decoded.id, id]);
+  
+          if (userRes.rows.length) {
+            userRating = userRes.rows[0].rating;
+          }
+  
+        } catch {}
+      }
+  
+      product.user_rating = userRating;
+  
+      let isFavorite = false;
+  
+  if (req.cookies.access_token) {
+    try {
+      const decoded = jwt.verify(req.cookies.access_token, process.env.JWT_SECRET);
+  
+      const favRes = await pool.query(
+        `SELECT 1 FROM product_favorites 
+         WHERE user_id = $1 AND product_id = $2`,
+        [decoded.id, id]
+      );
+  
+      isFavorite = favRes.rows.length > 0;
+  
+    } catch {}
+  }
+  
+  product.is_favorite = isFavorite;
+  
+      res.json(product);
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error del servidor" });
+    }
+  });
+  
+  
+  
+  app.post('/api/products', authMiddleware, uploadProduct.fields([
+  { name: "images", maxCount: 5 },
+  { name: "video_file", maxCount: 1 }
+]), async (req, res) => {
+  try {
+
+    const {
+  name,
+  price,
+  old_price,
+  store_id,
+  brand,
+  size,
+  stock,
+  extra,
+  category,
+  colors,
+  is_offer,
+  subcategory_id,
+  video_url
+} = req.body;
+
+    const parsedPrice = price && price !== "" ? parseFloat(price) : null;
+    const parsedOldPrice = old_price && old_price !== "" ? parseFloat(old_price) : null;
+    const parsedStock = stock && stock !== "" && !isNaN(stock)
+      ? parseInt(stock)
+      : null;
+
+   let images = [];
+      if (req.files?.images?.length > 0) {
+        images = req.files.images.map(file => file.path);
+      }
+
+      const videoFilePath = req.files?.video_file?.[0]?.path || null;
+      const mainImage = images[0] || null;
+      const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
+
+    const baseSlug = name
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const check = await pool.query(
+        `SELECT id FROM products WHERE slug = $1`,
+        [slug]
+      );
+
+      if (check.rows.length === 0) break;
+
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+   let offerCreatedAt = null;
+    let offerExpiresAt = null;
+
+    const parsedIsOffer = is_offer === "true" || is_offer === true;
+
+    if (parsedIsOffer) {
+      offerCreatedAt = new Date();
+      offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
+    const result = await pool.query(
+      `INSERT INTO products
+       (name, price, old_price, image_url, images, store_id, brand, size, stock, extra, colors, category, subcategory_id, is_offer, offer_created_at, offer_expires_at, slug, video_url, video_file_url)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+      RETURNING *`,
+      [
+        name,
+        parsedPrice,
+        parsedOldPrice,
+        mainImage,
+        JSON.stringify(images),
+        store_id,
+        brand || null,
+        size || null,
+        parsedStock,
+        extra || null,
+        colors || "[]",
+        category || null,
+        subcategory_id || null,
+        parsedIsOffer,
+        offerCreatedAt,
+        offerExpiresAt,
+        slug,
+        video_url || null,
+        videoFilePath
+      ]
+    );
+
+ 
+    try {
+
+      // obtener tienda correctamente por ID
+      const storeRes = await pool.query(`
+        SELECT id, name, slug
+        FROM stores
+        WHERE id = $1
+      `, [store_id]);
+
+      const store = storeRes.rows[0];
+
+      if (store) {
+
+        const followersRes = await pool.query(`
+          SELECT user_id
+          FROM follows
+          WHERE store_id = $1
+        `, [store.id]);
+
+        const followers = followersRes.rows;
+
+        if (followers.length) {
+
+          for (const f of followers) {
+
+            if (f.user_id === req.user.id) continue;
+
+            await createNotification(
+              f.user_id,
+              "new_product",
+              "Nuevo producto",
+              `${store.name} publicó un nuevo producto`,
+              `/product/${result.rows[0].slug || result.rows[0].id}`
+            );
+          }
+
+        }
+
+      }
+
+    } catch (err) {
+      console.error("ERROR NOTIFICANDO PRODUCTO:", err);
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error("ERROR CREANDO PRODUCTO:", error);
+    res.status(500).json({ error: "Error creando producto" });
+  }
+});
+
+
+app.get("/api/events", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        e.id,
+        e.store_id,
+        e.title,
+        e.description,
+        e.image_url,
+        e.start_at,
+        e.end_at,
+        e.created_at,
+
+        s.name AS store_name,
+        s.slug AS store_slug,
+        s.logo_url AS store_logo,
+        s.street AS store_street,
+        s.city AS store_city,
+
+        CASE 
+          WHEN NOW() BETWEEN e.start_at AND e.end_at THEN 'active'
+          WHEN NOW() < e.start_at THEN 'upcoming'
+          ELSE 'expired'
+        END AS status
+
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+
+      WHERE e.end_at >= NOW()
+
+      ORDER BY 
+        CASE 
+          WHEN NOW() BETWEEN e.start_at AND e.end_at THEN 0
+          ELSE 1
+        END,
+        e.start_at ASC
+
+      LIMIT 10
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error("ERROR CARGANDO EVENTOS:", error);
+    res.status(500).json({ error: "Error cargando eventos" });
+  }
+});
+
+  
+  
+  
+  app.delete('/api/comments/:id', authMiddleware, async (req, res) => {
+    try {
+  
+      const commentId = req.params.id;
+      const userId = req.user.id;
+  
+      const result = await pool.query(
+        `DELETE FROM comments 
+         WHERE id = $1 AND user_id = $2
+         RETURNING *`,
+        [commentId, userId]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+  
+      res.json({ message: "Comentario eliminado" });
+  
+    } catch (error) {
+      console.error("DELETE COMMENT ERROR:", error);
+      res.status(500).json({ error: "Error eliminando comentario" });
+    }
+  });
+
+app.post("/api/events", uploadEvent.single("image"), authMiddleware, async (req, res) => {
+  try {
+
+    const user = req.user;
+
+    const { title, description, start_at, end_at } = req.body;
+
+    if (!title || !start_at || !end_at) {
+      return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Imagen obligatoria" });
+    }
+
+    const start = new Date(start_at);
+    const end = new Date(end_at);
+    const now = new Date();
+
+    if (start >= end) {
+      return res.status(400).json({ error: "Fecha inválida" });
+    }
+
+    const diffHours = (end - start) / (1000 * 60 * 60);
+
+    if (diffHours > 72) {
+      return res.status(400).json({ error: "Máximo 72 horas" });
+    }
+
+    if (start < now) {
+      return res.status(400).json({ error: "No podés crear eventos en el pasado" });
+    }
+
+    // 🔥 tienda del usuario
+    const storeRes = await pool.query(
+      "SELECT id FROM stores WHERE user_id = $1",
+      [user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(400).json({ error: "No tenés tienda" });
+    }
+
+    const store_id = storeRes.rows[0].id;
+
+    // 🔥 validar máximo 3 eventos activos
+    const activeEvents = await pool.query(`
+      SELECT COUNT(*) 
+      FROM store_events
+      WHERE store_id = $1
+      AND end_at >= NOW()
+    `, [store_id]);
+
+    if (parseInt(activeEvents.rows[0].count) >= 3) {
+      return res.status(400).json({ error: "Máximo 3 eventos activos" });
+    }
+
+    const image_url = req.file.path;
+
+  
+    const result = await pool.query(`
+      INSERT INTO store_events
+      (store_id, title, description, image_url, start_at, end_at)
+      VALUES ($1,$2,$3,$4,$5,$6)
+      RETURNING *
+    `, [store_id, title, description, image_url, start_at, end_at]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error("ERROR CREANDO EVENTO:", err);
+    res.status(500).json({ error: "Error creando evento" });
+  }
+});
+  app.post('/api/stores/:id/comments', authMiddleware, async (req, res) => {
+  
+    const { content } = req.body;
+    const storeId = req.params.id;
+    const userId = req.user?.id;
+  
+    console.log("🟡 INTENTO COMENTARIO:", {
+      storeId,
+      userId,
+      content
+    });
+  
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+  
+    if (!userId) {
+      return res.status(401).json({ error: "Usuario no válido" });
+    }
+  
+    try {
+  
+      // 🔍 validar tienda
+      const storeCheck = await pool.query(
+        `SELECT id FROM stores WHERE id = $1`,
+        [storeId]
+      );
+  
+      if (!storeCheck.rows.length) {
+        return res.status(404).json({ error: "Tienda no existe" });
+      }
+  
+      // 🔥 INSERT
+      const result = await pool.query(
+        `INSERT INTO store_comments (store_id, user_id, content)
+         VALUES ($1,$2,$3)
+         RETURNING *`,
+        [storeId, userId, content]
+      );
+
+      // 🔔 NOTIFICAR AL DUEÑO DE LA TIENDA
+try {
+  const storeRes = await pool.query(`
+    SELECT user_id, name, slug
+    FROM stores
+    WHERE id = $1
+  `, [storeId]);
+
+  const store = storeRes.rows[0];
+
+  if (store && store.user_id !== userId) {
+   await createNotification(
+  store.user_id,
+  "store_comment",
+  "Nuevo comentario en tu tienda",
+  `${req.user.name || "Un usuario"} comentó en ${store.name}`,
+  store.slug
+    ? `/${store.slug}#comment-${result.rows[0].id}`
+    : `/store/${storeId}#comment-${result.rows[0].id}`
+);
+  }
+
+} catch (err) {
+  console.error("ERROR NOTIFICACIÓN STORE COMMENT:", err);
+}
+  
+      console.log("🟢 COMENTARIO OK:", result.rows[0]);
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error("🔴 ERROR REAL:", error);
+  
+      res.status(500).json({
+        error: "Error comentando tienda",
+        detail: error.message
+      });
+    }
+  });
+  app.get("/api/my-events", authMiddleware, async (req, res) => {
+  try {
+
+    // 🔥 obtener tienda del usuario
+    const storeRes = await pool.query(
+      `SELECT id FROM stores WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.json([]);
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    const result = await pool.query(`
+      SELECT *
+      FROM events
+      WHERE store_id = $1
+      ORDER BY start_at DESC
+    `, [storeId]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("ERROR MY EVENTS:", err);
+    res.status(500).json({ error: "Error cargando eventos" });
+  }
+});
+  
+  
+  // ================================
+  // GET COMMENTS (CON AVATAR)
+  // ================================
+  app.get('/api/products/:id/comments', async (req, res) => {
+    try {
+  
+      const result = await pool.query(
+        `SELECT 
+           comments.*,
+           users.name,
+           users.avatar_url
+         FROM comments
+         JOIN users ON users.id = comments.user_id
+         WHERE comments.product_id = $1
+         ORDER BY comments.id DESC`,
+        [req.params.id]
+      );
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo comentarios" });
+    }
+  });
+
+  app.post('/api/products/:id/rate', authMiddleware, async (req, res) => {
+    const productId = req.params.id;
+    const userId = req.user.id;
+    const { rating } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating inválido" });
+    }
+
+    try {
+      // validar producto
+      const prodCheck = await pool.query(
+        `SELECT id FROM products WHERE id = $1`,
+        [productId]
+      );
+
+      if (!prodCheck.rows.length) {
+        return res.status(404).json({ error: "Producto no existe" });
+      }
+
+      await pool.query(`
+        INSERT INTO product_ratings (user_id, product_id, rating)
+        VALUES ($1,$2,$3)
+        ON CONFLICT (user_id, product_id)
+        DO UPDATE SET rating = EXCLUDED.rating
+      `, [userId, productId, rating]);
+
+      const result = await pool.query(`
+        SELECT 
+          AVG(rating)::numeric(10,2) as avg,
+          COUNT(*) as count
+        FROM product_ratings
+        WHERE product_id = $1
+      `, [productId]);
+
+      res.json({
+        avg: result.rows[0].avg || 0,
+        count: result.rows[0].count || 0
+      });
+
+    } catch (err) {
+      console.error("ERROR RATE PRODUCT:", err);
+      res.status(500).json({ error: "Error rating producto" });
+    }
+  });
+
+  // ================================
+  // 💬 POST COMMENT PRODUCTO
+  // ================================
+  app.post('/api/products/:id/comments', authMiddleware, async (req, res) => {
+
+    const { content } = req.body;
+    const productId = req.params.id;
+    const userId = req.user?.id;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: "Usuario no válido" });
+    }
+
+    try {
+
+      // validar producto y obtener tienda para notificar
+      const prodRes = await pool.query(`
+        SELECT p.id, p.name, p.slug, s.user_id as owner_id
+        FROM products p
+        JOIN stores s ON s.id = p.store_id
+        WHERE p.id = $1
+      `, [productId]);
+
+      if (!prodRes.rows.length) {
+        return res.status(404).json({ error: "Producto no existe" });
+      }
+
+      const product = prodRes.rows[0];
+
+      const result = await pool.query(
+        `INSERT INTO comments (product_id, user_id, content)
+         VALUES ($1,$2,$3)
+         RETURNING *`,
+        [productId, userId, content.trim()]
+      );
+
+      // 🔔 notificar al dueño de la tienda
+      try {
+        if (product.owner_id && product.owner_id !== userId) {
+          await createNotification(
+            product.owner_id,
+            "product_comment",
+            "Nuevo comentario en tu producto",
+            `${req.user.name || "Un usuario"} comentó en ${product.name}`,
+            `/product/${product.slug || productId}`
+          );
+        }
+      } catch (notifErr) {
+        console.error("ERROR NOTIF COMMENT:", notifErr);
+      }
+
+      res.json(result.rows[0]);
+
+    } catch (err) {
+      console.error("ERROR POST COMMENT:", err);
+      res.status(500).json({ error: "Error creando comentario" });
+    }
+  });
+
+  // ================================
+  // ✏️ EDITAR COMENTARIO
+  // ================================
+  app.put('/api/comments/:id', authMiddleware, async (req, res) => {
+
+    const { content } = req.body;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Comentario vacío" });
+    }
+
+    try {
+      const result = await pool.query(
+        `UPDATE comments
+         SET content = $1
+         WHERE id = $2 AND user_id = $3
+         RETURNING *`,
+        [content.trim(), req.params.id, req.user.id]
+      );
+
+      if (!result.rows.length) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+
+      res.json(result.rows[0]);
+
+    } catch (error) {
+      console.error("EDIT COMMENT ERROR:", error);
+      res.status(500).json({ error: "Error editando comentario" });
+    }
+  });
+  
+  app.put('/api/stores/:id/status', authMiddleware, async (req, res) => {
+  
+    let { is_open } = req.body;
+  
+    console.log("STATUS RECIBIDO:", is_open);
+  
+    // convertir correctamente
+    is_open = is_open === true || is_open === "true";
+  
+    try {
+      const result = await pool.query(
+        `UPDATE stores 
+         SET is_open = $1 
+         WHERE id = $2 AND user_id = $3
+         RETURNING *`,
+        [is_open, req.params.id, req.user.id]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error actualizando estado" });
+    }
+  });
+  
+  
+  
+  
+app.put('/api/products/:id', authMiddleware, uploadProduct.fields([
+  { name: "images", maxCount: 5 },
+  { name: "video_file", maxCount: 1 }
+]), async (req, res) => {
+    try {
+  
+    const { 
+      name, 
+      price, 
+      old_price, 
+      brand,
+      size, 
+      stock, 
+      extra, 
+      category,
+      colors,
+      is_offer,
+      video_url
+    } = req.body;
+  
+      // 🔥 VALIDAR PRODUCTO
+      const productData = await pool.query(
+        `SELECT store_id, is_offer, price FROM products WHERE id = $1`,
+        [req.params.id]
+      );
+  
+      if (!productData.rows.length) {
+        return res.status(404).json({ error: "Producto no encontrado" });
+      }
+  
+      const storeId = productData.rows[0].store_id;
+      const currentPrice = productData.rows[0].price;
+      const wasOffer = productData.rows[0].is_offer;
+
+      let parsedPrice = null;
+
+if (price !== undefined && price !== null && price !== "") {
+  const num = parseFloat(price);
+  parsedPrice = isNaN(num) ? null : num;
+}
+  
+      // 🔥 PARSEOS
+  
+    let parsedOldPrice = null;
+
+if (old_price !== undefined && old_price !== null && old_price !== "") {
+  const num = parseFloat(old_price);
+  parsedOldPrice = isNaN(num) ? null : num;
 }
 
+let parsedStock = null;
+
+if (stock !== undefined && stock !== null && stock !== "") {
+  const num = parseInt(stock);
+  parsedStock = isNaN(num) ? null : num;
+}
+      const parsedIsOffer = is_offer === "true" || is_offer === true;
+  
+      let parsedColors = null;
+      if (colors) {
+        try {
+          parsedColors = typeof colors === "string" ? colors : JSON.stringify(colors);
+        } catch {
+          parsedColors = null;
+        }
+      }
+  
+      // 🔥 VALIDACIÓN OFERTAS
+      const lastOffer = await pool.query(
+        `SELECT offer_expires_at 
+         FROM products 
+         WHERE store_id = $1
+         AND is_offer = true
+         ORDER BY offer_expires_at DESC
+         LIMIT 1`,
+        [storeId]
+      );
+  
+      const lastExpires = lastOffer.rows[0]?.offer_expires_at;
+      const now = new Date();
+  
+      if (parsedIsOffer && lastExpires) {
+        const expiresDate = new Date(lastExpires);
+  
+        if (expiresDate > now) {
+          return res.status(400).json({
+            error: "Tu tienda ya tiene una oferta activa"
+          });
+        }
+  
+        const cooldownEnd = new Date(expiresDate.getTime() + (24 * 60 * 60 * 1000));
+  
+        if (now < cooldownEnd) {
+          return res.status(400).json({
+            error: "Debes esperar 24h para crear otra oferta"
+          });
+        }
+      }
+  
+      // 🔥 FECHAS OFERTA
+      let offerCreatedAt = null;
+      let offerExpiresAt = null;
+  
+      if (parsedIsOffer && !wasOffer) {
+        offerCreatedAt = new Date();
+        offerExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      }
+  
+      if (!parsedIsOffer && wasOffer) {
+        offerCreatedAt = null;
+        offerExpiresAt = null;
+      }
+  
+      // 🔥 AUTO DESCUENTO
+      if (parsedPrice !== null && currentPrice !== null) {
+
+  // 👉 BAJA DE PRECIO → crear descuento automático
+  if (parsedPrice < currentPrice && !parsedOldPrice) {
+    parsedOldPrice = currentPrice;
+  }
+
+  // 👉 SUBE DE PRECIO → eliminar descuento
+  if (parsedPrice > currentPrice) {
+    parsedOldPrice = null;
+  }
+
+}
+  
+      
+      let images = [];
+      if (req.files?.images?.length > 0) {
+        images = req.files.images.map(file => file.path);
+      }
+
+      const videoFilePath = req.files?.video_file?.[0]?.path || null;
+      const mainImage = images[0] || null;
+      const imagesValue = images.length > 0 ? JSON.stringify(images) : null;
+  
+    
+      const result = await pool.query(
+        `UPDATE products
+         SET 
+           name = COALESCE($1, name),
+           price = $2,
+           old_price = $3,
+           brand = COALESCE($4, brand),
+           size = COALESCE($5, size),
+           stock = COALESCE($6, stock),
+           extra = COALESCE($7, extra),
+           category = COALESCE($8, category),
+           colors = COALESCE($9, colors),
+           is_offer = COALESCE($10, is_offer),
+           offer_created_at = COALESCE($11, offer_created_at),
+           offer_expires_at = COALESCE($12, offer_expires_at),
+           image_url = COALESCE($13, image_url),
+           images = COALESCE($14, images),
+           video_url = COALESCE($15, video_url),
+           video_file_url = COALESCE($16, video_file_url)
+         WHERE id = $17
+         RETURNING *`,
+        [
+          name || null,
+          parsedPrice,
+          parsedOldPrice,
+          brand || null,
+          size || null,
+          parsedStock,
+          extra || null,
+          category || null,
+          parsedColors,
+          parsedIsOffer,
+          offerCreatedAt,
+          offerExpiresAt,
+          mainImage,
+          imagesValue,
+          video_url || null,
+          videoFilePath,
+          req.params.id
+        ]
+      );
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error("UPDATE PRODUCT ERROR:", error);
+      res.status(500).json({ error: "Error actualizando producto" });
+    }
+  });
+  
+  app.delete('/api/product-favorite/:id', authMiddleware, async (req, res) => {
+  
+    try {
+  
+      await pool.query(
+        `DELETE FROM product_favorites 
+         WHERE user_id = $1 AND product_id = $2`,
+        [req.user.id, req.params.id]
+      );
+  
+      res.json({ message: "Eliminado de favoritos" });
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error" });
+    }
+  
+  });
+  
+  
+   app.get('/api/favorites', authMiddleware, async (req, res) => {
+  
+    try {
+  
+      const result = await pool.query(`
+        SELECT stores.*
+        FROM favorites
+        JOIN stores ON stores.id = favorites.store_id
+        WHERE favorites.user_id = $1
+      `, [req.user.id]);
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo favoritos" });
+    }
+  
+  });
+  
+  app.post('/api/follow', authMiddleware, async (req, res) => {
+
+  const { store_id } = req.body;
+
   try {
+
+    await pool.query(
+      `INSERT INTO follows (user_id, store_id)
+       VALUES ($1,$2)
+       ON CONFLICT DO NOTHING`,
+      [req.user.id, store_id]
+    );
+
+    // 🔔 NOTIFICAR AL DUEÑO DE LA TIENDA
+    const storeRes = await pool.query(`
+      SELECT user_id, name
+      FROM stores
+      WHERE id = $1
+    `, [store_id]);
+
+    const store = storeRes.rows[0];
+
+    if (store && store.user_id !== req.user.id) {
+
+      await createNotification(
+        store.user_id,
+        "new_follower",
+        "Nuevo seguidor",
+        `${req.user.name || "Un usuario"} comenzó a seguir tu tienda`,
+        `/store/${store_id}` // 👈 mejor que solo /id
+      );
+
+    }
+
+    res.json({ message: "Siguiendo tienda" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error siguiendo tienda" });
+  }
+
+});
+  
+  app.post("/api/forgot-password", async (req, res) => {
+  
+    const { email } = req.body;
+  
+    if (!email) {
+      return res.status(400).json({ error: "Email requerido" });
+    }
+  
+    try {
+  
+      // 🔍 buscar usuario en PostgreSQL
+      const result = await pool.query(
+        `SELECT * FROM users WHERE email = $1`,
+        [email]
+      );
+  
+      const user = result.rows[0];
+  
+      // ⚠️ SIEMPRE responder OK (seguridad)
+      if (!user) {
+        return res.json({
+          message: "Si el email existe, te enviamos un link"
+        });
+      }
+  
+      // 🔑 generar token
+      const token = crypto.randomBytes(32).toString("hex");
+  
+      // ⏳ expiración (1 hora)
+      const expires = new Date(Date.now() + 1000 * 60 * 60);
+  
+      // 💾 guardar en DB
+      await pool.query(
+        `UPDATE users 
+         SET reset_token = $1, reset_token_expires = $2 
+         WHERE id = $3`,
+        [token, expires, user.id]
+      );
+  
+      // 📧 (por ahora log)
+      const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}`;
+  
+  await resend.emails.send({
+    from: "PuntoCerca <no-reply@puntocerca.com.ar>", 
+    to: email,
+    subject: "Recuperar contraseña - PuntoCerca",
+    html: `
+      <h2>Recuperar contraseña</h2>
+      <p>Hacé click en el siguiente enlace:</p>
+      <a href="${resetLink}">Restablecer contraseña</a>
+      <p>Este link expira en 1 hora.</p>
+    `
+  });
+  
+      return res.json({
+        message: "Si el email existe, te enviamos un link"
+      });
+  
+    } catch (err) {
+      console.error("FORGOT ERROR:", err);
+      res.status(500).json({ error: "Error del servidor" });
+    }
+  
+  });
+  
+  
+  app.post('/api/admin/create-seller', async (req, res) => {
+    try {
+  
+      const { name, email, password, store_name } = req.body;
+  
+      // 🔐 hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+  
+      // 🧑 crear usuario
+      const userResult = await pool.query(
+        `INSERT INTO users (name, email, password_hash, role, email_verified)
+         VALUES ($1,$2,$3,'user',true)
+         RETURNING *`,
+        [name, email, passwordHash]
+      );
+  
+      const user = userResult.rows[0];
+  
+      // 🔥 generar slug tienda
+      const baseSlug = store_name
+        .toLowerCase()
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+  
+      let slug = baseSlug;
+      let counter = 1;
+  
+      while (true) {
+        const check = await pool.query(
+          `SELECT id FROM stores WHERE slug = $1`,
+          [slug]
+        );
+  
+        if (check.rows.length === 0) break;
+  
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+  
+      // 🏪 crear tienda
+      const storeResult = await pool.query(
+        `INSERT INTO stores (name, user_id, slug)
+         VALUES ($1,$2,$3)
+         RETURNING *`,
+        [store_name, user.id, slug]
+      );
+  
+      res.json({
+        user,
+        store: storeResult.rows[0]
+      });
+  
+    } catch (error) {
+      console.error(error);
+  
+      if (error.code === '23505') {
+        return res.status(400).json({ error: "Email ya existe" });
+      }
+  
+      res.status(500).json({ error: "Error creando seller" });
+    }
+  });
+  
+  app.post("/api/reset-password", async (req, res) => {
+  
+    const { token, password } = req.body;
+  
+    if (!token || !password) {
+      return res.status(400).json({ error: "Datos inválidos" });
+    }
+  
+    if (password.length < 6) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+    }
+  
+    try {
+  
+      // 🔍 buscar usuario con token válido
+      const result = await pool.query(
+        `SELECT * FROM users 
+         WHERE reset_token = $1 
+         AND reset_token_expires > NOW()`,
+        [token]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(400).json({ error: "Token inválido o expirado" });
+      }
+  
+      const user = result.rows[0];
+  
+      // 🔐 hashear nueva contraseña
+      const passwordHash = await bcrypt.hash(password, 10);
+  
+      // 💾 actualizar usuario
+      await pool.query(
+        `UPDATE users 
+         SET password_hash = $1,
+             reset_token = NULL,
+             reset_token_expires = NULL
+         WHERE id = $2`,
+        [passwordHash, user.id]
+      );
+  
+      res.json({
+        message: "Contraseña actualizada correctamente"
+      });
+  
+    } catch (err) {
+      console.error("RESET PASSWORD ERROR:", err);
+      res.status(500).json({ error: "Error del servidor" });
+    }
+  
+  });
+  
+  
+  app.get('/api/stores/:id/comments', async (req, res) => {
+    try {
+  
+      const result = await pool.query(
+        `SELECT 
+           sc.*,
+           u.name,
+           u.avatar_url
+         FROM store_comments sc
+         JOIN users u ON u.id = sc.user_id
+         WHERE sc.store_id = $1
+         ORDER BY sc.id DESC`,
+        [req.params.id]
+      );
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo comentarios" });
+    }
+  });
+  
+  
+  app.post('/api/product-favorite', authMiddleware, async (req, res) => {
+    try {
+  
+      const { product_id } = req.body;
+  
+      await pool.query(
+        `INSERT INTO product_favorites (user_id, product_id)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
+        [req.user.id, product_id]
+      );
+  
+      res.json({ message: "Guardado" });
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error" });
+    }
+  });
+  
+  app.get('/api/is-following/:storeId', authMiddleware, async (req, res) => {
+  
     const result = await pool.query(
-  `UPDATE stores
-   SET 
-     name = COALESCE($1, name),
-     description = COALESCE($2, description),
-     phone = COALESCE($3, phone),
-     city = COALESCE($4, city),
-     category = COALESCE($5, category),
-     subcategory_id = COALESCE($6, subcategory_id),
-     street = COALESCE($7, street),
-     local = COALESCE($8, local),
-     apartment = COALESCE($9, apartment),
-     reference_notes = COALESCE($10, reference_notes),
-     lat = COALESCE($11, lat),
-     lng = COALESCE($12, lng),
-     logo_url = COALESCE($13, logo_url),
-     cover_url = COALESCE($14, cover_url),
-     subcategory_ids = COALESCE($15, subcategory_ids)
-   WHERE id = $16 AND user_id = $17
-   RETURNING *`,
-  [
+      `SELECT 1 FROM follows WHERE user_id=$1 AND store_id=$2`,
+      [req.user.id, req.params.storeId]
+    );
+  
+    res.json({ following: result.rows.length > 0 });
+  
+  });
+  
+  app.get('/api/store-followers/:storeId', async (req, res) => {
+  
+    const result = await pool.query(
+      `SELECT COUNT(*) FROM follows WHERE store_id=$1`,
+      [req.params.storeId]
+    );
+  
+    res.json({ count: result.rows[0].count });
+  
+  });
+
+app.get("/api/events/:id", async (req, res) => {
+  
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT 
+        e.*,
+        s.name AS store_name,
+        s.slug AS store_slug,
+        s.phone AS store_phone
+      FROM store_events e
+      LEFT JOIN stores s ON s.id = e.store_id
+      WHERE e.id = $1
+    `, [id]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Evento no encontrado" });
+    }
+
+    const event = result.rows[0];
+
+    res.json(event);
+
+  } catch (err) {
+    console.error("ERROR GET EVENT:", err);
+    res.status(500).json({ error: "Error cargando evento" });
+  }
+});
+
+// GET todas las sucursales con datos de la tienda madre (para mapa principal)
+app.get('/api/sucursales/map', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.id, s.name, s.street, s.local, s.city, s.lat, s.lng, s.phone,
+             st.name  AS store_name,
+             st.slug  AS store_slug,
+             st.logo_url AS store_logo
+      FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET SUCURSALES MAP:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+app.put(
+  "/api/events/:id",
+  authMiddleware,
+  uploadEvent.single("image"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const { title, description, start_at, end_at } = req.body;
+
+      const check = await pool.query(`
+        SELECT
+          e.id,
+          e.image_url
+        FROM store_events e
+        JOIN stores s ON s.id = e.store_id
+        WHERE e.id = $1
+          AND s.user_id = $2
+      `, [id, userId]);
+
+      if (!check.rows.length) {
+        return res.status(403).json({
+          error: "No autorizado"
+        });
+      }
+
+      const currentEvent = check.rows[0];
+
+      if (!title || !start_at || !end_at) {
+        return res.status(400).json({
+          error: "Título y fechas son obligatorios"
+        });
+      }
+
+      const start = new Date(start_at);
+      const end = new Date(end_at);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({
+          error: "Fechas inválidas"
+        });
+      }
+
+      if (start >= end) {
+        return res.status(400).json({
+          error: "La fecha de inicio debe ser menor a la fecha de fin"
+        });
+      }
+
+      const diffHours = (end - start) / (1000 * 60 * 60);
+
+      if (diffHours > 72) {
+        return res.status(400).json({
+          error: "El evento no puede durar más de 72 horas"
+        });
+      }
+
+      let image_url = currentEvent.image_url;
+
+      if (req.file) {
+        image_url = req.file.path;
+      }
+
+      const result = await pool.query(`
+        UPDATE store_events
+        SET
+          title = $1,
+          description = $2,
+          start_at = $3,
+          end_at = $4,
+          image_url = $5
+        WHERE id = $6
+        RETURNING *
+      `, [
+        title,
+        description || null,
+        start_at,
+        end_at,
+        image_url,
+        id
+      ]);
+
+      res.json(result.rows[0]);
+
+    } catch (err) {
+      console.error("ERROR ACTUALIZANDO EVENTO:", err);
+
+      res.status(500).json({
+        error: "Error actualizando evento",
+        detail: err.message
+      });
+    }
+  }
+);
+
+app.delete("/api/events/:id", authMiddleware, async (req, res) => {
+  try {
+    console.log("👉 USER:", req.user);
+    console.log("👉 ID:", req.params.id);
+
+    if (!req.user) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const check = await pool.query(`
+      SELECT e.id
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+      WHERE e.id = $1 AND s.user_id = $2
+    `, [id, userId]);
+
+    if (!check.rows.length) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    await pool.query(`DELETE FROM store_events WHERE id = $1`, [id]);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error("🔥 ERROR DELETE:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+  app.post('/api/product-view/:id', async (req, res) => {
+  
+    await pool.query(
+      `UPDATE products SET views = COALESCE(views,0) + 1 WHERE id=$1`,
+      [req.params.id]
+    );
+  
+    res.json({ ok:true });
+  
+  });
+  // ================================
+// SUBIR CATALOGO PDF
+// ================================
+
+app.post(
+  "/api/store-catalog",
+  authMiddleware,
+  (req, res, next) => {
+    uploadPDF.single("catalog")(req, res, (err) => {
+      if (err) {
+        console.error('CATALOG UPLOAD ERROR:', err.message);
+        return res.status(500).json({ error: 'Error procesando el archivo: ' + err.message });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No se recibió ningún archivo' });
+      }
+
+      const storeResult = await pool.query(
+        `SELECT id FROM stores WHERE user_id = $1`,
+        [req.user.id]
+      );
+
+      if (!storeResult.rows.length) {
+        return res.status(404).json({ error: 'Tienda no encontrada' });
+      }
+
+      const pdfUrl = req.file.path;
+
+      await pool.query(
+        `UPDATE stores SET catalog_pdf_url = $1 WHERE id = $2`,
+        [pdfUrl, storeResult.rows[0].id]
+      );
+
+      res.json({ success: true, pdfUrl });
+
+    } catch (err) {
+      console.error('CATALOG ERROR:', err.message, err.stack);
+      res.status(500).json({ error: 'Error subiendo catálogo: ' + err.message });
+    }
+  }
+);
+  app.delete('/api/follow/:storeId', authMiddleware, async (req, res) => {
+  
+    try {
+  
+      await pool.query(
+        `DELETE FROM follows
+         WHERE user_id = $1 AND store_id = $2`,
+        [req.user.id, req.params.storeId]
+      );
+  
+      res.json({ message: "Dejaste de seguir" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error" });
+    }
+  
+  });
+  
+  app.delete('/api/stores/comments/:id', authMiddleware, async (req, res) => {
+    try {
+      const commentId = req.params.id;
+      const userId = req.user.id;
+  
+      const result = await pool.query(
+        `DELETE FROM store_comments 
+         WHERE id = $1 AND user_id = $2
+         RETURNING *`,
+        [commentId, userId]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+  
+      res.json({ message: "Comentario eliminado" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error eliminando comentario" });
+    }
+  });
+  
+  app.get('/api/following', authMiddleware, async (req, res) => {
+  
+    try {
+  
+      const result = await pool.query(`
+        SELECT stores.*
+        FROM follows
+        JOIN stores ON stores.id = follows.store_id
+        WHERE follows.user_id = $1
+      `, [req.user.id]);
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo seguidos" });
+    }
+  
+  });
+
+/* ================================
+   NOTIFICATIONS
+================================ */
+
+// LISTAR MIS NOTIFICACIONES
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM notifications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 30
+    `, [req.user.id]);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error("ERROR GET NOTIFICATIONS:", error);
+    res.status(500).json({ error: "Error obteniendo notificaciones" });
+  }
+});
+
+// CONTADOR NO LEÍDAS
+app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*)::int AS count
+      FROM notifications
+      WHERE user_id = $1 AND is_read = false
+    `, [req.user.id]);
+
+    res.json({ count: result.rows[0].count });
+
+  } catch (error) {
+    console.error("ERROR NOTIFICATIONS COUNT:", error);
+    res.status(500).json({ error: "Error obteniendo contador" });
+  }
+});
+
+// MARCAR UNA COMO LEÍDA
+app.put('/api/notifications/:id/read', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE notifications
+      SET is_read = true
+      WHERE id = $1 AND user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    res.json({ message: "Notificación marcada como leída" });
+
+  } catch (error) {
+    console.error("ERROR READ NOTIFICATION:", error);
+    res.status(500).json({ error: "Error marcando notificación" });
+  }
+});
+
+// MARCAR TODAS COMO LEÍDAS
+app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE notifications
+      SET is_read = true
+      WHERE user_id = $1
+    `, [req.user.id]);
+
+    res.json({ message: "Notificaciones marcadas como leídas" });
+
+  } catch (error) {
+    console.error("ERROR READ ALL NOTIFICATIONS:", error);
+    res.status(500).json({ error: "Error marcando notificaciones" });
+  }
+});
+
+  /* ================================
+     GET STORES
+  ================================ */
+  
+  app.get('/api/stores', async (req, res) => {
+    try {
+  
+      const { category, subcategory_id, lat, lng } = req.query;
+  
+      const userLat = lat && !isNaN(lat) ? parseFloat(lat) : null;
+      const userLng = lng && !isNaN(lng) ? parseFloat(lng) : null;
+  
+      const hasLocation = userLat !== null && userLng !== null;
+  
+      let values = [];
+      let index = 0;
+  
+      let query = `
+  SELECT 
+    s.*,
+    COALESCE(AVG(r.rating), 0)::numeric(10,2) as rating_avg,
+    COUNT(r.rating) as rating_count,
+    (COALESCE(AVG(r.rating),0) * LOG(COUNT(r.rating) + 1)) as rating_score,
+  
+    CASE 
+      WHEN s.is_open = true THEN 1
+      ELSE 0
+    END as open_priority
+  `;
+  
+      // 📍 DISTANCIA SOLO SI HAY UBICACIÓN
+      if (hasLocation) {
+        index++;
+        values.push(userLat);
+  
+        index++;
+        values.push(userLng);
+  
+        query += `,
+    (
+      6371 * acos(
+        LEAST(1, GREATEST(-1,
+          cos(radians($1)) * cos(radians(s.lat)) *
+          cos(radians(s.lng) - radians($2)) +
+          sin(radians($1)) * sin(radians(s.lat))
+        ))
+      )
+    ) as distance
+  `;
+      } else {
+        query += `, NULL as distance`;
+      }
+  
+      query += `
+  FROM stores s
+  LEFT JOIN store_ratings r ON r.store_id = s.id
+  `;
+  
+      const conditions = [];
+  
+      // 🔍 FILTROS
+      if (category) {
+        index++;
+        values.push(category);
+        conditions.push(`s.category = $${index}`);
+      }
+  
+      if (subcategory_id) {
+        index++;
+        values.push(JSON.stringify([subcategory_id]));
+        conditions.push(`s.subcategory_ids @> $${index}::jsonb`);
+      }
+  
+      if (conditions.length) {
+        query += " WHERE " + conditions.join(" AND ");
+      }
+  
+      query += `
+  GROUP BY s.id
+  ORDER BY 
+    open_priority DESC,
+    ${hasLocation ? 'distance ASC NULLS LAST,' : ''}
+    rating_score DESC
+  `;
+  
+      const result = await pool.query(query, values);
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error("🔥 ERROR /api/stores:", error);
+      res.status(500).json({ error: "Error obteniendo tiendas" });
+    }
+  });
+  
+  
+  /* ================================
+     GET MY STORE
+  ================================ */
+  
+  app.get('/api/my-store', authMiddleware, async (req, res) => {
+  
+      try {
+  
+          const result = await pool.query(
+              `SELECT * FROM stores WHERE user_id = $1 LIMIT 1`,
+              [req.user.id]
+          );
+  
+          if (!result.rows.length) {
+              return res.status(404).json({
+                  error: "No tienes tienda creada"
+              });
+          }
+  
+          res.json(result.rows[0]);
+  
+      } catch (error) {
+          console.error(error);
+          res.status(500).json({
+              error: "Error obteniendo tienda"
+          });
+      }
+  
+  });
+  
+  
+  app.delete('/api/my-store', authMiddleware, async (req, res) => {
+    try {
+  
+      const userId = req.user.id;
+  
+      // 🔥 1. obtener la tienda del usuario
+      const storeResult = await pool.query(
+        `SELECT id FROM stores WHERE user_id = $1`,
+        [userId]
+      );
+  
+      if (!storeResult.rows.length) {
+        return res.status(404).json({ error: "No tienes tienda" });
+      }
+  
+      const storeId = storeResult.rows[0].id;
+  
+      // 🔥 2. eliminar productos
+      await pool.query(
+        `DELETE FROM products WHERE store_id = $1`,
+        [storeId]
+      );
+  
+      // 🔥 3. eliminar seguidores
+      await pool.query(
+        `DELETE FROM follows WHERE store_id = $1`,
+        [storeId]
+      );
+  
+      // 🔥 4. eliminar favoritos
+      await pool.query(
+        `DELETE FROM favorites WHERE store_id = $1`,
+        [storeId]
+      );
+  
+      // 🔥 5. eliminar tienda
+      await pool.query(
+        `DELETE FROM stores WHERE id = $1`,
+        [storeId]
+      );
+  
+      res.json({ message: "Tienda eliminada correctamente" });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error eliminando tienda" });
+    }
+  });
+  
+  /* ================================
+     GET STORE BY ID
+  ================================ */
+  
+  app.get('/api/stores/:id', async (req, res) => {
+  
+      try {
+  
+          const result = await pool.query(
+              `SELECT * FROM stores WHERE id = $1`,
+              [req.params.id]
+          );
+  
+          if (!result.rows.length) {
+              return res.status(404).json({
+                  error: "Tienda no encontrada"
+              });
+          }
+  
+          res.json(result.rows[0]);
+  
+      } catch (error) {
+  
+          console.error(error);
+  
+          res.status(500).json({
+              error: "Error obteniendo tienda"
+          });
+  
+      }
+  
+  });
+
+app.get('/delivery/repartidor/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/delivery-repartidor.html'));
+});
+
+app.get('/delivery/cliente/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/delivery-cliente.html'));
+});
+  
+  app.put('/api/stores/:id',
+    authMiddleware,
+    upload.fields([
+      { name: "logo", maxCount: 1 },
+      { name: "cover", maxCount: 1 }
+    ]),
+    async (req, res) => {
+  
+    console.log("BODY:", req.body);
+  console.log("FILES:", req.files);
+  
+   const { 
+    name, 
+    description, 
+    phone, 
+    city, 
+    category, 
+    subcategory_id,
+    subcategory_ids,
+    street,
+    local,
+    apartment,
+    reference_notes,
+    lat,
+    lng,
+    instagram_url,
+    tiktok_url,
+    facebook_url,
+    website_url
+  } = req.body;
+  
+      let opening_hours = null;
+  
+  if (req.body.opening_hours) {
+    try {
+      opening_hours = JSON.parse(req.body.opening_hours);
+    } catch (e) {
+      console.error("Error parsing opening_hours", e);
+    }
+  }
+  
+  
+  let logo_url = null;
+  let cover_url = null;
+  
+  // archivos
+  if (req.files?.logo) {
+    logo_url = req.files.logo[0].path;
+  }
+  
+  if (req.files?.cover) {
+    cover_url = req.files.cover[0].path;
+  }
+  
+  let subcategoriesToSave = null;
+  
+  if (subcategory_ids) {
+    try {
+      subcategoriesToSave = JSON.parse(subcategory_ids);
+    } catch {
+      subcategoriesToSave = null;
+    }
+  }
+  
+    try {
+     const result = await pool.query(
+    `UPDATE stores
+     SET 
+       name = COALESCE($1, name),
+       description = COALESCE($2, description),
+       phone = COALESCE($3, phone),
+       city = COALESCE($4, city),
+       category = COALESCE($5, category),
+       subcategory_id = COALESCE($6, subcategory_id),
+       street = COALESCE($7, street),
+       local = COALESCE($8, local),
+       apartment = COALESCE($9, apartment),
+       reference_notes = COALESCE($10, reference_notes),
+       lat = COALESCE($11, lat),
+       lng = COALESCE($12, lng),
+       logo_url = COALESCE($13, logo_url),
+       cover_url = COALESCE($14, cover_url),
+       subcategory_ids = COALESCE($15, subcategory_ids),
+       opening_hours = COALESCE($16, opening_hours),
+       instagram_url = COALESCE($17, instagram_url),
+       tiktok_url = COALESCE($18, tiktok_url),
+       facebook_url = COALESCE($19, facebook_url),
+       website_url = COALESCE($20, website_url)
+     WHERE id = $21 AND user_id = $22
+     RETURNING *`,
+   [
     name,
     description,
     phone,
@@ -1217,84 +3062,201 @@ if (subcategory_ids) {
     logo_url,
     cover_url,
     subcategoriesToSave ? JSON.stringify(subcategoriesToSave) : null,
+    opening_hours,
+    instagram_url || null,
+    tiktok_url    || null,
+    facebook_url  || null,
+    website_url   || null,
     req.params.id,
     req.user.id
   ]
-);
-
-    if(!result.rows.length){
-      return res.status(403).json({ error: "No autorizado" });
+  );
+  
+      if(!result.rows.length){
+        return res.status(403).json({ error: "No autorizado" });
+      }
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error actualizando tienda" });
     }
+  });
+  
+  
+  app.get('/api/stores/:id/products', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        p.*,
+        s.name AS store_name,
+        AVG(r.rating)::numeric(10,2) AS rating_avg,
+        COUNT(r.rating) AS rating_count
+      FROM products p
+      LEFT JOIN stores s ON s.id = p.store_id
+      LEFT JOIN product_ratings r ON r.product_id = p.id
+      WHERE p.store_id = $1
+      GROUP BY p.id, s.name
+      ORDER BY p.id DESC
+    `, [req.params.id]);
 
-    res.json(result.rows[0]);
+    const products = result.rows.map(p => {
+      if (p.images && typeof p.images === 'string') {
+        try { p.images = JSON.parse(p.images); } catch { p.images = []; }
+      }
+      if (!Array.isArray(p.images)) p.images = [];
+      if (p.image_url && !p.images.includes(p.image_url)) {
+        p.images = [p.image_url, ...p.images];
+      }
+      p.images = [...new Set(p.images)].filter(Boolean);
+      return p;
+    });
 
+    res.json(products);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error actualizando tienda" });
+    res.status(500).json({ error: "Error obteniendo productos" });
   }
 });
-
-
-app.get('/api/stores/:id/products', async (req, res) => {
-
+  /* ================================
+     PÁGINAS
+  ================================ */
+  
+  app.get('/', (req, res) => {
+      res.sendFile(__dirname + '/public/index.html');
+  });
+  
+  app.get('/login', (req, res) => {
+      res.sendFile(__dirname + '/public/login.html');
+  });
+  
+  app.get('/dashboard-user', (req, res) => {
+    res.sendFile(__dirname + '/public/dashboard-user.html');
+  });
+  
+  
+  app.get('/register', (req, res) => {
+      res.sendFile(__dirname + '/public/register.html');
+  });
+  
+  app.get('/dashboard', (req, res) => {
+      res.sendFile(__dirname + '/public/dashboard.html');
+  });
+  
+  app.get('/api/google-maps-key', (req, res) => {
+    res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
+  });
+  
+  app.get("/products", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "products.html"));
+  });
+  
+  app.get('/offers', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'offers.html'));
+  });
+  
+  app.get('/edit-store', (req, res) => {
+    res.sendFile(__dirname + '/public/edit-store.html');
+  });
+  
+  app.get('/profile', (req, res) => {
+    res.sendFile(__dirname + '/public/profile.html');
+  });
+  
+  app.get('/delete-store', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'delete-store.html'));
+  });
+  
+  app.get('/api/store-by-slug/:slug', async (req, res) => {
+  
+    const { slug } = req.params;
+  
     try {
-
-        const result = await pool.query(
-            `SELECT * FROM products WHERE store_id = $1 ORDER BY id DESC`,
-            [req.params.id]
-        );
-
-        res.json(result.rows);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Error obteniendo productos"
-        });
+  
+      const result = await pool.query(
+        `SELECT * FROM stores WHERE slug = $1`,
+        [slug]
+      );
+  
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Tienda no encontrada" });
+      }
+  
+      res.json(result.rows[0]);
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error servidor" });
     }
+  
+  });
+ app.get('/sitemap.xml', async (req, res) => {
 
+  try {
+
+    const result = await pool.query(`
+  SELECT slug
+  FROM stores
+  WHERE slug IS NOT NULL
+`);
+
+    const baseUrl = "https://puntocerca.com.ar";
+
+    let urls = `
+      <url>
+        <loc>${baseUrl}/</loc>
+        <priority>1.0</priority>
+      </url>
+    `;
+
+    result.rows.forEach(store => {
+
+      urls += `
+        <url>
+          <loc>${baseUrl}/${store.slug}</loc>
+          <lastmod>${new Date().toISOString()}</lastmod>
+          <changefreq>daily</changefreq>
+          <priority>0.8</priority>
+        </url>
+      `;
+    });
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${urls}
+</urlset>`;
+
+    res.header("Content-Type", "application/xml");
+    res.send(sitemap);
+
+  } catch (err) {
+    console.error("SITEMAP ERROR:", err);
+    res.status(500).send("Error generando sitemap");
+  }
 });
+  
+  app.get('/:slug', async (req, res) => {
 
-/* ================================
-   PÁGINAS
-================================ */
+  const slug = req.params.slug;
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
+  const blocked = [
+    "api",
+    "login",
+    "register",
+    "products",
+    "offers",
+    "dashboard",
+    "profile",
+    "product",
+    "stores",
+    "sitemap.xml",
+    "delivery"
+  ];
 
-app.get('/login', (req, res) => {
-    res.sendFile(__dirname + '/public/login.html');
-});
-
-app.get('/dashboard-user', (req, res) => {
-  res.sendFile(__dirname + '/public/dashboard-user.html');
-});
-
-
-app.get('/register', (req, res) => {
-    res.sendFile(__dirname + '/public/register.html');
-});
-
-app.get('/dashboard', (req, res) => {
-    res.sendFile(__dirname + '/public/dashboard.html');
-});
-
-app.get("/products", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "products.html"));
-});
-
-app.get('/edit-store', (req, res) => {
-  res.sendFile(__dirname + '/public/edit-store.html');
-});
-
-app.get('/profile', (req, res) => {
-  res.sendFile(__dirname + '/public/profile.html');
-});
-
-app.get('/api/store-by-slug/:slug', async (req, res) => {
-
-  const { slug } = req.params;
+ if (blocked.includes(slug)) {
+  return res.status(404).send("No encontrado");
+}
 
   try {
 
@@ -1303,270 +3265,1749 @@ app.get('/api/store-by-slug/:slug', async (req, res) => {
       [slug]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Tienda no encontrada" });
+    if (!result.rows.length) {
+      return res.status(404).send("No encontrado");
     }
 
-    res.json(result.rows[0]);
+    const store = result.rows[0];
+
+    // 🔥 LEER HTML
+    let html = fs.readFileSync(
+      path.join(__dirname, 'public/store.html'),
+      'utf8'
+    );
+
+    // 🔥 LOCATION SIMPLE
+    const location = store.city || "Argentina";
+
+    function cleanText(text = "") {
+  return text
+    .replace(/[\n\r]+/g, " ")
+    .replace(/💳|📦|📌|📱|✨|🌎|🕰|💻/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const cleanDescription = cleanText(store.description || "");
+
+const description = `
+${store.name} en ${location}.
+${cleanDescription || "Negocio local con contacto directo por WhatsApp"}.
+${store.street ? `Ubicado en ${store.street}.` : ""}
+Encontrá productos, precios y opiniones reales en PuntoCerca.
+`.replace(/\s+/g, " ").trim();
+
+    // 🔥 SEO HTML REAL (CLAVE)
+    const seoBlock = `
+      <div style="padding:10px 0; font-size:14px; color:#555;">
+        <strong>${store.name}</strong> en ${location}. 
+        ${store.description || "Negocio local"} 
+        ${store.street ? `Ubicado en ${store.street}.` : ""}
+      </div>
+    `;
+
+    // 🔥 INYECTAR NOMBRE + CONTENIDO
+   html = html.replace(
+  `<h1 id="storeName" class="store-title">
+  Tienda en PuntoCerca
+</h1>`,
+  `<h1 id="storeName" class="store-title">${store.name}</h1>`
+);
+    const seoText = `
+${store.name} en ${store.city || "Argentina"}.
+Encontrá productos, precios y opiniones reales.
+Contacto directo por WhatsApp y ubicación en el mapa.
+`;
+
+html = html.replace(
+  `<p id="seoContent" style="font-size:14px; color:#666; margin-top:6px;">
+  Negocio local en Argentina. Ver productos, precios, opiniones y contacto directo.
+</p>`,
+  `<p id="seoContent" style="font-size:14px; color:#666; margin-top:6px;">
+    ${seoText}
+  </p>`
+);
+     
+
+    // 🔥 TITLE DINÁMICO
+    html = html.replace(
+      `<title>Perfil Tienda - PuntoCerca</title>`,
+      `<title>${store.name} en ${location} | PuntoCerca</title>`
+    );
+    // 🔥 META DESCRIPTION DINÁMICA
+html = html.replace(
+  "</head>",
+  `<meta name="description" content="${description}"></head>`
+);
+
+    res.send(html);
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error servidor" });
+    res.status(500).send("Error");
   }
-
 });
 
-
-app.get('/:slug', (req, res) => {
-
-  const slug = req.params.slug;
-
-  // ⚠️ evitar conflictos con otras rutas
-  if (
-    slug === "api" ||
-    slug === "login" ||
-    slug === "register" ||
-    slug === "products" ||
-    slug === "map" ||
-    slug === "offers"
-  ) {
-    return;
-  }
-
-  res.sendFile(path.join(__dirname, 'public/store.html'));
-});
-
-app.get('/stores', (req, res) => {
-  res.sendFile(__dirname + '/public/stores.html');
-});
-
-app.get('/api/categories', async (req, res) => {
+app.get('/api/catalogo/:slug', async (req, res) => {
   try {
-
     const result = await pool.query(`
-      SELECT DISTINCT category 
-      FROM stores 
-      WHERE category IS NOT NULL
-      ORDER BY category ASC
-    `);
+      SELECT catalog_pdf_url, name FROM stores 
+      WHERE slug = $1
+    `, [req.params.slug]);
 
-    res.json(result.rows);
+    if (!result.rows.length || !result.rows[0].catalog_pdf_url) {
+      return res.status(404).json({ error: "Catálogo no encontrado" });
+    }
+
+    res.json({ 
+      catalog_url: result.rows[0].catalog_pdf_url,
+      store_name: result.rows[0].name
+    });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error obteniendo categorías" });
+    res.status(500).json({ error: "Error" });
   }
 });
 
-app.get('/api/stores/slug/:slug', async (req, res) => {
-
-  try {
-
-    const result = await pool.query(
-      `SELECT * FROM stores WHERE slug = $1`,
-      [req.params.slug]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: "Tienda no encontrada" });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo tienda" });
-  }
-
+app.get('/catalogo/:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'catalogo.html'));
 });
-
-app.get('/store/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/store.html'));
-});
-
-
-/* ================================
-   VERIFY EMAIL
-================================ */
-
-app.get('/api/verify-email', async (req, res) => {
-
-    const { token } = req.query;
-
-    if (!token) {
-        return res.status(400).send("Token inválido");
-    }
-
+  app.get('/stores', (req, res) => {
+    res.sendFile(__dirname + '/public/stores.html');
+  });
+  
+  app.get('/api/categories', async (req, res) => {
     try {
-
-        const result = await pool.query(
-            `SELECT * FROM users WHERE email_token = $1`,
-            [token]
-        );
-
-        if (!result.rows.length) {
-            return res.status(400).send("Token inválido o expirado");
-        }
-
-        const user = result.rows[0];
-
-        await pool.query(
-            `UPDATE users
-             SET email_verified = true,
-                 email_token = NULL
-             WHERE id = $1`,
-            [user.id]
-        );
-
-        res.send(`
-            <h2>Email verificado correctamente ✅</h2>
-            <a href="/login">Ir al login</a>
-        `);
-
+  
+      const result = await pool.query(`
+        SELECT DISTINCT category 
+        FROM stores 
+        WHERE category IS NOT NULL
+        ORDER BY category ASC
+      `);
+  
+      res.json(result.rows);
+  
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error verificando email");
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo categorías" });
     }
-});
+  });
+  
+  app.get('/api/stores/slug/:slug', async (req, res) => {
+  
+    try {
+  
+      const result = await pool.query(
+        `SELECT * FROM stores WHERE slug = $1`,
+        [req.params.slug]
+      );
+  
+      if (!result.rows.length) {
+        return res.status(404).json({ error: "Tienda no encontrada" });
+      }
+  
+      res.json(result.rows[0]);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo tienda" });
+    }
+  
+  });
 
-
-
-app.get('/api/products', async (req, res) => {
+app.get('/:slug/videos', async (req, res) => {
+  const slug = req.params.slug;
   try {
-
-    const { featured } = req.query;
-
-    let query = `
-    SELECT 
-  products.*, 
-  stores.name AS store_name,
-  AVG(r.rating) AS rating_avg,
-  COUNT(r.rating) AS rating_count
-FROM products
-JOIN stores ON stores.id = products.store_id
-LEFT JOIN product_ratings r ON r.product_id = products.id
-GROUP BY products.id, stores.name
-
-`;
-
-    // si pedís destacados
-    if (featured === "true") {
-      query += " ORDER BY products.id DESC LIMIT 10";
-    }
-
-    const result = await pool.query(query);
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo productos" });
+    const result = await pool.query(
+      'SELECT id FROM stores WHERE slug = $1', [slug]
+    );
+    if (!result.rows.length) return res.status(404).send('Tienda no encontrada');
+    res.sendFile(path.join(__dirname, 'public/store-videos.html'));
+  } catch (err) {
+    res.status(500).send('Error');
   }
 });
-
-app.get('/api/daily-offers', async (req, res) => {
-  try {
-
-    const result = await pool.query(`
+  
+  app.get('/store/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/store.html'));
+  });
+  
+  
+  /* ================================
+     VERIFY EMAIL
+  ================================ */
+  
+  app.get('/api/verify-email', async (req, res) => {
+  
+      const { token } = req.query;
+  
+      if (!token) {
+          return res.status(400).send("Token inválido");
+      }
+  
+      try {
+  
+          const result = await pool.query(
+              `SELECT * FROM users WHERE email_token = $1`,
+              [token]
+          );
+  
+          if (!result.rows.length) {
+              return res.status(400).send("Token inválido o expirado");
+          }
+  
+          const user = result.rows[0];
+  
+          await pool.query(
+              `UPDATE users
+               SET email_verified = true,
+                   email_token = NULL
+               WHERE id = $1`,
+              [user.id]
+          );
+  
+         res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email verificado - PuntoCerca</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background:#f4f4f4; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { background:#fff; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,0.10); padding:48px 40px; max-width:440px; width:90%; text-align:center; }
+    .icon { font-size:64px; margin-bottom:20px; }
+    .brand { font-size:24px; font-weight:900; margin-bottom:24px; }
+    .brand span { color:#ea580c; }
+    h1 { font-size:22px; color:#111827; font-weight:800; margin-bottom:12px; }
+    p { font-size:15px; color:#6b7280; line-height:1.7; margin-bottom:32px; }
+    a { display:inline-block; background:linear-gradient(135deg,#ea580c,#f97316); color:#fff; text-decoration:none; font-size:16px; font-weight:800; padding:14px 36px; border-radius:999px; box-shadow:0 8px 20px rgba(234,88,12,0.30); }
+    a:hover { opacity:0.9; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">✅</div>
+    <div class="brand"><span>Punto</span>Cerca</div>
+    <h1>¡Tu cuenta fue verificada!</h1>
+    <p>Ya podés iniciar sesión y empezar a descubrir comercios, productos y servicios cerca tuyo.</p>
+    <a href="/login">Iniciar sesión</a>
+  </div>
+</body>
+</html>
+`);
+  
+      } catch (error) {
+          console.error(error);
+          res.status(500).send("Error verificando email");
+      }
+  });
+  
+  
+  
+  app.get('/api/products', async (req, res) => {
+    try {
+  
+      const { featured } = req.query;
+  
+      let query = `
       SELECT 
-  p.id AS product_id,
-  p.name AS product_name,
-  p.price,
-  p.image_url,
-  p.store_id,
-  s.name AS store_name,
-  AVG(r.rating) AS rating_avg,
-  COUNT(r.rating) AS rating_count
-FROM products p
-JOIN stores s ON s.id = p.store_id
-LEFT JOIN product_ratings r ON r.product_id = p.id
-WHERE p.is_offer = true
-GROUP BY p.id, s.name
-ORDER BY RANDOM()
-LIMIT 8
-    `);
+    products.*, 
+    stores.name AS store_name,
+    AVG(r.rating) AS rating_avg,
+    COUNT(r.rating) AS rating_count
+  FROM products
+  JOIN stores ON stores.id = products.store_id
+  LEFT JOIN product_ratings r ON r.product_id = products.id
+  GROUP BY products.id, stores.name
+  
+  `;
+  
+      // si pedís destacados
+      if (featured === "true") {
+        query += " ORDER BY products.id DESC LIMIT 10";
+      }
+  
+      const result = await pool.query(query);
 
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo ofertas" });
-  }
-});
-
-/* ================================
-   SEARCH (STORES + PRODUCTS)
-================================ */
-
-app.get('/api/search', async (req, res) => {
+    const products = result.rows.map(p => {
+      if (p.images && typeof p.images === 'string') {
+        try { p.images = JSON.parse(p.images); } catch { p.images = []; }
+      }
+      if (!Array.isArray(p.images)) p.images = [];
+      if (p.image_url && !p.images.includes(p.image_url)) {
+        p.images = [p.image_url, ...p.images];
+      }
+      p.images = [...new Set(p.images)].filter(Boolean);
+      return p;
+    });
+    res.json(products);
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error obteniendo productos" });
+    }
+  });
+  
+  app.get('/api/daily-offers', async (req, res) => {
+    try {
+  
+      // 🔥 1. Expirar ofertas vencidas de verdad
+      await pool.query(`
+        UPDATE products
+        SET 
+          is_offer = false
+        WHERE is_offer = true
+        AND offer_expires_at IS NOT NULL
+        AND offer_expires_at <= NOW()
+      `);
+  
+      // 🔥 2. Traer solo ofertas activas
+      const result = await pool.query(`
+        SELECT 
+          p.id AS product_id,
+          p.slug,
+          p.name AS product_name,
+          p.price,
+          p.old_price,
+          p.image_url,
+          p.store_id,
+          p.offer_created_at,
+          p.offer_expires_at,
+          s.name AS store_name,
+          AVG(r.rating) AS rating_avg,
+          COUNT(r.rating) AS rating_count
+        FROM products p
+        JOIN stores s ON s.id = p.store_id
+        LEFT JOIN product_ratings r ON r.product_id = p.id
+        WHERE p.is_offer = true
+        AND p.offer_expires_at IS NOT NULL
+        AND p.offer_expires_at > NOW()
+        GROUP BY p.id, s.name
+        ORDER BY p.offer_expires_at ASC
+        LIMIT 8
+      `);
+  
+      res.json(result.rows);
+  
+    } catch (error) {
+      console.error("ERROR DAILY OFFERS:", error);
+      res.status(500).json({ error: "Error obteniendo ofertas" });
+    }
+  });
+  
+  /* ================================
+     SEARCH (STORES + PRODUCTS)
+  ================================ */
+  
+  app.get('/api/search', async (req, res) => {
   try {
-
     const { q } = req.query;
 
-    if (!q) {
+    if (!q || !q.trim()) {
       return res.json([]);
     }
 
-    const search = `%${q.toLowerCase()}%`;
+    const rawQuery = q.trim();
 
-    // 🔍 BUSCAR TIENDAS
-    const storesResult = await pool.query(
-      `SELECT 
-        id,
-        name,
-        logo_url AS image,
-        'store' AS type
-      FROM stores
-      WHERE LOWER(name) LIKE $1
-         OR LOWER(category) LIKE $1`,
-      [search]
-    );
+    function normalize(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
 
- 
-    // 🔍 BUSCAR PRODUCTOS
-   const productsResult = await pool.query(
-  `SELECT 
-    p.id,
-    p.name,
-    COALESCE(p.price, 0) AS price,
-    p.image_url AS image,
-    p.size,
-    p.brand,
-    p.colors,
-    s.name AS store_name,
-    s.rating_avg,
-    s.rating_count,
-    p.store_id,
-    'product' AS type
-  FROM products p
-  LEFT JOIN stores s ON s.id = p.store_id
-  WHERE LOWER(p.name) LIKE $1`,
-  [search]
-);
-    //  UNIR RESULTADOS
-    const results = [
+    const normalizedQuery = normalize(rawQuery);
+    const search = `%${normalizedQuery}%`;
+
+    const SUBCATEGORY_MAP = {
+      1: ["restaurante"],
+      2: ["pizzeria", "pizza", "pizzas"],
+      3: ["bar"],
+      4: ["cafeteria", "cafe"],
+      5: ["heladeria", "helado"],
+
+      10: ["peluqueria"],
+      11: ["barberia"],
+      12: ["estetica"],
+      13: ["spa"],
+
+      18: ["electricista"],
+      19: ["plomeria", "plomero"],
+      20: ["gasista"],
+      21: ["tecnico pc"],
+      22: ["reparaciones"],
+
+      23: ["taller mecanico"],
+      24: ["lavadero"],
+      25: ["gomeria"],
+      26: ["repuestos"],
+
+      46: ["verduleria"],
+      47: ["almacen"],
+      48: ["kiosco", "kiosko"],
+      49: ["supermercado"],
+      50: ["carniceria"],
+      51: ["panaderia"],
+      52: ["fiambreria"],
+      53: ["dietetica"],
+      54: ["bebidas"],
+      55: ["mayorista"],
+
+      61: ["cerrajeria"],
+      62: ["celulares"],
+      63: ["accesorios para celulares"],
+      64: ["computacion"],
+      65: ["tv", "smart tv"],
+      66: ["audio"],
+      67: ["gaming"]
+    };
+
+   const matchedSubIds = Object.entries(SUBCATEGORY_MAP)
+  .filter(([id, names]) =>
+    names.some(name =>
+      normalize(name).includes(normalizedQuery) ||
+      normalizedQuery.includes(normalize(name))
+    )
+  )
+  .map(([id]) => Number(id));
+    let storesResult;
+
+    if (matchedSubIds.length > 0) {
+      const subConditions = [];
+const params = [];
+let whereParts = [];
+
+// 🔹 subcategorías
+if (matchedSubIds.length > 0) {
+  matchedSubIds.forEach((id) => {
+   params.push(JSON.stringify([String(id)]));
+    whereParts.push(`s.subcategory_ids @> $${params.length}::jsonb`);
+  });
+}
+
+// 🔹 búsqueda por nombre (SIEMPRE)
+params.push(search);
+whereParts.push(`LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($${params.length}))`);
+
+storesResult = await pool.query(`
+  SELECT
+    s.id,
+    s.slug,
+    s.name,
+    s.logo_url AS image,
+    s.street,
+    s.is_open,
+    COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
+    COUNT(r.rating) AS rating_count,
+    'store' AS type
+  FROM stores s
+  LEFT JOIN store_ratings r ON r.store_id = s.id
+  WHERE (${whereParts.join(" OR ")})
+  GROUP BY s.id
+  ORDER BY s.is_open DESC, rating_avg DESC
+`, params);
+
+    } else {
+      storesResult = await pool.query(`
+        SELECT 
+          s.id,
+          s.slug,
+          s.name,
+          s.logo_url AS image,
+          s.street,
+          s.is_open,
+          COALESCE(AVG(r.rating),0)::numeric(10,2) AS rating_avg,
+          COUNT(r.rating) AS rating_count,
+          'store' AS type
+        FROM stores s
+        LEFT JOIN store_ratings r ON r.store_id = s.id
+        WHERE LOWER(public.unaccent(s.name)) LIKE LOWER(public.unaccent($1))
+        GROUP BY s.id
+        ORDER BY s.is_open DESC, rating_avg DESC
+      `, [search]);
+    }
+
+    const productsResult = await pool.query(`
+      SELECT 
+        p.id,
+        p.slug,
+        p.name,
+        COALESCE(p.price, 0) AS price,
+        p.image_url AS image,
+        p.size,
+        p.brand,
+        p.colors,
+        s.name AS store_name,
+        p.store_id,
+        'product' AS type
+      FROM products p
+      LEFT JOIN stores s ON s.id = p.store_id
+      WHERE LOWER(public.unaccent(p.name)) LIKE LOWER(public.unaccent($1))
+      ORDER BY p.id DESC
+      LIMIT 20
+    `, [search]);
+
+    res.json([
       ...storesResult.rows,
       ...productsResult.rows
-    ];
-
-    res.json(results);
+    ]);
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR /api/search:", error);
     res.status(500).json({ error: "Error en búsqueda" });
   }
 });
 
 /* ================================
-   START
+   DELIVERIES
 ================================ */
 
-app.listen(PORT, () => {
-    console.log("=====================================");
-    console.log("Servidor iniciado correctamente");
-    console.log("http://localhost:" + PORT);
-    console.log("=====================================");
+app.post('/api/deliveries', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: "Tienda no encontrada" });
+    }
+
+    const storeId = storeRes.rows[0].id;
+    const tokenRepartidor = require('crypto').randomBytes(20).toString('hex');
+    const tokenCliente = require('crypto').randomBytes(20).toString('hex');
+
+    const { dest_lat, dest_lng, dest_address, observaciones } = req.body;
+
+const result = await pool.query(`
+  INSERT INTO deliveries 
+    (store_id, token_repartidor, token_cliente, dest_lat, dest_lng, dest_address, observaciones)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
+  RETURNING *
+`, [storeId, tokenRepartidor, tokenCliente, dest_lat || null, dest_lng || null, dest_address || null, observaciones || null]);
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error creando envío" });
+  }
 });
 
+// OBTENER ENVÍOS ACTIVOS (vendedor)
+app.get('/api/deliveries', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT d.* FROM deliveries d
+      JOIN stores s ON s.id = d.store_id
+      WHERE s.user_id = $1
+      AND d.expires_at > NOW()
+      AND d.status != 'delivered'
+      ORDER BY d.created_at DESC
+    `, [req.user.id]);
 
+    res.json(result.rows);
 
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo envíos" });
+  }
+});
+
+app.get('/api/deliveries/repartidor/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+     SELECT status, dest_lat, dest_lng, dest_address, observaciones,
+       repartidor_ip, repartidor_ua
+FROM deliveries
+WHERE token_repartidor = $1
+AND expires_at > NOW()
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "No encontrado" });
+    }
+
+    const delivery = result.rows[0];
+
+    // obtener IP del request
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    const ua = req.headers['user-agent'] || '';
+
+   // bloqueado por otro dispositivo — comparar también user agent
+if (delivery.repartidor_ip && delivery.repartidor_ip !== ip) {
+  // si el user agent es el mismo, probablemente es el mismo dispositivo con IP cambiada
+  if (delivery.repartidor_ua !== ua) {
+    return res.status(403).json({ error: "locked" });
+  }
+}
+
+    // si es la primera vez, registrar el dispositivo
+    if (!delivery.repartidor_ip) {
+      await pool.query(`
+        UPDATE deliveries 
+        SET repartidor_ip = $1, repartidor_ua = $2, repartidor_locked_at = NOW()
+        WHERE token_repartidor = $3
+      `, [ip, ua, req.params.token]);
+    }
+
+    res.json(delivery);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error" });
+  }
+});
+
+// INICIAR RECORRIDO (repartidor)
+app.post('/api/deliveries/start/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      UPDATE deliveries
+      SET status = 'active'
+      WHERE token_repartidor = $1
+      AND expires_at > NOW()
+      RETURNING *
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado o expirado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error iniciando envío" });
+  }
+});
+
+// ACTUALIZAR UBICACIÓN (repartidor)
+app.put('/api/deliveries/location/:token', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+
+    const result = await pool.query(`
+      UPDATE deliveries
+      SET lat = $1, lng = $2
+      WHERE token_repartidor = $3
+      AND status = 'active'
+      AND expires_at > NOW()
+      RETURNING *
+    `, [lat, lng, req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado" });
+    }
+
+    res.json({ ok: true });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando ubicación" });
+  }
+});
+
+app.put('/api/deliveries/:id/observaciones', authMiddleware, async (req, res) => {
+  try {
+    const { observaciones } = req.body;
+
+    const result = await pool.query(`
+      UPDATE deliveries 
+      SET observaciones = $1
+      WHERE id = $2
+      AND store_id IN (SELECT id FROM stores WHERE user_id = $3)
+      RETURNING *
+    `, [observaciones, req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado" });
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error" });
+  }
+});
+
+// OBTENER UBICACIÓN (cliente - polling)
+app.get('/api/deliveries/track/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT status, lat, lng, dest_lat, dest_lng, dest_address, created_at, expires_at
+      FROM deliveries
+      WHERE token_cliente = $1
+      AND expires_at > NOW()
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado o expirado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo ubicación" });
+  }
+});
+
+// CONFIRMAR ENTREGA (repartidor)
+app.post('/api/deliveries/deliver/:token', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+
+    const result = await pool.query(`
+      SELECT * FROM deliveries 
+      WHERE token_repartidor = $1 
+      AND status = 'active'
+      AND expires_at > NOW()
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Envío no encontrado o ya finalizado" });
+    }
+
+    const delivery = result.rows[0];
+
+    // validar que tiene destino
+    if (!delivery.dest_lat || !delivery.dest_lng) {
+      return res.status(400).json({ error: "El envío no tiene destino definido" });
+    }
+
+    // validar GPS cercano al destino
+    if (!lat || !lng) {
+      return res.status(400).json({ error: "No se recibió ubicación GPS" });
+    }
+
+    const distancia = calcularDistancia(
+      parseFloat(lat), parseFloat(lng),
+      parseFloat(delivery.dest_lat), parseFloat(delivery.dest_lng)
+    );
+
+    const RANGO_METROS = 150;
+
+    if (distancia > RANGO_METROS) {
+      return res.status(400).json({ 
+        error: `Tenés que estar a menos de ${RANGO_METROS}m del destino para confirmar`,
+        distancia: Math.round(distancia)
+      });
+    }
+
+    await pool.query(`
+      UPDATE deliveries 
+      SET status = 'delivered', confirmed_at = NOW()
+      WHERE token_repartidor = $1
+    `, [req.params.token]);
+
+    res.json({ ok: true });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error confirmando entrega" });
+  }
+});
+
+// HAVERSINE — distancia entre dos coordenadas en metros
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/* ================================
+   PIZARRA
+================================ */
+
+function getMidnightArgentina() {
+  const now = new Date();
+  const argNow = new Date(now.getTime() + (-3 * 60 * 60 * 1000));
+  const nextMidnight = new Date(Date.UTC(
+    argNow.getUTCFullYear(),
+    argNow.getUTCMonth(),
+    argNow.getUTCDate() + 1,
+    0, 0, 0, 0
+  ));
+  return new Date(nextMidnight.getTime() + (3 * 60 * 60 * 1000));
+}
+
+// SUBIR / REEMPLAZAR PIZARRA DEL DÍA
+app.post('/api/pizarra', authMiddleware, uploadPizarra.single('image'), async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Imagen requerida' });
+    }
+
+   
+
+    const result = await pool.query(`
+      INSERT INTO pizarras (store_id, image_url, caption, expires_at)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [
+      storeId,
+      req.file.path,
+      req.body.caption || null,
+      getMidnightArgentina()
+    ]);
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('ERROR PIZARRA POST:', err.message, err.stack);
+    res.status(500).json({ error: 'Error subiendo pizarra' });
+  }
+});
+
+// OBTENER PIZARRA ACTIVA DE UNA TIENDA
+app.get('/api/pizarra/:store_id', async (req, res) => {
+  try {
+   const result = await pool.query(`
+  SELECT * FROM pizarras
+  WHERE store_id = $1
+  AND expires_at > NOW()
+  ORDER BY created_at ASC
+`, [req.params.store_id]);
+
+if (!result.rows.length) {
+  return res.status(404).json({ error: 'Sin pizarra hoy' });
+}
+
+res.json(result.rows);
+
+  } catch (err) {
+    console.error('ERROR PIZARRA GET:', err.message);
+    res.status(500).json({ error: 'Error obteniendo pizarra' });
+  }
+});
+
+// ELIMINAR PIZARRA
+app.delete('/api/pizarra', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    await pool.query(
+      'DELETE FROM pizarras WHERE store_id = $1',
+      [storeRes.rows[0].id]
+    );
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR PIZARRA DELETE:', err.message);
+    res.status(500).json({ error: 'Error eliminando pizarra' });
+  }
+});
+
+/* ================================
+   STORE VIDEOS
+================================ */
+
+function detectPlatform(url) {
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/instagram\.com/.test(url)) return 'instagram';
+  return null;
+}
+
+// LISTAR VIDEOS DE UNA TIENDA
+app.get('/api/store-videos/:store_id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM store_videos
+       WHERE store_id = $1
+       ORDER BY created_at DESC`,
+      [req.params.store_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS GET:', err.message);
+    res.status(500).json({ error: 'Error obteniendo videos' });
+  }
+});
+
+// AGREGAR VIDEO
+app.post('/api/store-videos', authMiddleware, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url?.trim()) {
+      return res.status(400).json({ error: 'URL requerida' });
+    }
+
+    const platform = detectPlatform(url.trim());
+    if (!platform) {
+      return res.status(400).json({ error: 'Solo se aceptan links de YouTube o Instagram' });
+    }
+
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const storeId = storeRes.rows[0].id;
+
+    
+    const result = await pool.query(
+      `INSERT INTO store_videos (store_id, url, platform)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [storeId, url.trim(), platform]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS POST:', err.message);
+    res.status(500).json({ error: 'Error agregando video' });
+  }
+});
+
+// ELIMINAR VIDEO
+app.delete('/api/store-videos/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM store_videos
+       WHERE id = $1
+       AND store_id IN (SELECT id FROM stores WHERE user_id = $2)
+       RETURNING *`,
+      [req.params.id, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Video no encontrado' });
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR STORE VIDEOS DELETE:', err.message);
+    res.status(500).json({ error: 'Error eliminando video' });
+  }
+});
+  // ELIMINAR PIZARRA INDIVIDUAL
+app.delete('/api/pizarra/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM pizarras
+       WHERE id = $1
+       AND store_id IN (SELECT id FROM stores WHERE user_id = $2)
+       RETURNING *`,
+      [req.params.id, req.user.id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Pizarra no encontrada' });
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR PIZARRA DELETE ID:', err.message);
+    res.status(500).json({ error: 'Error eliminando pizarra' });
+  }
+});
+
+/* ================================
+   FEED — PIZARRAS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/pizarras', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id        AS store_id,
+        s.name      AS store_name,
+        s.slug      AS store_slug,
+        s.logo_url,
+        json_agg(
+          json_build_object(
+            'id',         p.id,
+            'image_url',  p.image_url,
+            'caption',    p.caption,
+            'created_at', p.created_at,
+            'expires_at', p.expires_at
+          ) ORDER BY p.created_at ASC
+        ) AS pizarras
+      FROM follows f
+      JOIN stores s  ON s.id = f.store_id
+      JOIN pizarras p ON p.store_id = s.id
+      WHERE f.user_id = $1
+        AND p.expires_at > NOW()
+      GROUP BY s.id, s.name, s.slug, s.logo_url
+      ORDER BY MAX(p.created_at) DESC
+    `, [req.user.id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED PIZARRAS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo feed' });
+  }
+});
+
+/* ================================
+   FEED — OFERTAS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/offers', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, s.name as store_name, s.slug as store_slug, s.logo_url
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+        AND p.is_offer = true
+        AND p.offer_expires_at > NOW()
+      ORDER BY p.offer_expires_at ASC
+      LIMIT 10
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED OFFERS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+/* ================================
+   FEED — EVENTOS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/events', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.*, s.name as store_name, s.slug as store_slug, s.logo_url
+      FROM store_events e
+      JOIN stores s ON s.id = e.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+        AND e.end_at >= NOW()
+      ORDER BY e.start_at ASC
+      LIMIT 8
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED EVENTS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+/* ================================
+   FEED — PRODUCTOS NUEVOS DE TIENDAS SEGUIDAS
+================================ */
+app.get('/api/feed/products', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, s.name as store_name, s.slug as store_slug
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
+      JOIN follows f ON f.store_id = s.id
+      WHERE f.user_id = $1
+      ORDER BY p.id DESC
+      LIMIT 12
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR FEED PRODUCTS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+/* ================================
+   HIGHLIGHTS — DESTACADOS
+================================ */
+
+// GET highlights de una tienda (público, incluye items)
+app.get('/api/stores/:id/highlights', async (req, res) => {
+  try {
+    const highlights = await pool.query(`
+      SELECT h.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id',          i.id,
+              'image_url',   i.image_url,
+              'caption',     i.caption,
+              'order_index', i.order_index
+            ) ORDER BY i.order_index ASC, i.created_at ASC
+          ) FILTER (WHERE i.id IS NOT NULL),
+          '[]'
+        ) AS items
+      FROM store_highlights h
+      LEFT JOIN highlight_items i ON i.highlight_id = h.id
+      WHERE h.store_id = $1
+      GROUP BY h.id
+      ORDER BY h.order_index ASC, h.created_at ASC
+    `, [req.params.id]);
+
+    res.json(highlights.rows);
+  } catch (err) {
+    console.error('ERROR GET HIGHLIGHTS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo highlights' });
+  }
+});
+
+// POST crear highlight
+app.post('/api/highlights', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title?.trim()) {
+      return res.status(400).json({ error: 'Título requerido' });
+    }
+
+    const storeRes = await pool.query(
+      'SELECT id FROM stores WHERE user_id = $1', [req.user.id]
+    );
+    if (!storeRes.rows.length) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO store_highlights (store_id, title)
+      VALUES ($1, $2) RETURNING *
+    `, [storeRes.rows[0].id, title.trim()]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error creando highlight' });
+  }
+});
+
+// POST agregar foto a un highlight
+app.post('/api/highlights/:id/items', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    // verificar que el highlight sea de la tienda del usuario
+    const check = await pool.query(`
+      SELECT h.id FROM store_highlights h
+      JOIN stores s ON s.id = h.store_id
+      WHERE h.id = $1 AND s.user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    if (!check.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Imagen requerida' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO highlight_items (highlight_id, image_url, caption)
+      VALUES ($1, $2, $3) RETURNING *
+    `, [req.params.id, req.file.path, req.body.caption || null]);
+
+    // si es la primera foto, usarla como cover del highlight
+    await pool.query(`
+      UPDATE store_highlights
+      SET cover_url = COALESCE(cover_url, $1)
+      WHERE id = $2
+    `, [req.file.path, req.params.id]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST HIGHLIGHT ITEM:', err.message);
+    res.status(500).json({ error: 'Error agregando foto' });
+  }
+});
+
+// PUT actualizar título de highlight
+app.put('/api/highlights/:id', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    const result = await pool.query(`
+      UPDATE store_highlights h
+      SET title = COALESCE($1, h.title)
+      FROM stores s
+      WHERE h.id = $2 AND h.store_id = s.id AND s.user_id = $3
+      RETURNING h.*
+    `, [title || null, req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR PUT HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error actualizando highlight' });
+  }
+});
+
+// DELETE highlight completo
+app.delete('/api/highlights/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      DELETE FROM store_highlights h
+      USING stores s
+      WHERE h.id = $1 AND h.store_id = s.id AND s.user_id = $2
+      RETURNING h.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE HIGHLIGHT:', err.message);
+    res.status(500).json({ error: 'Error eliminando highlight' });
+  }
+});
+
+// DELETE item individual
+app.delete('/api/highlight-items/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      DELETE FROM highlight_items i
+      USING store_highlights h
+      JOIN stores s ON s.id = h.store_id
+      WHERE i.id = $1 AND i.highlight_id = h.id AND s.user_id = $2
+      RETURNING i.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE HIGHLIGHT ITEM:', err.message);
+    res.status(500).json({ error: 'Error eliminando foto' });
+  }
+});
+
+/* ================================
+   HIGHLIGHTS — VISTAS, REACCIONES, COMENTARIOS, EDICIÓN
+================================ */
+
+// Registrar vista de un item
+app.post('/api/highlight-items/:id/view', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE highlight_items SET views = COALESCE(views,0) + 1 WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// Reaccionar a un item (toggle)
+app.post('/api/highlight-items/:id/react', authMiddleware, async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    if (!emoji) return res.status(400).json({ error: 'Emoji requerido' });
+
+    // verificar si ya reaccionó
+    const existing = await pool.query(
+      `SELECT id, emoji FROM highlight_reactions WHERE item_id=$1 AND user_id=$2`,
+      [req.params.id, req.user.id]
+    );
+
+    if (existing.rows.length) {
+      if (existing.rows[0].emoji === emoji) {
+        // misma reacción → quitar
+        await pool.query(
+          `DELETE FROM highlight_reactions WHERE item_id=$1 AND user_id=$2`,
+          [req.params.id, req.user.id]
+        );
+        return res.json({ action: 'removed' });
+      } else {
+        // reacción distinta → cambiar
+        await pool.query(
+          `UPDATE highlight_reactions SET emoji=$1 WHERE item_id=$2 AND user_id=$3`,
+          [emoji, req.params.id, req.user.id]
+        );
+        return res.json({ action: 'changed' });
+      }
+    }
+
+    await pool.query(
+      `INSERT INTO highlight_reactions (item_id, user_id, emoji) VALUES ($1,$2,$3)`,
+      [req.params.id, req.user.id, emoji]
+    );
+    res.json({ action: 'added' });
+
+  } catch (err) {
+    console.error('ERROR REACT:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET reacciones de un item
+app.get('/api/highlight-items/:id/reactions', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT emoji, COUNT(*)::int as count,
+        MAX(CASE WHEN user_id = $2 THEN emoji END) as user_emoji
+      FROM highlight_reactions
+      WHERE item_id = $1
+      GROUP BY emoji
+      ORDER BY count DESC
+    `, [req.params.id, req.cookies.access_token
+        ? (() => { try { return require('jsonwebtoken').verify(req.cookies.access_token, process.env.JWT_SECRET).id; } catch { return -1; } })()
+        : -1
+    ]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET comentarios de un item
+app.get('/api/highlight-items/:id/comments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT hc.*, u.name, u.avatar_url
+      FROM highlight_comments hc
+      JOIN users u ON u.id = hc.user_id
+      WHERE hc.item_id = $1
+      ORDER BY hc.created_at ASC
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// POST comentario
+app.post('/api/highlight-items/:id/comments', authMiddleware, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: 'Comentario vacío' });
+
+    const result = await pool.query(`
+      INSERT INTO highlight_comments (item_id, user_id, content)
+      VALUES ($1, $2, $3) RETURNING *
+    `, [req.params.id, req.user.id, content.trim()]);
+
+    const userRes = await pool.query(
+      `SELECT name, avatar_url FROM users WHERE id=$1`, [req.user.id]
+    );
+
+    // 🔔 notificar al dueño de la tienda
+    try {
+      const ownerRes = await pool.query(`
+        SELECT s.user_id, s.name as store_name, s.slug, h.title as highlight_title
+        FROM highlight_items i
+        JOIN store_highlights h ON h.id = i.highlight_id
+        JOIN stores s ON s.id = h.store_id
+        WHERE i.id = $1
+      `, [req.params.id]);
+
+      const owner = ownerRes.rows[0];
+      if (owner && owner.user_id !== req.user.id) {
+        await createNotification(
+          owner.user_id,
+          'highlight_comment',
+          'Nuevo comentario en tu destacado',
+          `${req.user.name || 'Un usuario'} comentó en "${owner.highlight_title}" de ${owner.store_name}`,
+          `/${owner.slug}`
+        );
+      }
+    } catch(notifErr) {
+      console.error('ERROR NOTIF HIGHLIGHT COMMENT:', notifErr);
+    }
+
+    res.json({ ...result.rows[0], ...userRes.rows[0] });
+  } catch (err) {
+    console.error('ERROR POST HL COMMENT:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+// DELETE comentario
+app.delete('/api/highlight-comments/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `DELETE FROM highlight_comments WHERE id=$1 AND user_id=$2 RETURNING id`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// PUT editar título del highlight
+app.put('/api/highlights/:id/title', authMiddleware, async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title?.trim()) return res.status(400).json({ error: 'Título requerido' });
+
+    const result = await pool.query(`
+      UPDATE store_highlights sh
+      SET title = $1
+      FROM stores s
+      WHERE sh.id = $2 AND sh.store_id = s.id AND s.user_id = $3
+      RETURNING sh.*
+    `, [title.trim(), req.params.id, req.user.id]);
+
+    if (!result.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// PUT editar foto/caption de un item
+app.put('/api/highlight-items/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const check = await pool.query(`
+      SELECT i.id FROM highlight_items i
+      JOIN store_highlights h ON h.id = i.highlight_id
+      JOIN stores s ON s.id = h.store_id
+      WHERE i.id = $1 AND s.user_id = $2
+    `, [req.params.id, req.user.id]);
+
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const newImageUrl = req.file ? req.file.path : null;
+    const { caption } = req.body;
+
+    const result = await pool.query(`
+      UPDATE highlight_items
+      SET
+        image_url = COALESCE($1, image_url),
+        caption   = COALESCE($2, caption)
+      WHERE id = $3
+      RETURNING *
+    `, [newImageUrl, caption ?? null, req.params.id]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+// GET estadísticas de highlights para el dashboard
+app.get('/api/my-highlights/stats', authMiddleware, async (req, res) => {
+  try {
+    const storeRes = await pool.query(
+      `SELECT id FROM stores WHERE user_id=$1`, [req.user.id]
+    );
+    if (!storeRes.rows.length) return res.json([]);
+    const storeId = storeRes.rows[0].id;
+
+    const result = await pool.query(`
+      SELECT
+        h.id,
+        h.title,
+        h.cover_url,
+        COUNT(DISTINCT i.id)::int         AS item_count,
+        COALESCE(SUM(i.views),0)::int     AS total_views,
+        COUNT(DISTINCT r.id)::int         AS total_reactions,
+        COUNT(DISTINCT c.id)::int         AS total_comments
+      FROM store_highlights h
+      LEFT JOIN highlight_items i       ON i.highlight_id = h.id
+      LEFT JOIN highlight_reactions r   ON r.item_id = i.id
+      LEFT JOIN highlight_comments c    ON c.item_id = i.id
+      WHERE h.store_id = $1
+      GROUP BY h.id
+      ORDER BY total_views DESC
+    `, [storeId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR HIGHLIGHT STATS:', err.message);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+/* ================================
+   IMAGE TAGS — LINKS EN IMÁGENES
+================================ */
+
+// GET tags de un item (highlight o pizarra)
+app.get('/api/image-tags', async (req, res) => {
+  try {
+    const { highlight_item_id, pizarra_id } = req.query;
+
+    if (!highlight_item_id && !pizarra_id) {
+      return res.status(400).json({ error: 'Se requiere highlight_item_id o pizarra_id' });
+    }
+
+    let result;
+    if (highlight_item_id) {
+      result = await pool.query(`
+        SELECT t.*,
+          p.id        AS product_id,
+          p.name      AS product_name,
+          p.price     AS product_price,
+          p.image_url AS product_image,
+          p.slug      AS product_slug
+        FROM image_tags t
+        LEFT JOIN products p ON p.id = t.product_id
+        WHERE t.highlight_item_id = $1
+        ORDER BY t.created_at ASC
+      `, [highlight_item_id]);
+    } else {
+      result = await pool.query(`
+        SELECT t.*,
+          p.id        AS product_id,
+          p.name      AS product_name,
+          p.price     AS product_price,
+          p.image_url AS product_image,
+          p.slug      AS product_slug
+        FROM image_tags t
+        LEFT JOIN products p ON p.id = t.product_id
+        WHERE t.pizarra_id = $1
+        ORDER BY t.created_at ASC
+      `, [pizarra_id]);
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET IMAGE TAGS:', err.message);
+    res.status(500).json({ error: 'Error obteniendo tags' });
+  }
+});
+
+// POST crear tag
+app.post('/api/image-tags', authMiddleware, async (req, res) => {
+  try {
+    const { highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id, type } = req.body;
+
+    if (!highlight_item_id && !pizarra_id) {
+      return res.status(400).json({ error: 'Se requiere highlight_item_id o pizarra_id' });
+    }
+    if (x_percent == null || y_percent == null) {
+      return res.status(400).json({ error: 'Posición requerida' });
+    }
+
+    // verificar ownership
+    if (highlight_item_id) {
+      const check = await pool.query(`
+        SELECT i.id FROM highlight_items i
+        JOIN store_highlights h ON h.id = i.highlight_id
+        JOIN stores s ON s.id = h.store_id
+        WHERE i.id = $1 AND s.user_id = $2
+      `, [highlight_item_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    } else {
+      const check = await pool.query(`
+        SELECT p.id FROM pizarras p
+        JOIN stores s ON s.id = p.store_id
+        WHERE p.id = $1 AND s.user_id = $2
+      `, [pizarra_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO image_tags
+        (highlight_item_id, pizarra_id, x_percent, y_percent, label, url, product_id, type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `, [
+      highlight_item_id || null,
+      pizarra_id || null,
+      x_percent,
+      y_percent,
+      label || null,
+      url || null,
+      product_id || null,
+      type || 'product'
+    ]);
+
+    let tag = result.rows[0];
+    if (tag.product_id) {
+      const prodRes = await pool.query(
+        `SELECT name, price, image_url, slug FROM products WHERE id = $1`,
+        [tag.product_id]
+      );
+      if (prodRes.rows.length) {
+        const p = prodRes.rows[0];
+        tag = { ...tag, product_name: p.name, product_price: p.price, product_image: p.image_url, product_slug: p.slug };
+      }
+    }
+
+    res.json(tag);
+  } catch (err) {
+    console.error('ERROR POST IMAGE TAG:', err.message);
+    res.status(500).json({ error: 'Error creando tag' });
+  }
+});
+
+// DELETE tag
+app.delete('/api/image-tags/:id', authMiddleware, async (req, res) => {
+  try {
+    // verificar ownership via highlight o pizarra
+    const result = await pool.query(`
+      DELETE FROM image_tags t
+      USING (
+        SELECT t2.id FROM image_tags t2
+        LEFT JOIN highlight_items hi ON hi.id = t2.highlight_item_id
+        LEFT JOIN store_highlights sh ON sh.id = hi.highlight_id
+        LEFT JOIN pizarras pz ON pz.id = t2.pizarra_id
+        LEFT JOIN stores s ON s.id = COALESCE(sh.store_id, pz.store_id)
+        WHERE t2.id = $1 AND s.user_id = $2
+      ) valid
+      WHERE t.id = valid.id
+      RETURNING t.id
+    `, [req.params.id, req.user.id]);
+
+    if (!result.rows.length) {
+      return res.status(403).json({ error: 'No autorizado o tag no existe' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE IMAGE TAG:', err.message);
+    res.status(500).json({ error: 'Error eliminando tag' });
+  }
+});
+/* ================================
+   SUCURSALES
+================================ */
+
+// GET sucursales de una tienda (público)
+app.get('/api/stores/:id/sucursales', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM sucursales WHERE store_id = $1 ORDER BY created_at ASC`,
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ERROR GET SUCURSALES:', err.message);
+    res.status(500).json({ error: 'Error obteniendo sucursales' });
+  }
+});
+
+// POST crear sucursal
+app.post('/api/sucursales', authMiddleware, async (req, res) => {
+  try {
+    const { store_id, name, street, local, city, lat, lng, phone, opening_hours } = req.body;
+    if (!store_id || !name) return res.status(400).json({ error: 'Faltan datos requeridos' });
+
+    // verificar ownership
+    const check = await pool.query(
+      `SELECT id FROM stores WHERE id = $1 AND user_id = $2`,
+      [store_id, req.user.id]
+    );
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const result = await pool.query(`
+      INSERT INTO sucursales (store_id, name, street, local, city, lat, lng, phone, opening_hours)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `, [
+      store_id,
+      name,
+      street || null,
+      local  || null,
+      city   || null,
+      lat    || null,
+      lng    || null,
+      phone  || null,
+      opening_hours ? JSON.stringify(opening_hours) : null
+    ]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR POST SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error creando sucursal' });
+  }
+});
+
+// PUT editar sucursal
+app.put('/api/sucursales/:id', authMiddleware, async (req, res) => {
+  try {
+    const { name, street, local, city, lat, lng, phone, opening_hours } = req.body;
+
+    // verificar ownership
+    const check = await pool.query(`
+      SELECT s.id FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.id = $1 AND st.user_id = $2
+    `, [req.params.id, req.user.id]);
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    const result = await pool.query(`
+      UPDATE sucursales SET
+        name          = COALESCE($1, name),
+        street        = COALESCE($2, street),
+        local         = COALESCE($3, local),
+        city          = COALESCE($4, city),
+        lat           = COALESCE($5, lat),
+        lng           = COALESCE($6, lng),
+        phone         = COALESCE($7, phone),
+        opening_hours = COALESCE($8, opening_hours)
+      WHERE id = $9
+      RETURNING *
+    `, [
+      name          || null,
+      street        || null,
+      local         || null,
+      city          || null,
+      lat           || null,
+      lng           || null,
+      phone         || null,
+      opening_hours ? JSON.stringify(opening_hours) : null,
+      req.params.id
+    ]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('ERROR PUT SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error actualizando sucursal' });
+  }
+});
+
+// DELETE sucursal
+app.delete('/api/sucursales/:id', authMiddleware, async (req, res) => {
+  try {
+    const check = await pool.query(`
+      SELECT s.id FROM sucursales s
+      JOIN stores st ON st.id = s.store_id
+      WHERE s.id = $1 AND st.user_id = $2
+    `, [req.params.id, req.user.id]);
+    if (!check.rows.length) return res.status(403).json({ error: 'No autorizado' });
+
+    await pool.query(`DELETE FROM sucursales WHERE id = $1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('ERROR DELETE SUCURSAL:', err.message);
+    res.status(500).json({ error: 'Error eliminando sucursal' });
+  }
+});
+  /* ================================
+     START
+  ================================ */
+  
+  app.listen(PORT, () => {
+      console.log("=====================================");
+      console.log("Servidor iniciado correctamente");
+      console.log("http://localhost:" + PORT);
+      console.log("=====================================");
+  });

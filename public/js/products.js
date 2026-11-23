@@ -1,11 +1,24 @@
+import { CATEGORIES } from './data/categories.js';
+
 let allProducts = [];
 
+let currentCategory = null;
+let currentSubcategory = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
+
   await loadProducts();
 
   document.getElementById("searchInput").addEventListener("input", applyFilters);
   document.getElementById("filterSelect").addEventListener("change", applyFilters);
+
+  renderCategories();
 });
+
+
+// =============================
+// LOAD
+// =============================
 
 async function loadProducts(){
   try {
@@ -20,41 +33,68 @@ async function loadProducts(){
   }
 }
 
+
+// =============================
+// RENDER PRODUCTOS
+// =============================
+
 function renderProducts(products){
 
   const container = document.getElementById("productsContainer");
+  const emptyState = document.getElementById("emptyState");
+
   container.innerHTML = "";
+
+  if(products.length === 0){
+    emptyState.classList.remove("hidden");
+    return;
+  } else {
+    emptyState.classList.add("hidden");
+  }
 
   products.forEach(p => {
 
     const div = document.createElement("div");
-    div.className = "product-card";
+
+    div.className = `
+      bg-white rounded-xl shadow-sm hover:shadow-md transition cursor-pointer overflow-hidden
+    `;
 
     div.innerHTML = `
-  <div class="product-card-inner">
+      <div class="h-40 bg-gray-100 flex items-center justify-center">
+        <img src="${p.image_url || '/img/default.png'}"
+          class="max-h-full max-w-full object-contain">
+      </div>
 
-    <div class="product-image">
-      <img src="${p.image_url || '/img/default.png'}" />
-    </div>
+      <div class="p-3">
+        <h3 class="font-semibold text-sm truncate">${p.name}</h3>
 
-    <div class="product-info">
-      <h3 class="product-title">${p.name}</h3>
+        <p class="text-orange-600 font-bold mt-1">
+          ${window.renderPriceHTML(p)}
+        </p>
 
-      <p class="product-price">$${Number(p.price).toLocaleString()}</p>
+        <p class="text-xs text-gray-500 mt-1">
+          ${p.store_name || ""}
+        </p>
+      </div>
+    `;
 
-      <p class="product-store">${p.store_name || ""}</p>
-    </div>
+   div.addEventListener("click", () => {
+  const url = p.slug
+    ? `/product/${p.slug}`
+    : `/product/${p.id}`;
 
-  </div>
-`;
-
-    div.addEventListener("click", () => {
-      window.location.href = `/product/${p.id}`;
-    });
+  window.location.href = url;
+});
 
     container.appendChild(div);
   });
 }
+
+
+// =============================
+// FILTROS
+// =============================
 
 function applyFilters(){
 
@@ -70,7 +110,25 @@ function applyFilters(){
     );
   }
 
-  // 🎯 FILTROS
+
+if(currentCategory){
+
+  const subs = CATEGORIES[currentCategory] || [];
+  const subIds = subs.map(s => s.id);
+
+  filtered = filtered.filter(p =>
+    subIds.includes(p.subcategory_id)
+  );
+}
+
+  // 🧠 SUBCATEGORÍA
+  if(currentSubcategory){
+    filtered = filtered.filter(p =>
+      p.subcategory_id === currentSubcategory
+    );
+  }
+
+  // 🎯 ORDEN
   switch(filter){
 
     case "cheap":
@@ -84,15 +142,92 @@ function applyFilters(){
     case "best":
       filtered.sort((a,b) => (b.rating_avg || 0) - (a.rating_avg || 0));
       break;
-
-    case "worst":
-      filtered.sort((a,b) => (a.rating_avg || 0) - (b.rating_avg || 0));
-      break;
-
-    case "near":
-      filtered.sort((a,b) => (a.distance || 0) - (b.distance || 0));
-      break;
   }
 
   renderProducts(filtered);
 }
+
+
+// =============================
+// CATEGORÍAS
+// =============================
+
+function renderCategories(){
+
+  const container = document.getElementById("productCategories");
+
+  const icons = {
+    "Gastronomía": "🍔",
+    "Alimentos": "🛒",
+    "Belleza": "💄",
+    "Salud": "➕",
+    "Servicios": "🛠",
+    "Automotor": "🚗",
+    "Hogar": "🏠"
+  };
+
+  container.innerHTML = Object.keys(CATEGORIES).map(cat => `
+    <button
+      onclick="selectCategory('${cat}')"
+      class="px-4 py-2 bg-white border rounded-full text-sm hover:bg-orange-600 hover:text-white transition whitespace-nowrap">
+      ${icons[cat] || "📍"} ${cat}
+    </button>
+  `).join("");
+}
+
+
+// =============================
+// SELECT CATEGORY
+// =============================
+
+window.selectCategory = function(cat){
+
+  if(currentCategory === cat) return;
+
+  currentCategory = cat;
+  currentSubcategory = null;
+
+  renderSubcategories(cat);
+  applyFilters();
+};
+
+
+// =============================
+// SUBCATEGORÍAS
+// =============================
+
+function renderSubcategories(cat){
+
+  const subContainer = document.getElementById("subcategoriesContainer");
+  const subList = document.getElementById("subcategoriesList");
+
+  const subs = CATEGORIES[cat];
+
+  if (!subs || subs.length === 0){
+    subContainer.classList.add("hidden");
+    return;
+  }
+
+  subContainer.classList.remove("hidden");
+
+  subList.innerHTML = subs.map(sub => `
+    <button
+      onclick="selectSubcategory('${cat}', ${sub.id})"
+      class="px-4 py-2 bg-white border rounded-full text-sm hover:bg-orange-600 hover:text-white transition whitespace-nowrap">
+      ${sub.name}
+    </button>
+  `).join("");
+}
+
+
+// =============================
+// SELECT SUBCATEGORY
+// =============================
+
+window.selectSubcategory = function(cat, subId){
+
+  currentCategory = cat;
+  currentSubcategory = subId;
+
+  applyFilters();
+};

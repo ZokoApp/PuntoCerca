@@ -1,11 +1,19 @@
 let userLat = null;
 let userLng = null;
 
-// 📍 obtener ubicación
-navigator.geolocation.getCurrentPosition(pos => {
-  userLat = pos.coords.latitude;
-  userLng = pos.coords.longitude;
-});
+let allStores = [];
+
+
+navigator.geolocation.getCurrentPosition(
+  pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    applyFilters();
+  },
+  err => {
+    console.warn("Geolocalización denegada");
+  }
+);
 
 // ==========================
 // CARGAR TIENDAS
@@ -13,42 +21,43 @@ navigator.geolocation.getCurrentPosition(pos => {
 async function loadStores(){
 
   const category = document.getElementById("filterCategory").value;
-  const sort = document.getElementById("filterSort").value;
 
   let url = '/api/stores';
 
   if(category){
-    url += `?category=${category}`;
+    url += `?category=${encodeURIComponent(category)}`;
   }
 
-  const res = await fetch(url);
-  let stores = await res.json();
+  try {
 
-  // ⭐ ORDEN POR RATING
-  if(sort === "rating"){
-    stores.sort((a,b) => (b.rating_avg || 0) - (a.rating_avg || 0));
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("🔥 ERROR BACKEND:", text);
+      allStores = [];
+      renderStores([]);
+      return;
+    }
+
+    const stores = await res.json();
+
+    if (!Array.isArray(stores)) {
+      console.error("❌ NO ES ARRAY:", stores);
+      allStores = [];
+      renderStores([]);
+      return;
+    }
+
+    allStores = stores;
+    applyFilters();
+
+  } catch (err) {
+    console.error("💥 ERROR FETCH:", err);
+    allStores = [];
+    renderStores([]);
   }
-
-  // 📍 ORDEN POR DISTANCIA
-  if(sort === "distance" && userLat && userLng){
-
-    stores.forEach(store => {
-      if(store.lat && store.lng){
-        store.distance = Math.sqrt(
-          Math.pow(store.lat - userLat, 2) +
-          Math.pow(store.lng - userLng, 2)
-        );
-      } else {
-        store.distance = 999;
-      }
-    });
-
-    stores.sort((a,b) => a.distance - b.distance);
-  }
-
-  renderStores(stores);
 }
-
 // ==========================
 // RENDER
 // ==========================
@@ -85,12 +94,66 @@ function renderStores(stores){
       </div>
     `;
 
-    card.onclick = () => {
-      window.location.href = `/store/${store.id}`;
-    };
+   card.onclick = () => {
+  if (!store.slug) {
+    console.error("Store sin slug:", store);
+    return;
+  }
 
+  window.location.href = `/${store.slug}`;
+};
     container.appendChild(card);
   });
+}
+
+function applyFilters(){
+
+  const search = document.getElementById("searchStore").value.toLowerCase().trim();
+  const sort = document.getElementById("filterSort").value;
+
+  let filtered = [...allStores];
+
+  // 🔍 BUSCADOR
+  if(search){
+    filtered = filtered.filter(store =>
+      (store.name || "").toLowerCase().includes(search) ||
+      (store.category || "").toLowerCase().includes(search)
+    );
+  }
+
+  // ⭐ ORDEN POR RATING
+  if(sort === "rating"){
+    filtered.sort((a, b) => (b.rating_avg || 0) - (a.rating_avg || 0));
+  }
+
+  // 🟢 ABIERTOS PRIMERO
+  if(sort === "open"){
+    filtered.sort((a, b) => {
+      const aOpen = a.is_open ? 1 : 0;
+      const bOpen = b.is_open ? 1 : 0;
+      return bOpen - aOpen;
+    });
+  }
+
+  // 📍 DISTANCIA
+  if(sort === "distance"){
+   filtered = filtered.map(store => {
+  let distance = 999999;
+
+  if(userLat && userLng && store.lat && store.lng){
+    distance = Math.sqrt(
+      Math.pow(Number(store.lat) - userLat, 2) +
+      Math.pow(Number(store.lng) - userLng, 2)
+    );
+  }
+
+  return { ...store, distance };
+});
+
+    filtered.sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
+  }
+
+  renderStores(filtered);
 }
 
 // ==========================
@@ -123,7 +186,10 @@ document.getElementById("filterCategory")
   .addEventListener("change", loadStores);
 
 document.getElementById("filterSort")
-  .addEventListener("change", loadStores);
+  .addEventListener("change", applyFilters);
+
+document.getElementById("searchStore")
+  .addEventListener("input", applyFilters);
 
 // ==========================
 // INIT

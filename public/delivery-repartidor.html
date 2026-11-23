@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entregar pedido - PuntoCerca</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
+body { background:#f8fafc; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+.navbar {
+  background:white;
+  border-bottom:1px solid #e5e7eb;
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+  z-index:1000;
+  flex-shrink:0;
+}
+
+.nav-status {
+  font-size:12px;
+  font-weight:700;
+  color:#9ca3af;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.nav-dot {
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#9ca3af;
+}
+
+.nav-dot.active {
+  background:#16a34a;
+  animation:pulseDot 1.5s infinite;
+}
+
+.fab-container {
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:calc(100% - 40px);
+  max-width:360px;
+}
+
+.gps-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.95);
+  color:#374151;
+  font-size:12px;
+  font-weight:600;
+  padding:8px 16px;
+  border-radius:999px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.10);
+  border:1px solid #e5e7eb;
+}
+
+.fab-btn {
+  width:100%;
+  padding:17px;
+  border:none;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  letter-spacing:-0.01em;
+}
+
+.fab-start {
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:white;
+  box-shadow:0 8px 24px rgba(234,88,12,0.32);
+}
+
+.fab-deliver {
+  background:white;
+  color:#111827;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  border:1px solid #e5e7eb;
+}
+
+.fab-btn:active { transform:scale(0.98); }
+.fab-btn:disabled { cursor:not-allowed; }
+
+.state-wrap {
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.state-card {
+  max-width:360px;
+  width:100%;
+  background:white;
+  border-radius:24px;
+  padding:40px 32px;
+  text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.08);
+  border:1px solid #f1f5f9;
+}
+
+.state-icon {
+  width:64px;height:64px;
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
+
+.state-card h1 { font-size:20px; font-weight:800; color:#111827; margin-bottom:8px; }
+.state-card p { font-size:14px; color:#6b7280; line-height:1.6; }
+
+@keyframes pulseDot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.6); }
+}
+@keyframes motoFloat {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-5px); }
+}
+@keyframes shadowAnim {
+  0%,100% { transform:translateX(-50%) scaleX(1); opacity:0.3; }
+  50% { transform:translateX(-50%) scaleX(0.65); opacity:0.12; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:34px;height:34px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:15px;font-weight:900;letter-spacing:-0.03em;line-height:1;">
+        <span style="color:#111;">Punto</span><span style="color:#ea580c;">Envío</span>
+      </div>
+      <div style="font-size:10px;color:#9ca3af;font-weight:600;letter-spacing:0.02em;">por PuntoCerca</div>
+    </div>
+  </div>
+  <div class="nav-status" id="navStatus">
+    <div class="nav-dot" id="navDot"></div>
+    <span id="navStatusText">Cargando</span>
+  </div>
+</nav>
+
+<div id="mapWrap" style="flex:1;position:relative;display:none;">
+  <div id="map" style="width:100%;height:100%;"></div>
+</div>
+
+<div class="fab-container" id="fabContainer" style="display:none;">
+  <div class="gps-badge" id="gpsBadge" style="display:none;">
+    <div class="nav-dot active"></div>
+    Ubicación activa
+  </div>
+  <button class="fab-btn fab-start" id="btnStart">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+    </svg>
+    Iniciar recorrido
+  </button>
+  <button class="fab-btn fab-deliver" id="btnDeliver" style="display:none;" disabled>
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    </svg>
+    Calculando distancia...
+  </button>
+</div>
+
+<div id="stateDelivered" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#f0fdf4;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h1>Pedido entregado</h1>
+    <p>El recorrido finalizó correctamente.</p>
+    <p style="margin-top:12px;font-size:12px;color:#d1d5db;">
+      <span style="font-weight:800;color:#ea580c;">Punto</span><span style="font-weight:800;color:#9ca3af;">Envío</span> · por PuntoCerca
+    </p>
+  </div>
+</div>
+<div id="stateLocked" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#fef2f2;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#dc2626;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    </div>
+    <h1>Link en uso</h1>
+    <p>Este link ya fue abierto desde otro dispositivo y no puede usarse nuevamente.</p>
+    <p style="margin-top:12px;font-size:12px;color:#d1d5db;">
+      <span style="font-weight:800;color:#ea580c;">Punto</span><span style="font-weight:800;color:#9ca3af;">Envío</span> · por PuntoCerca
+    </p>
+  </div>
+</div>
+  <div id="observacionesBanner" style="display:none;position:fixed;top:70px;left:0;right:0;z-index:2000;padding:0 16px;">
+  <div style="
+    background:#fff7ed;
+    border:1.5px solid #fed7aa;
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 4px 20px rgba(234,88,12,0.15);
+  ">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <span style="font-size:12px;font-weight:800;color:#ea580c;text-transform:uppercase;letter-spacing:0.06em;">Instrucciones del vendedor</span>
+      </div>
+      <button onclick="cerrarObservaciones()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;padding:0;line-height:1;">✕</button>
+    </div>
+    <p id="observacionesTexto" style="font-size:14px;color:#374151;line-height:1.6;margin:0 0 12px;"></p>
+    <button onclick="confirmarLectura()" id="btnLeidoObservaciones" style="
+      background:linear-gradient(135deg,#ea580c,#f97316);
+      color:white;border:none;
+      padding:8px 16px;
+      border-radius:8px;
+      font-size:13px;font-weight:700;
+      cursor:pointer;
+      display:inline-flex;align-items:center;gap:6px;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+      Leído, entendido
+    </button>
+  </div>
+</div>
+<div id="stateError" style="display:none;" class="state-wrap">
+  <div class="state-card">
+    <div class="state-icon" style="background:#fff7ed;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    </div>
+    <h1>Link inválido</h1>
+    <p>Este link no existe o ya expiró.</p>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
+<script>
+const token = window.location.pathname.split('/').pop();
+const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5ODMzMzUyYmRjYTQzM2M4OGE4MzY2MmQwZTI2NTZiIiwiaCI6Im11cm11cjY0In0=';
+const RANGO_METROS = 150;
+
+let map = null;
+let marker = null;
+let destMarker = null;
+let routeLayer = null;
+let watchId = null;
+let destLat = null;
+let destLng = null;
+let currentLat = null;
+let currentLng = null;
+let ultimasObservaciones = null;
+
+// ===============================
+// DISTANCIA HAVERSINE
+// ===============================
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ===============================
+// ACTUALIZAR BOTÓN SEGÚN DISTANCIA
+// ===============================
+function actualizarBotonEntrega(distancia) {
+  const btn = document.getElementById('btnDeliver');
+  const dentroDeRango = distancia <= RANGO_METROS;
+
+  if (dentroDeRango) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.background = 'linear-gradient(135deg,#16a34a,#22c55e)';
+    btn.style.color = 'white';
+    btn.style.boxShadow = '0 8px 24px rgba(22,163,74,0.3)';
+    btn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Confirmar entrega
+    `;
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.background = 'white';
+    btn.style.color = '#374151';
+    btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+    btn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+      </svg>
+      ${Math.round(distancia)}m del destino
+    `;
+  }
+}
+
+// ===============================
+// ÍCONOS
+// ===============================
+function getMotoIcon() {
+  return L.divIcon({
+    html: `
+      <div style="position:relative;width:56px;height:64px;display:flex;flex-direction:column;align-items:center;">
+        <div style="
+          width:52px;height:52px;
+          background:linear-gradient(135deg,#ea580c,#f97316);
+          border-radius:50%;
+          border:3px solid white;
+          box-shadow:0 6px 20px rgba(234,88,12,0.40);
+          display:flex;align-items:center;justify-content:center;
+          animation:motoFloat 1.8s ease-in-out infinite;
+          position:relative;z-index:2;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div style="
+          width:28px;height:7px;
+          background:rgba(234,88,12,0.20);
+          border-radius:50%;
+          animation:shadowAnim 1.8s ease-in-out infinite;
+          margin-top:2px;
+        "></div>
+      </div>
+    `,
+    iconSize: [56, 64],
+    iconAnchor: [28, 52],
+    className: ''
+  });
+}
+
+function getDestIcon() {
+  return L.divIcon({
+    html: `
+      <div style="
+        width:44px;height:44px;
+        background:white;
+        border-radius:50%;
+        border:3px solid #ea580c;
+        box-shadow:0 4px 16px rgba(234,88,12,0.25);
+        display:flex;align-items:center;justify-content:center;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    className: ''
+  });
+}
+
+  function mostrarObservaciones(texto) {
+  document.getElementById('observacionesTexto').textContent = texto;
+  document.getElementById('observacionesBanner').style.display = 'block';
+}
+
+function cerrarObservaciones() {
+  document.getElementById('observacionesBanner').style.display = 'none';
+}
+
+function confirmarLectura() {
+  const btn = document.getElementById('btnLeidoObservaciones');
+  btn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+    ¡Anotado!
+  `;
+  btn.style.background = 'linear-gradient(135deg,#16a34a,#22c55e)';
+  setTimeout(() => cerrarObservaciones(), 1500);
+}
+
+// ===============================
+// INIT
+// ===============================
+async function init() {
+  try {
+    const res = await fetch(`/api/deliveries/repartidor/${token}`);
+    if (res.status === 403) {
+      const savedToken = sessionStorage.getItem('puntoenvio_token');
+      if (savedToken === token) {
+        // mismo dispositivo refrescando — continuar
+      } else {
+        showState('locked');
+        return;
+      }
+    }
+    if (!res.ok) { showState('error'); return; }
+
+    // guardar token para tolerar refrescos
+    sessionStorage.setItem('puntoenvio_token', token);
+
+    const delivery = await res.json();
+
+    if (delivery.dest_lat && delivery.dest_lng) {
+      destLat = parseFloat(delivery.dest_lat);
+      destLng = parseFloat(delivery.dest_lng);
+    }
+
+    if (delivery.status === 'delivered') {
+      showState('delivered');
+    } else {
+      showMap();
+      if (delivery.status === 'active') {
+        startGPS();
+      } else {
+       setNavStatus('Listo para iniciar', false);
+
+if (delivery.observaciones) {
+  ultimasObservaciones = delivery.observaciones;
+  mostrarObservaciones(delivery.observaciones);
+}
+
+if (destLat && destLng) {
+          setTimeout(() => {
+            map.setView([destLat, destLng], 15);
+            destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
+              .addTo(map)
+              .bindPopup(delivery.dest_address || 'Destino')
+              .openPopup();
+            setTimeout(() => destMarker.closePopup(), 3000);
+          }, 400);
+        }
+      }
+    }
+  } catch (err) {
+    showState('error');
+  }
+}
+
+// ===============================
+// MAPA
+// ===============================
+function showMap() {
+  document.getElementById('mapWrap').style.display = 'block';
+  document.getElementById('fabContainer').style.display = 'flex';
+  map = L.map('map', { zoomControl: false, attributionControl: false, rotate: true, bearing: 0, touchRotate: false })
+    .setView([-32.9442, -60.6505], 14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+}
+
+// ===============================
+// RUTA
+// ===============================
+let lastRouteCall = 0;
+const ROUTE_THROTTLE_MS = 15000; // recalcular cada 15 segundos máximo
+async function checkObservaciones() {
+  try {
+    const res = await fetch(`/api/deliveries/repartidor/${token}`);
+    if (!res.ok) return;
+    const delivery = await res.json();
+    const nuevas = delivery.observaciones || null;
+    if (nuevas && nuevas !== ultimasObservaciones) {
+      ultimasObservaciones = nuevas;
+      mostrarObservaciones(nuevas);
+    }
+  } catch (err) {
+    console.error('Error chequeando observaciones:', err);
+  }
+}
+async function drawRoute(fromLat, fromLng) {
+  if (!destLat || !destLng) return;
+
+  const now = Date.now();
+  if (now - lastRouteCall < ROUTE_THROTTLE_MS) return;
+  lastRouteCall = now;
+
+  try {
+    const res = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${fromLng},${fromLat}&end=${destLng},${destLat}`
+    );
+    const data = await res.json();
+    if (!data.features?.[0]) return;
+
+    const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+    if (routeLayer) {
+      map.removeLayer(routeLayer);
+      routeLayer = null;
+    }
+
+    routeLayer = L.polyline(coords, {
+      color: '#ea580c',
+      weight: 5,
+      opacity: 0.9,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }).addTo(map);
+
+  } catch (err) {
+    console.error('Error ruta:', err);
+  }
+}
+// ===============================
+// BRÚJULA
+// ===============================
+function iniciarBrujula() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+ requiere permiso explícito
+    DeviceOrientationEvent.requestPermission()
+      .then(response => {
+        if (response === 'granted') {
+          window.addEventListener('deviceorientation', manejarOrientacion);
+        }
+      })
+      .catch(console.error);
+  } else {
+    // Android y resto
+    window.addEventListener('deviceorientation', manejarOrientacion);
+  }
+}
+
+function manejarOrientacion(e) {
+  if (!map) return;
+  const heading = e.webkitCompassHeading ?? (360 - e.alpha);
+  map.setBearing(heading);
+}
+// ===============================
+// GPS
+// ===============================
+function startGPS() {
+   iniciarBrujula();
+  document.getElementById('gpsBadge').style.display = 'inline-flex';
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnDeliver').style.display = 'flex';
+  setNavStatus('En camino', true);
+
+  if (destLat && destLng && !destMarker) {
+    destMarker = L.marker([destLat, destLng], { icon: getDestIcon() })
+      .addTo(map).bindPopup('Destino del cliente');
+  }
+
+  let firstPos = true;
+
+  watchId = navigator.geolocation.watchPosition(
+    async ({ coords: { latitude, longitude } }) => {
+      currentLat = latitude;
+      currentLng = longitude;
+
+      if (!marker) {
+        marker = L.marker([latitude, longitude], { icon: getMotoIcon() }).addTo(map);
+      } else {
+        marker.setLatLng([latitude, longitude]);
+      }
+
+     if (firstPos) {
+  map.setView([latitude, longitude], 17);
+  firstPos = false;
+} else {
+  // seguir suavemente al repartidor
+  map.panTo([latitude, longitude], { animate: true, duration: 1 });
+}
+
+      await drawRoute(latitude, longitude);
+
+      // validar distancia al destino
+      if (destLat && destLng) {
+        const dist = calcularDistancia(latitude, longitude, destLat, destLng);
+        actualizarBotonEntrega(dist);
+      }
+
+      try {
+        await fetch(`/api/deliveries/location/${token}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: latitude, lng: longitude })
+        });
+      } catch {}
+    },
+    (err) => console.error('GPS:', err),
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+
+  // polling observaciones cada 30 segundos
+  setInterval(checkObservaciones, 30000);
+}
+
+// ===============================
+// BOTONES
+// ===============================
+document.getElementById('btnStart').addEventListener('click', async () => {
+  const btn = document.getElementById('btnStart');
+  btn.textContent = 'Iniciando...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/deliveries/start/${token}`, { method: 'POST' });
+    if (!res.ok) { alert('Error iniciando'); btn.textContent = 'Iniciar recorrido'; btn.disabled = false; return; }
+    startGPS();
+  } catch { alert('Error de conexión'); btn.textContent = 'Iniciar recorrido'; btn.disabled = false; }
+});
+
+document.getElementById('btnDeliver').addEventListener('click', async () => {
+  if (!currentLat || !currentLng) return;
+
+  const btn = document.getElementById('btnDeliver');
+  btn.textContent = 'Confirmando...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/deliveries/deliver/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat: currentLat, lng: currentLng })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || 'Error confirmando entrega');
+      btn.disabled = false;
+      if (currentLat && destLat) {
+        actualizarBotonEntrega(calcularDistancia(currentLat, currentLng, destLat, destLng));
+      }
+      return;
+    }
+
+    if (watchId) navigator.geolocation.clearWatch(watchId);
+    showState('delivered');
+
+  } catch {
+    alert('Error de conexión');
+    btn.disabled = false;
+  }
+});
+
+// ===============================
+// HELPERS
+// ===============================
+function setNavStatus(text, active) {
+  document.getElementById('navStatusText').textContent = text;
+  document.getElementById('navDot').className = 'nav-dot' + (active ? ' active' : '');
+}
+
+function showState(state) {
+  document.getElementById('mapWrap').style.display = 'none';
+  document.getElementById('fabContainer').style.display = 'none';
+  document.getElementById('stateDelivered').style.display = 'none';
+  document.getElementById('stateError').style.display = 'none';
+  document.getElementById('stateLocked').style.display = 'none';
+  if (state === 'delivered') document.getElementById('stateDelivered').style.display = 'flex';
+  if (state === 'error') document.getElementById('stateError').style.display = 'flex';
+  if (state === 'locked') document.getElementById('stateLocked').style.display = 'flex';
+}
+
+init();
+</script>
+</body>
+</html>

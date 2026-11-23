@@ -1,12 +1,41 @@
-const pathParts = window.location.pathname.split("/");
-const id = pathParts[pathParts.length - 1];
+import { SUBCATEGORY_MAP } from "/js/data/categories.js";
+const param = window.location.pathname.split("/").pop();
 
-if (!id) {
+function safeJSON(value, fallback) {
+  try {
+    return typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    return fallback;
+  }
+}
+
+if (!param) {
   alert("Producto inválido");
-  throw new Error("ID no encontrado");
+  throw new Error("Parámetro no encontrado");
 }
 
 let isLogged = false;
+let currentProduct = null;
+
+function timeAgo(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 60) return "Hace unos segundos";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `Hace ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Hace ${hours} h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Hace ${days} días`;
+
+  const weeks = Math.floor(days / 7);
+  return `Hace ${weeks} semanas`;
+}
 
 // 🔐 CHECK LOGIN PRIMERO
 async function checkAuth() {
@@ -20,34 +49,232 @@ async function checkAuth() {
   } catch {}
 }
 
+// =============================
+// VIDEO HELPERS
+// =============================
+function getVideoPlatform(url) {
+  if (!url) return null;
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/tiktok\.com/.test(url)) return 'tiktok';
+  if (/instagram\.com/.test(url)) return 'instagram';
+  return null;
+}
+
+function getYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
+  return m ? m[1] : null;
+}
+
+function setActiveThumb(el) {
+  document.getElementById('thumbsContainer')
+    ?.querySelectorAll('img, [data-vthumb]')
+    .forEach(t => t.style.border = '2px solid #e5e7eb');
+  el.style.border = '2px solid #ea580c';
+}
+
+function showVideo(url, fileUrl) {
+  const vc = document.getElementById('videoContainer');
+  const zc = document.getElementById('zoomContainer');
+  const ve = document.getElementById('videoEmbed');
+  if (!vc || !ve) return;
+  vc.classList.remove('hidden');
+  zc?.classList.add('hidden');
+
+  // VIDEO SUBIDO — autoplay real
+  if (fileUrl) {
+    ve.innerHTML = `
+      <video autoplay muted playsinline controls loop
+        style="width:100%;height:100%;object-fit:contain;background:#000;">
+        <source src="${fileUrl}" type="video/mp4">
+      </video>`;
+    return;
+  }
+
+  // LINK EXTERNO
+  const platform = getVideoPlatform(url);
+
+  if (platform === 'youtube') {
+    const ytId = getYouTubeId(url);
+    ve.innerHTML = `<iframe
+      src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1"
+      style="width:100%;height:100%;border:0;"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>`;
+
+  } else if (platform === 'tiktok') {
+    const ttMatch = url.match(/video\/(\d+)/);
+    ve.style.overflow = 'auto';
+    ve.innerHTML = ttMatch ? `
+      <blockquote class="tiktok-embed" cite="${url}" data-video-id="${ttMatch[1]}"
+        style="max-width:605px;min-width:325px;margin:0 auto;">
+        <section></section>
+      </blockquote>` : `<a href="${url}" target="_blank">Ver en TikTok</a>`;
+    if (!document.querySelector('script[src*="tiktok.com/embed"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.tiktok.com/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    }
+
+  } else if (platform === 'instagram') {
+    ve.style.overflow = 'auto';
+    ve.innerHTML = `
+      <blockquote class="instagram-media"
+        data-instgrm-permalink="${url}" data-instgrm-version="14"
+        style="max-width:540px;min-width:326px;margin:0 auto;">
+      </blockquote>`;
+    if (!document.querySelector('script[src*="instagram.com/embed"]')) {
+      const s = document.createElement('script');
+      s.src = '//www.instagram.com/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    } else if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    }
+  }
+}
+
+function showImage(src) {
+  document.getElementById('videoContainer')?.classList.add('hidden');
+  const zc = document.getElementById('zoomContainer');
+  zc?.classList.remove('hidden');
+  document.getElementById('productImage').src = src;
+}
+
 async function init() {
 
   await checkAuth();
 
-  const res = await fetch(`/api/products/${id}`);
-  
-  if (!res.ok) throw new Error("Producto no encontrado");
+  // detectar si es ID o SLUG
+  const isId = !isNaN(param);
+
+  const url = isId
+    ? `/api/products/${param}`
+    : `/api/products/slug/${param}`;
+
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    alert("Producto no encontrado");
+    return;
+  }
 
   const product = await res.json();
+  currentProduct = product;
+
+  // 🔁 redirección si cambia slug
+  if (product.redirect_slug && param !== product.redirect_slug) {
+    window.location.replace(`/product/${product.redirect_slug}`);
+    return;
+  }
+
+  const specsContainer = document.getElementById("productSpecs");
+  if (!specsContainer) return;
+
+  let specsHTML = "";
+
+  let extraData = {};
+
+  if (product.extra) {
+    try {
+      extraData = typeof product.extra === "string"
+        ? JSON.parse(product.extra)
+        : product.extra;
+    } catch (e) {
+      console.error("Error parseando extra", e);
+    }
+  }
+
+  function addSpec(label, value) {
+    if (!value || value === "" || value.length === 0) return;
+
+    specsHTML += `
+      <div>
+        <strong>${label}:</strong> ${value}
+      </div>
+    `;
+  }
+
+  addSpec("Modelo", extraData.model);
+  addSpec("SKU", extraData.sku);
+  addSpec("Material", extraData.material);
+  addSpec("Talles", product.size);
+  const subName = SUBCATEGORY_MAP[product.subcategory_id];
+
+  if (subName) {
+    addSpec("Categoría", `${product.category} • ${subName}`);
+  } else {
+    addSpec("Categoría", product.category);
+  }
+
+  let colors = [];
+
+  try {
+    colors = typeof product.colors === "string"
+      ? JSON.parse(product.colors)
+      : product.colors || [];
+  } catch {
+    colors = [];
+  }
+
+  if (colors.length > 0) {
+    const colorMap = {
+      negro: "#000000",
+      blanco: "#ffffff",
+      rojo: "#ef4444",
+      azul: "#3b82f6",
+      verde: "#22c55e",
+      rosa: "#ec4899",
+      gris: "#6b7280",
+      amarillo: "#eab308",
+      marron: "#92400e",
+      beige: "#f5f5dc"
+    };
+
+    const colorsHTML = colors.map(c => {
+
+      const key = c.toLowerCase().trim();
+      const bg = colorMap[key] || "#ccc"; // fallback
+
+      return `
+        <span title="${c}" style="
+          display:inline-block;
+          width:16px;
+          height:16px;
+          border-radius:50%;
+          background:${bg};
+          border:1px solid #ddd;
+          margin-right:6px;
+        "></span>
+      `;
+    }).join("");
+
+    specsHTML += `
+      <div>
+        <strong>Color:</strong> ${colorsHTML}
+      </div>
+    `;
+  }
+
+  if (specsHTML.trim() === "") {
+    specsContainer.style.display = "none";
+  } else {
+    specsContainer.innerHTML = specsHTML;
+  }
 
   const isFavorite = product.is_favorite;
 
   renderStars(
-  parseFloat(product.rating_avg) || 0,
-  product.user_rating || 0
-);
-updateRatingInfo(
-  product.rating_avg || 0,
-  product.rating_count || 0,
-  product.user_rating || 0
-);
+    parseFloat(product.rating_avg) || 0,
+    product.user_rating || 0
+  );
 
-  console.log("PRODUCT:", product);
-console.log("IMAGES:", product.images);
+  updateRatingInfo(
+    product.rating_avg || 0,
+    product.rating_count || 0,
+    product.user_rating || 0
+  );
 
-  // =============================
-  // UI LOGIN
-  // =============================
   const loginMessage = document.getElementById("loginMessage");
   const commentBox = document.getElementById("commentBox");
 
@@ -57,236 +284,261 @@ console.log("IMAGES:", product.images);
     loginMessage.classList.remove("hidden");
   }
 
-  // =============================
-  // DATA PRODUCTO
-  // =============================
   document.getElementById("productImage").src = product.image_url;
   document.getElementById("productName").innerText = product.name;
-  document.getElementById("productPrice").innerText =
-    "$" + parseFloat(product.price).toLocaleString();
+  document.getElementById("productPrice").innerHTML =
+    window.renderPriceHTML(product);
+
+  if (product.is_offer && product.offer_expires_at) {
+    document.getElementById("productPrice").innerHTML += `
+      <div class="offer-timer" data-expire="${product.offer_expires_at}"></div>
+    `;
+  }
 
   let description = "Sin descripción";
+  const extraParsed = safeJSON(product.extra, {});
 
-  if (typeof product.extra === "string") {
-    description = product.extra;
-  } else if (typeof product.extra === "object" && product.extra !== null) {
-    description = Object.values(product.extra).join(" - ");
+  if (extraParsed.description) {
+    description = extraParsed.description;
   }
 
   document.getElementById("productDescription").innerText = description;
 
   const storeLink = document.getElementById("storeLink");
   storeLink.innerText = product.store_name;
-  storeLink.href = `/store/${product.store_id}`;
+  storeLink.href = `/${product.store_slug}`;
 
-  // =============================
-// GALERÍA DE IMÁGENES
-// =============================
+ const mainImage = document.getElementById("productImage");
+  const thumbsContainer = document.getElementById("thumbsContainer");
+  thumbsContainer.innerHTML = "";
 
-const mainImage = document.getElementById("productImage");
-const thumbsContainer = document.getElementById("thumbsContainer");
+  const images = (product.images && product.images.length > 0
+    ? product.images
+    : [product.image_url]).filter(Boolean);
 
-// usamos images si existe, sino fallback a image_url
-const images = product.images && product.images.length > 0
-  ? product.images
-  : [product.image_url];
+  // VIDEO THUMB (primero si hay video)
+if (product.video_file_url || product.video_url) {
+    const platform = getVideoPlatform(product.video_url);
+    const ytId = platform === 'youtube' ? getYouTubeId(product.video_url) : null;
+    const vSrc = product.video_file_url
+      ? (product.image_url || '/img/default.png')
+      : ytId
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : (images[0] || '/img/default.png');
 
-// imagen principal inicial
-mainImage.src = images[0];
+    const vThumb = document.createElement('div');
+    vThumb.setAttribute('data-vthumb', '1');
+    vThumb.style.cssText = 'position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid #ea580c;flex-shrink:0;';
+    vThumb.innerHTML = `
+      <img src="${vSrc}" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);
+        display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:white;">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>`;
+   vThumb.onclick = () => {
+      setActiveThumb(vThumb);
+      showVideo(product.video_url, product.video_file_url);
+    };
+    thumbsContainer.appendChild(vThumb);
+    showVideo(product.video_url, product.video_file_url);
+    setActiveThumb(vThumb);
+  } else {
+    mainImage.src = images[0] || '/img/default.png';
+  }
 
-// limpiar contenedor
-thumbsContainer.innerHTML = "";
+  images.forEach((imgUrl) => {
+    const thumb = document.createElement("img");
+    thumb.src = imgUrl;
+    thumb.className = "w-16 h-16 object-cover rounded-lg border cursor-pointer bg-white p-1";
+    thumb.style.border = '2px solid #e5e7eb';
+    thumb.onclick = () => {
+      setActiveThumb(thumb);
+      showImage(imgUrl);
+    };
+    thumbsContainer.appendChild(thumb);
+  });
 
-// crear thumbnails
-images.forEach((imgUrl, index) => {
-
-  const thumb = document.createElement("img");
-
-  thumb.src = imgUrl;
-  thumb.className = "w-16 h-16 object-cover rounded-lg border cursor-pointer bg-white p-1";
-
-  thumb.onclick = () => {
-    mainImage.src = imgUrl;
-  };
-
-  thumbsContainer.appendChild(thumb);
-
-});
-
-  // =============================
-  // VIEWS + DETALLES
-  // =============================
   fetch(`/api/product-view/${product.id}`, { method: "POST" });
 
   document.getElementById("productViews").innerText =
     ` ${product.views || 0} vistas`;
 
-  document.getElementById("productSizes").innerText =
-    product.size || "No especificado";
-
-  document.getElementById("productColor").innerText =
-    product.color || "No especificado";
-
-  document.getElementById("productCategory").innerText =
-    product.category || "General";
-
-  // =============================
-  // FAVORITOS
-  // =============================
   const favBtn = document.getElementById("favBtn");
 
-// estado inicial
-favBtn.innerText = isFavorite ? "Guardado" : "Guardar";
+  favBtn.innerText = isFavorite ? "Guardado" : "Guardar";
 
-favBtn.addEventListener("click", async () => {
+  favBtn.addEventListener("click", async () => {
 
-  if (!isLogged) {
-    alert("Iniciá sesión primero");
-    return window.location.href = "/login";
-  }
-
-  try {
-
-    const isSaved = favBtn.innerText === "Guardado";
-
-    if (isSaved) {
-
-      const res = await fetch(`/api/product-favorite/${product.id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-
-      if (!res.ok) throw new Error();
-
-      favBtn.innerText = "Guardar";
-
-    } else {
-
-      const res = await fetch(`/api/product-favorite`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ product_id: product.id })
-      });
-
-      if (!res.ok) throw new Error();
-
-      favBtn.innerText = "Guardado";
+    if (!isLogged) {
+      alert("Iniciá sesión primero");
+      return window.location.href = "/login";
     }
 
-  } catch (err) {
-    console.error(err);
-    alert("Error");
-  }
-});
-  // =============================
-// WHATSAPP
-// =============================
-document.getElementById("contactBtn").addEventListener("click", () => {
+    try {
 
-  if (!product.store_phone) {
-    alert("Esta tienda no tiene teléfono cargado");
-    return;
-  }
+      const isSaved = favBtn.innerText === "Guardado";
 
-  const telefono = product.store_phone.replace(/\D/g, "");
+      if (isSaved) {
 
-  const mensaje = `Hola! Quiero consultar por este producto:
+        const res = await fetch(`/api/product-favorite/${product.id}`, {
+          method: "DELETE",
+          credentials: "include"
+        });
+
+        if (!res.ok) throw new Error();
+
+        favBtn.innerText = "Guardar";
+
+      } else {
+
+        const res = await fetch(`/api/product-favorite`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ product_id: product.id })
+        });
+
+        if (!res.ok) throw new Error();
+
+        favBtn.innerText = "Guardado";
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Error");
+    }
+  });
+
+  const contactBtn = document.getElementById("contactBtn");
+
+  contactBtn.innerText = isLogged
+    ? "Consultar"
+    : "Registrate para consultar por Whatsapp";
+
+  contactBtn.addEventListener("click", (e) => {
+
+    e.preventDefault();
+
+    if (!isLogged) {
+      window.location.href = "/register";
+      return;
+    }
+
+    if (!product.store_phone) {
+      alert("Esta tienda no tiene teléfono cargado");
+      return;
+    }
+
+    const telefono = product.store_phone.replace(/\D/g, "");
+
+    const priceNumber = parseFloat(product.price);
+
+    const precioTexto = (!product.price || isNaN(priceNumber))
+      ? "Consultar"
+      : `$${priceNumber.toLocaleString()}`;
+
+    const mensaje = `Hola! Quiero consultar por este producto:
 
 ${product.name}
-$${parseFloat(product.price).toLocaleString()}
+Precio: ${precioTexto}
 
 ¿Está disponible?
 
 ${window.location.href}`;
 
-  window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
-});
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, "_blank");
 
-  // =============================
-  // COMENTARIOS
-  // =============================
+  });
+
+
+
   loadComments(product.id);
+  loadRelated(product);
+  startOfferTimers();
+}
 
-  const sendBtn = document.getElementById("sendComment");
+// =============================
+// COMENTAR
+// =============================
+const sendBtn = document.getElementById("sendComment");
 
-  if (sendBtn) {
-    sendBtn.addEventListener("click", async () => {
+if (sendBtn) {
+  sendBtn.addEventListener("click", async () => {
 
-      if (!isLogged) {
-        alert("Tenés que iniciar sesión");
-        return window.location.href = "/login";
-      }
+    if (!isLogged) {
+      alert("Tenés que iniciar sesión");
+      return window.location.href = "/login";
+    }
 
-      const content = document.getElementById("commentInput").value;
-      if (!content) return;
+    if (!currentProduct) return;
 
-      try {
-        await fetch(`/api/products/${product.id}/comments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ content })
-        });
+    const content = document.getElementById("commentInput").value;
+    if (!content.trim()) return;
 
-        location.reload();
+    try {
+      const res = await fetch(`/api/products/${currentProduct.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content })
+      });
 
-      } catch {
-        alert("Error al comentar");
-      }
+      if (!res.ok) throw new Error();
 
-    });
-  }
+      location.reload();
 
-  function renderStars(avg = 0, userRating = 0) {
+    } catch {
+      alert("Error al comentar");
+    }
+
+  });
+}
+
+// =============================
+// ESTRELLAS (SVG, sin emojis)
+// =============================
+function starSVG(filled) {
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="${filled ? '#f59e0b' : 'none'}" stroke="${filled ? '#f59e0b' : '#d1d5db'}" stroke-width="1.5" style="display:block;"><path stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>`;
+}
+
+function renderStars(avg = 0, userRating = 0) {
   const container = document.getElementById("ratingStars");
   container.innerHTML = "";
+  container.style.display = "flex";
+  container.style.gap = "3px";
+  container.style.width = "fit-content";
+
+  const baseRating = userRating || Math.round(avg);
 
   for (let i = 1; i <= 5; i++) {
     const star = document.createElement("span");
-
-    const active = userRating ? i <= userRating : i <= Math.round(avg);
-
-    star.innerHTML = active ? "⭐" : "☆";
-
     star.style.cursor = "pointer";
-    star.style.fontSize = "22px";
-    star.style.transition = "0.2s";
+    star.innerHTML = starSVG(i <= baseRating);
 
-    if (userRating && i <= userRating) {
-      star.style.transform = "scale(1.15)";
-    }
+    star.addEventListener("mouseenter", () => highlightStars(i));
 
     star.addEventListener("click", () => {
-
       if (!isLogged) {
         alert("Iniciá sesión para votar");
         window.location.href = "/login";
         return;
       }
-
       rateProduct(i);
-    });
-
-    star.addEventListener("mouseover", () => {
-  highlightStars(i);
-});
-
-    
-
-    star.addEventListener("mouseleave", () => {
-      renderStars(avg, userRating);
     });
 
     container.appendChild(star);
   }
+
+  container.onmouseleave = () => highlightStars(baseRating);
 }
 
 function highlightStars(rating) {
   const stars = document.getElementById("ratingStars").children;
 
   for (let i = 0; i < stars.length; i++) {
-    stars[i].innerHTML = i < rating ? "⭐" : "☆";
+    stars[i].innerHTML = starSVG(i < rating);
   }
 }
 
@@ -295,10 +547,10 @@ function updateRatingInfo(avg, count, userRating = 0) {
 
   const avgNumber = parseFloat(avg) || 0;
 
-  let text = `⭐ ${avgNumber.toFixed(1)} (${count} votos)`;
+  let text = `${avgNumber.toFixed(1)} (${count} votos)`;
 
   if (userRating) {
-    text += ` • Tu voto: ${userRating}⭐`;
+    text += ` • Tu voto: ${userRating}/5`;
   }
 
   info.innerText = text;
@@ -308,13 +560,14 @@ let isRating = false;
 
 async function rateProduct(value) {
 
-  if (isRating) return; // 🚫 evita spam
+  if (isRating) return;
   isRating = true;
 
   try {
-    const productId = window.location.pathname.split("/").pop();
 
-    const res = await fetch(`/api/products/${productId}/rate`, {
+    if (!currentProduct) throw new Error("Producto no cargado");
+
+    const res = await fetch(`/api/products/${currentProduct.id}/rate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -343,16 +596,70 @@ async function rateProduct(value) {
 
   isRating = false;
 }
-  
-
-  // =============================
-  // RELACIONADOS
-  // =============================
-  loadRelated(product);
-}
 
 // =============================
-// FUNCIONES
+// EDITAR / ELIMINAR COMENTARIO
+// =============================
+window.editComment = function(id, content) {
+
+  const p = document.getElementById(`comment-${id}`);
+
+  p.innerHTML = `
+    <textarea id="edit-input-${id}" style="width:100%;padding:6px;">${content}</textarea>
+
+    <div style="margin-top:5px;display:flex;gap:5px;">
+      <button type="button" onclick="saveComment(${id})">Guardar</button>
+      <button type="button" onclick="location.reload()">Cancelar</button>
+    </div>
+  `;
+};
+
+window.saveComment = async function(id) {
+
+  const newContent = document.getElementById(`edit-input-${id}`).value;
+
+  if (!newContent.trim()) return alert("Comentario vacío");
+
+  try {
+
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content: newContent })
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al editar");
+  }
+};
+
+window.deleteComment = async function(id) {
+
+  if (!confirm("¿Eliminar comentario?")) return;
+
+  try {
+    const res = await fetch(`/api/comments/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error();
+
+    location.reload();
+
+  } catch (err) {
+    alert("Error al eliminar");
+  }
+};
+
+// =============================
+// COMENTARIOS
 // =============================
 async function loadComments(productId) {
 
@@ -366,17 +673,59 @@ async function loadComments(productId) {
     const container = document.getElementById("commentsContainer");
     container.innerHTML = "";
 
+    if (!comments.length) {
+      container.innerHTML = `
+        <p style="color:#888;font-size:14px;">
+          No hay comentarios todavía
+        </p>
+      `;
+      return;
+    }
+
     comments.forEach(c => {
+
       const div = document.createElement("div");
-      div.className = "border-b pb-2 text-sm";
+
+      div.className = "flex gap-3 border-b pb-3 mb-3 items-start";
+
       div.innerHTML = `
-  <strong>${c.name}</strong><br>
-  ${c.content}
-`;
+        <img
+          src="${c.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name)}"
+          style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+        />
+
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <strong style="font-size:14px;">${c.name}</strong>
+            <span style="font-size:12px;color:#888;">
+              ${timeAgo(c.created_at)}
+            </span>
+          </div>
+
+          ${isLogged ? `
+            <div style="display:flex;gap:10px;">
+              <button onclick="editComment(${c.id}, '${c.content.replace(/'/g, "\\'")}')" style="font-size:12px;">
+                Editar
+              </button>
+
+              <button onclick="deleteComment(${c.id})" style="font-size:12px;color:red;">
+                Eliminar
+              </button>
+            </div>
+          ` : ""}
+
+          <p id="comment-${c.id}" style="margin-top:4px;font-size:14px;color:#444;">
+            ${c.content}
+          </p>
+        </div>
+      `;
+
       container.appendChild(div);
     });
 
-  } catch {}
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function loadRelated(product) {
@@ -402,13 +751,17 @@ async function loadRelated(product) {
 
       <div class="p-3">
         <h3 class="text-sm font-semibold">${p.name}</h3>
-        <p class="text-orange-600 font-bold">$${parseFloat(p.price).toLocaleString()}</p>
+        <p class="text-orange-600 font-bold">
+${(!p.price || isNaN(parseFloat(p.price)))
+  ? "Consultar"
+  : `$${parseFloat(p.price).toLocaleString()}`}
+        </p>
       </div>
     `;
 
     card.onclick = () => {
-  window.location.href = `/product/${p.id}`;
-};
+      window.location.href = `/product/${p.slug}`;
+    };
 
     container.appendChild(card);
   });
@@ -417,7 +770,33 @@ async function loadRelated(product) {
 // INIT
 init();
 
+function startOfferTimers() {
+  const timers = document.querySelectorAll(".offer-timer");
 
+  timers.forEach(timer => {
+
+    const expire = new Date(timer.dataset.expire);
+
+    function update() {
+      const now = new Date();
+      const diff = expire - now;
+
+      if (diff <= 0) {
+        timer.innerHTML = "Oferta finalizada";
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      timer.innerHTML = `Termina en ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    update();
+    setInterval(update, 1000);
+  });
+}
 
 // =============================
 // ZOOM

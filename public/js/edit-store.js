@@ -1,88 +1,51 @@
-const CATEGORY_MAP = {
-  "Gastronomía": [
-    { id: 1, name: "Restaurante" },
-    { id: 2, name: "Pizzería" },
-    { id: 3, name: "Bar" },
-    { id: 4, name: "Cafetería" },
-    { id: 5, name: "Heladería" }
-  ],
-  "Comercio": [
-  { id: 6, name: "Ropa" },
-  { id: 7, name: "Electrónica" },
-  { id: 8, name: "Ferretería" },
-  { id: 9, name: "Librería" },
-  { id: 46, name: "Verdulería" },
-  { id: 47, name: "Almacén" },
-  { id: 48, name: "Kiosco" },
-  { id: 49, name: "Supermercado" },
-  { id: 50, name: "Carnicería" },
-  { id: 51, name: "Panadería" },
-  { id: 52, name: "Fiambrería" },
-  { id: 53, name: "Dietética" },
-  { id: 54, name: "Bebidas" },
-  { id: 55, name: "Mayorista" }
-],
-  "Belleza": [
-    { id: 10, name: "Peluquería" },
-    { id: 11, name: "Barbería" },
-    { id: 12, name: "Estética" },
-    { id: 13, name: "Spa" }
-  ],
-  "Salud": [
-    { id: 14, name: "Clínica" },
-    { id: 15, name: "Odontología" },
-    { id: 16, name: "Farmacia" },
-    { id: 17, name: "Psicología" }
-  ],
-  "Servicios": [
-    { id: 18, name: "Electricista" },
-    { id: 19, name: "Plomería" },
-    { id: 20, name: "Gasista" },
-    { id: 21, name: "Técnico PC" },
-    { id: 22, name: "Reparaciones" }
-  ],
-  "Automotor": [
-    { id: 23, name: "Taller mecánico" },
-    { id: 24, name: "Lavadero" },
-    { id: 25, name: "Gomería" },
-    { id: 26, name: "Repuestos" }
-  ],
-  "Educación": [
-    { id: 27, name: "Instituto" },
-    { id: 28, name: "Clases particulares" },
-    { id: 29, name: "Academia" }
-  ],
-  "Deportes": [
-    { id: 30, name: "Gimnasio" },
-    { id: 31, name: "Escuela deportiva" },
-    { id: 32, name: "Club" }
-  ],
-  "Mascotas": [
-    { id: 33, name: "Veterinaria" },
-    { id: 34, name: "Pet Shop" },
-    { id: 35, name: "Peluquería canina" }
-  ],
-  "Hogar": [
-    { id: 36, name: "Mueblería" },
-    { id: 37, name: "Decoración" },
-    { id: 38, name: "Construcción" }
-  ],
-  "Profesionales": [
-    { id: 39, name: "Abogado" },
-    { id: 40, name: "Contador" },
-    { id: 41, name: "Arquitecto" },
-    { id: 42, name: "Marketing" }
-  ],
-  "Eventos": [
-    { id: 43, name: "Salón de eventos" },
-    { id: 44, name: "Catering" },
-    { id: 45, name: "Fotografía" }
-  ]
-};
+import { CATEGORIES } from './data/categories.js';
 
+function showToast(message, type = "success") {
+  const colors = {
+    success: "bg-green-500",
+    error: "bg-red-500",
+    warning: "bg-yellow-500",
+    info: "bg-blue-500"
+  };
+  const toast = document.createElement("div");
+  toast.className = `${colors[type]} text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 mb-2`;
+  toast.innerHTML = `<span>${message}</span><button class="ml-auto font-bold">✕</button>`;
+  document.getElementById("toastContainer").appendChild(toast);
+  toast.querySelector("button").onclick = () => toast.remove();
+  setTimeout(() => toast.remove(), 4000);
+}
+
+const CATEGORY_MAP = CATEGORIES;
 let store = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+document.querySelectorAll(".add-range").forEach(btn => {
+
+  btn.addEventListener("click", () => {
+
+    const dayBlock = btn.closest(".day-block");
+    const rangesContainer = dayBlock.querySelector(".ranges");
+
+    const newRange = document.createElement("div");
+    newRange.className = "range";
+
+    newRange.innerHTML = `
+      <input type="time" class="open">
+      <input type="time" class="close">
+      <button type="button" class="remove-range">✕</button>
+    `;
+
+    rangesContainer.appendChild(newRange);
+
+    // eliminar horario
+    newRange.querySelector(".remove-range").onclick = () => {
+      newRange.remove();
+    };
+
+  });
+
+});
 
 
   // =============================
@@ -93,13 +56,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     credentials: "include"
   });
 
-  if(!res.ok){
-    alert("No tenés tienda");
-    window.location.href = "/dashboard";
-    return;
-  }
-
+  if (res.status === 404) {
+  console.log("Modo creación de tienda");
+  store = null; // 🔥 IMPORTANTE
+} else if (!res.ok) {
+  showToast("Error cargando tienda", "error");
+  return;
+} else {
   store = await res.json();
+}
+
+  
 
   // =============================
 // CATEGORÍAS (LOAD)
@@ -157,65 +124,226 @@ categorySelect.addEventListener("change", () => {
   loadSubcategories(categorySelect.value);
 });
 
-  // =============================
-  // CARGAR DATOS
-  // =============================
+// =============================
+// HORARIOS UI
+// =============================
+
+
+
+
+function createHoursUI(existing = {}) {
+
+const container = document.getElementById("hoursContainer");
+
+  const days = [
+    { key: "mon", label: "Lunes" },
+    { key: "tue", label: "Martes" },
+    { key: "wed", label: "Miércoles" },
+    { key: "thu", label: "Jueves" },
+    { key: "fri", label: "Viernes" },
+    { key: "sat", label: "Sábado" },
+    { key: "sun", label: "Domingo" }
+  ];
+
+  container.innerHTML = "";
+
+  days.forEach(day => {
+
+    const data = existing[day.key] || {};
+
+    const row = document.createElement("div");
+    row.className = "hour-row";
+
+    row.innerHTML = `
+      <span class="day-label">${day.label}</span>
+
+      <input type="time" name="${day.key}_open" value="${data.open || ""}">
+      <input type="time" name="${day.key}_close" value="${data.close || ""}">
+
+      <label class="closed-label">
+        <input type="checkbox" name="${day.key}_closed" ${data.closed ? "checked" : ""}>
+        Cerrado
+      </label>
+    `;
+
+    const checkbox = row.querySelector(`[name="${day.key}_closed"]`);
+    const openInput = row.querySelector(`[name="${day.key}_open"]`);
+    const closeInput = row.querySelector(`[name="${day.key}_close"]`);
+
+    function toggle() {
+      const isClosed = checkbox.checked;
+      openInput.disabled = isClosed;
+      closeInput.disabled = isClosed;
+    }
+
+    checkbox.addEventListener("change", toggle);
+
+    toggle();
+
+    container.appendChild(row);
+  });
+}
+  
+ // =============================
+// CARGAR DATOS
+// =============================
+
+if (store) {
+
+  // ✏️ EDITAR TIENDA
 
   document.getElementById("name").value = store.name || "";
-  // setear categoría
-categorySelect.value = store.category || "";
+  categorySelect.value = store.category || "";
 
-// cargar subcategorías + seleccionar la correcta
   let selectedSubs = [];
 
-if (store.subcategory_ids) {
-  try {
-    selectedSubs = typeof store.subcategory_ids === "string"
-      ? JSON.parse(store.subcategory_ids)
-      : store.subcategory_ids;
-  } catch {
-    selectedSubs = [];
+  if (store.subcategory_ids) {
+    try {
+      selectedSubs = typeof store.subcategory_ids === "string"
+        ? JSON.parse(store.subcategory_ids)
+        : store.subcategory_ids;
+    } catch {
+      selectedSubs = [];
+    }
+  } else if (store.subcategory_id) {
+    selectedSubs = [parseInt(store.subcategory_id)];
   }
-} else if (store.subcategory_id) {
-  selectedSubs = [parseInt(store.subcategory_id)];
-}
 
-loadSubcategories(store.category, selectedSubs);
+  loadSubcategories(store.category, selectedSubs);
+
   document.getElementById("phone").value = store.phone || "";
   document.getElementById("city").value = store.city || "";
+
   const streetDisplay = document.getElementById("streetDisplay");
 
-if (store.street) {
-  const parts = store.street.split(",");
+  if (store.street) {
+    const parts = store.street.split(",");
+    let streetPart = parts[0].trim();
 
-  let streetPart = parts[0].trim();
+    if (/^\d+/.test(streetPart)) {
+      const [number, ...rest] = streetPart.split(" ");
+      streetPart = `${rest.join(" ")} ${number}`;
+    }
 
-  // 🔥 SI VIENE "2153 Rosa Silvestre" → lo invertimos
-  if (/^\d+/.test(streetPart)) {
-    const [number, ...rest] = streetPart.split(" ");
-    streetPart = `${rest.join(" ")} ${number}`;
+    streetDisplay.textContent = streetPart;
+    streetDisplay.dataset.fullAddress = store.street;
+  } else {
+    streetDisplay.textContent = "Seleccionar ubicación";
   }
 
-  streetDisplay.textContent = streetPart;
-  streetDisplay.dataset.fullAddress = store.street;
-} else {
-  streetDisplay.textContent = "Seleccionar ubicación";
-}
   document.getElementById("description").value = store.description || "";
   document.getElementById("local").value = store.local || "";
-  document.getElementById("apartment").value = store.apartment || ""; 
+  document.getElementById("videoUrl").value = store.video_url || "";
+  if (store.video_url) previewVideo(store.video_url, "videoUrlPreview");
+  document.getElementById("apartment").value = store.apartment || "";
   document.getElementById("references").value = store.reference_notes || "";
+  document.getElementById("instagramUrl").value = store.instagram_url || "";
+  document.getElementById("tiktokUrl").value     = store.tiktok_url    || "";
+  document.getElementById("facebookUrl").value   = store.facebook_url  || "";
+  document.getElementById("websiteUrl").value    = store.website_url   || "";
 
-  // =============================
-  // PREVIEW INICIAL
-  // =============================
-
+  // previews
   document.getElementById("logoPreview").src =
     store.logo_url || "/img/default.png";
 
   document.getElementById("coverPreview").src =
     store.cover_url || "/img/default-cover.jpg";
 
+  // HORARIOS (LOAD)
+let parsedHours = {};
+
+if (store.opening_hours) {
+  try {
+    parsedHours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    parsedHours = {};
+  }
+}
+
+  const days = ["mon","tue","wed","thu","fri","sat","sun"];
+
+days.forEach(day => {
+
+  const dayBlock = document.querySelector(`[data-day="${day}"]`);
+  if (!dayBlock) return;
+
+  const rangesContainer = dayBlock.querySelector(".ranges");
+
+  rangesContainer.innerHTML = "";
+
+  const dayData = parsedHours[day];
+
+  // 🔴 día cerrado
+  if (dayData?.closed) {
+    return;
+  }
+
+  const ranges = Array.isArray(dayData) ? dayData : [dayData];
+
+  ranges.forEach(range => {
+
+    const div = document.createElement("div");
+    div.className = "range";
+
+    div.innerHTML = `
+      <input type="time" class="open" value="${range?.open || ""}">
+      <input type="time" class="close" value="${range?.close || ""}">
+      <button type="button" class="remove-range">✕</button>
+    `;
+
+    div.querySelector(".remove-range").onclick = () => div.remove();
+
+    rangesContainer.appendChild(div);
+  });
+
+});
+
+if (store.opening_hours) {
+  try {
+    parsedHours = typeof store.opening_hours === "string"
+      ? JSON.parse(store.opening_hours)
+      : store.opening_hours;
+  } catch {
+    parsedHours = {};
+  }
+}
+
+
+
+  const alwaysOpenCheckbox = document.getElementById("alwaysOpen");
+
+// cargar estado guardado
+if (parsedHours.always_open) {
+  alwaysOpenCheckbox.checked = true;
+
+  const inputs = document.querySelectorAll("#hoursContainer input");
+  inputs.forEach(i => i.disabled = true);
+}
+
+// evento
+alwaysOpenCheckbox.addEventListener("change", () => {
+  const inputs = document.querySelectorAll("#hoursContainer input");
+
+  inputs.forEach(input => {
+    input.disabled = alwaysOpenCheckbox.checked;
+  });
+});
+
+} else {
+
+  // 🆕 CREAR TIENDA
+
+  console.log("Modo creación limpio");
+
+  loadSubcategories(categorySelect.value);
+
+
+  document.getElementById("logoPreview").src = "/img/default.png";
+  document.getElementById("coverPreview").src = "/img/default-cover.jpg";
+}
+  
   // =============================
   // CLICK EN CAJAS
   // =============================
@@ -238,6 +366,10 @@ if (store.street) {
   const logoPreview = document.getElementById("logoPreview");
   const coverPreview = document.getElementById("coverPreview");
 
+  document.getElementById("videoUrl").addEventListener("input", (e) => {
+  previewVideo(e.target.value.trim(), "videoUrlPreview");
+});
+
   logoInput.addEventListener("change", () => {
     const file = logoInput.files[0];
     if(file){
@@ -252,186 +384,294 @@ if (store.street) {
     }
   });
 
-  // =============================
-  // GUARDAR
-  // =============================
+  
 
-   // =============================
-// MAPA
+  // =============================
+// MAPA GOOGLE
 // =============================
 
 let map = null;
 let marker = null;
-let selectedLat = store.lat || null;
-let selectedLng = store.lng || null;
+let autocomplete = null;
+let googleMapsLoaded = false;
+
+let selectedLat = store ? Number(store.lat) : null;
+let selectedLng = store ? Number(store.lng) : null;
+let placeSelected = !!(store && store.lat && store.lng);
 
 const mapModal = document.getElementById("mapModal");
 const openMapBtn = document.getElementById("openMap");
 const closeMapBtn = document.getElementById("closeMap");
 const saveLocationBtn = document.getElementById("saveLocation");
 const searchAddressInput = document.getElementById("searchAddress");
+  searchAddressInput.addEventListener("input", () => {
+  placeSelected = false;
+});
 
-function createStoreIcon() {
-  return L.icon({
-    iconUrl: store.logo_url || "/img/default.png",
-    iconSize: [42, 42],
-    iconAnchor: [21, 42],
-    popupAnchor: [0, -36],
-    className: "custom-pin"
+ 
+
+  searchAddressInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+  }
+});
+  
+async function loadGoogleMapsScript() {
+  if (googleMapsLoaded && window.google?.maps) return;
+
+  const res = await fetch("/api/google-maps-key");
+  const data = await res.json();
+
+  if (!data.key) {
+    throw new Error("No se encontró la API key de Google Maps");
+  }
+
+  await new Promise((resolve, reject) => {
+    if (document.getElementById("googleMapsScript")) {
+      googleMapsLoaded = true;
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "googleMapsScript";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      googleMapsLoaded = true;
+      resolve();
+    };
+    script.onerror = reject;
+
+    document.body.appendChild(script);
   });
 }
 
-async function reverseGeocode(lat, lng) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+async function reverseGeocodeGoogle(lat, lng) {
+  const geocoder = new google.maps.Geocoder();
+
+  return new Promise((resolve, reject) => {
+    geocoder.geocode(
+      { location: { lat, lng } },
+      (results, status) => {
+        if (status === "OK" && results[0]) {
+          const fullAddress = results[0].formatted_address;
+
+          let shortAddress = fullAddress;
+          const firstPart = fullAddress.split(",")[0]?.trim();
+          if (firstPart) shortAddress = firstPart;
+
+          document.getElementById("streetDisplay").textContent = shortAddress;
+          document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+          searchAddressInput.value = fullAddress;
+
+          resolve(results[0]);
+        } else {
+          reject(status);
+        }
+      }
     );
-
-    const data = await res.json();
-
-    if (data.address) {
-      const road = data.address.road || "";
-      const houseNumber = data.address.house_number || "";
-
-      const shortAddress = `${road} ${houseNumber}`.trim();
-
-      // 👉 FRONT (simple)
-      document.getElementById("streetDisplay").textContent = shortAddress;
-      searchAddressInput.value = shortAddress;
-
-      // 👉 BACKEND (completa)
-      document.getElementById("streetDisplay").dataset.fullAddress = data.display_name;
-    }
-
-  } catch (err) {
-    console.error("Error obteniendo dirección", err);
-  }
-}
-async function searchAddress(query) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`
-    );
-
-    const data = await res.json();
-
-    if (!data.length) return;
-
-    const result = data[0];
-
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
-
-    selectedLat = lat;
-    selectedLng = lng;
-
-    map.setView([lat, lng], 16);
-
-    if (marker) {
-      marker.setLatLng([lat, lng]);
-    } else {
-      marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
-    }
-
-    // 🔥 ACA ESTÁ LA CLAVE
-    const address = result.address || {};
-
-    const road =
-      address.road ||
-      address.pedestrian ||
-      address.suburb ||
-      address.neighbourhood ||
-      "";
-
-    const houseNumber = address.house_number || "";
-
-    let shortAddress = `${road} ${houseNumber}`.trim();
-
-    // fallback inteligente
-    if (!shortAddress) {
-      shortAddress = result.display_name.split(",").slice(0, 2).join(" ");
-    }
-
-    // ✅ FRONT (lo que ves)
-    document.getElementById("streetDisplay").textContent = shortAddress;
-
-    // ✅ BACKEND (opcional completo)
-    document.getElementById("streetDisplay").dataset.fullAddress =
-      result.display_name;
-
-    // input del buscador
-    searchAddressInput.value = shortAddress;
-
-  } catch (err) {
-    console.error("Error buscando dirección", err);
-  }
+  });
 }
 
-function initMapAt(lat, lng) {
+function initGoogleMap(lat, lng) {
+  const center = { lat, lng };
+
   if (!map) {
-    map = L.map("map").setView([lat, lng], 15);
+    map = new google.maps.Map(document.getElementById("map"), {
+  center,
+  zoom: 16,
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: false,
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap & Carto',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
 
-    marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
+    {
+      featureType: "poi",
+      stylers: [{ visibility: "off" }]
+    },
 
-    map.on("click", async (e) => {
-      selectedLat = e.latlng.lat;
-      selectedLng = e.latlng.lng;
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#ffffff" }]
+    },
 
-      marker.setLatLng([selectedLat, selectedLng]);
+    {
+      featureType: "road.arterial",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#757575" }]
+    },
 
-      await reverseGeocode(selectedLat, selectedLng);
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#dadada" }]
+    },
+
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#c9c9c9" }]
+    }
+  ]
+});
+
+    marker = new google.maps.Marker({
+  position: center,
+  map,
+  draggable: true,
+  icon: {
+    url: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+  }
+});
+
+    marker.addListener("dragend", async () => {
+      const pos = marker.getPosition();
+      selectedLat = pos.lat();
+      selectedLng = pos.lng();
+
+      try {
+        await reverseGeocodeGoogle(selectedLat, selectedLng);
+      } catch (err) {
+        console.error("Error geocoding", err);
+      }
     });
+
+    map.addListener("click", async (e) => {
+      selectedLat = e.latLng.lat();
+      selectedLng = e.latLng.lng();
+
+      marker.setPosition({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      try {
+        await reverseGeocodeGoogle(selectedLat, selectedLng);
+      } catch (err) {
+        console.error("Error geocoding", err);
+      }
+    });
+
+   autocomplete = new google.maps.places.Autocomplete(searchAddressInput, {
+  fields: ["formatted_address", "geometry", "name"],
+  
+  // 🔥 SOLO direcciones reales (no negocios random)
+  types: ["address"],
+
+  // 🔥 SOLO Argentina
+  componentRestrictions: { country: "ar" }
+});
+
+// 🔥 MUY IMPORTANTE → prioriza zona del mapa (ej: Rosario)
+autocomplete.bindTo("bounds", map);
+    autocomplete.bindTo("bounds", map);
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+
+      if (!place.geometry || !place.geometry.location) return;
+
+      placeSelected = true;
+
+      selectedLat = place.geometry.location.lat();
+      selectedLng = place.geometry.location.lng();
+
+      map.setCenter({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      map.setZoom(17);
+
+      marker.setPosition({
+        lat: selectedLat,
+        lng: selectedLng
+      });
+
+      const fullAddress = place.formatted_address || place.name || "";
+      const shortAddress = fullAddress.split(",")[0]?.trim() || fullAddress;
+
+      document.getElementById("streetDisplay").textContent = shortAddress;
+      document.getElementById("streetDisplay").dataset.fullAddress = fullAddress;
+      searchAddressInput.value = fullAddress;
+    });
+
   } else {
-    map.setView([lat, lng], 15);
+    map.setCenter(center);
+    map.setZoom(16);
 
     if (marker) {
-      marker.setLatLng([lat, lng]);
-    } else {
-      marker = L.marker([lat, lng], { icon: createStoreIcon() }).addTo(map);
+      marker.setPosition(center);
     }
   }
 
   setTimeout(() => {
-    map.invalidateSize();
-  }, 200);
+    google.maps.event.trigger(map, "resize");
+    map.setCenter(center);
+  }, 300);
 }
 
-openMapBtn.addEventListener("click", () => {
-  mapModal.classList.remove("hidden");
+openMapBtn.addEventListener("click", async () => {
+  try {
+    mapModal.classList.remove("hidden");
 
-  searchAddressInput.value =
-  document.getElementById("streetDisplay").textContent || "";
+    await loadGoogleMapsScript();
 
-  if (selectedLat && selectedLng) {
-    initMapAt(selectedLat, selectedLng);
-    return;
-  }
+    searchAddressInput.value =
+      document.getElementById("streetDisplay").dataset.fullAddress ||
+      document.getElementById("streetDisplay").textContent ||
+      "";
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        selectedLat = position.coords.latitude;
-        selectedLng = position.coords.longitude;
+    if (selectedLat && selectedLng) {
+      initGoogleMap(selectedLat, selectedLng);
+      return;
+    }
 
-        initMapAt(selectedLat, selectedLng);
-        await reverseGeocode(selectedLat, selectedLng);
-      },
-      () => {
-        selectedLat = -34.6037;
-        selectedLng = -58.3816;
-        initMapAt(selectedLat, selectedLng);
-      }
-    );
-  } else {
-    selectedLat = -34.6037;
-    selectedLng = -58.3816;
-    initMapAt(selectedLat, selectedLng);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          selectedLat = position.coords.latitude;
+          selectedLng = position.coords.longitude;
+
+          initGoogleMap(selectedLat, selectedLng);
+
+          try {
+            await reverseGeocodeGoogle(selectedLat, selectedLng);
+          } catch (err) {
+            console.error(err);
+          }
+        },
+        async () => {
+          selectedLat = -32.9442;
+          selectedLng = -60.6505;
+
+          initGoogleMap(selectedLat, selectedLng);
+
+          try {
+            await reverseGeocodeGoogle(selectedLat, selectedLng);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      );
+    } else {
+      selectedLat = -32.9442;
+      selectedLng = -60.6505;
+
+      initGoogleMap(selectedLat, selectedLng);
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error cargando el mapa", "error");
   }
 });
 
@@ -442,20 +682,18 @@ closeMapBtn.addEventListener("click", () => {
 saveLocationBtn.addEventListener("click", () => {
   mapModal.classList.add("hidden");
 });
-
-searchAddressInput.addEventListener("change", async () => {
-  const query = searchAddressInput.value.trim();
-  if (!query) return;
-
-  await searchAddress(query);
-});
   document.getElementById("editStoreForm").addEventListener("submit", async (e) => {
 
 
     e.preventDefault();
+    if (!placeSelected) {
+  showToast("Seleccioná una dirección válida", "warning");
+  return;
+}
 
     const formData = new FormData();
-
+    const hours = getHoursData(); 
+formData.append("opening_hours", JSON.stringify(hours));
     formData.append("name", document.getElementById("name").value);
     formData.append("category", document.getElementById("category").value);
     formData.append("subcategory_ids", JSON.stringify(selectedSubcategories));
@@ -465,7 +703,7 @@ searchAddressInput.addEventListener("change", async () => {
 
 formData.append(
   "street",
-  streetDisplay.textContent
+  streetDisplay.dataset.fullAddress || streetDisplay.textContent
 );
     formData.append("description", document.getElementById("description").value);
     formData.append("local", document.getElementById("local").value);
@@ -473,6 +711,11 @@ formData.append(
     formData.append("reference_notes", document.getElementById("references").value);
     formData.append("lat", selectedLat || "");
     formData.append("lng", selectedLng || "");
+    formData.append("video_url", document.getElementById("videoUrl").value.trim());
+    formData.append("instagram_url", document.getElementById("instagramUrl")?.value.trim() || "");
+    formData.append("tiktok_url",    document.getElementById("tiktokUrl")?.value.trim()    || "");
+    formData.append("facebook_url",  document.getElementById("facebookUrl")?.value.trim()  || "");
+    formData.append("website_url",   document.getElementById("websiteUrl")?.value.trim()   || "");
 
     if(logoInput.files[0]){
       formData.append("logo", logoInput.files[0]);
@@ -484,22 +727,38 @@ formData.append(
 
     try {
 
-      const res = await fetch(`/api/stores/${store.id}`, {
-        method: "PUT",
-        credentials: "include",
-        body: formData
-      });
+      let res;
 
-      if(res.ok){
-        alert("Tienda actualizada 🚀");
-        window.location.href = `/store/${store.id}`; // 🔥 ya corregido
-      } else {
-        alert("Error al guardar");
-      }
+if (store && store.id) {
+  // ✏️ EDITAR
+  res = await fetch(`/api/stores/${store.id}`, {
+    method: "PUT",
+    credentials: "include",
+    body: formData
+  });
+} else {
+  // 🆕 CREAR
+  res = await fetch(`/api/stores`, {
+    method: "POST",
+    credentials: "include",
+    body: formData
+  });
+}
+
+      if (res.ok) {
+  const savedStore = await res.json();
+
+  showToast(store ? "Tienda actualizada correctamente" : "Tienda creada correctamente", "success");
+
+  window.location.href = `/${savedStore.slug}`;
+} else {
+  const errorData = await res.json().catch(() => ({}));
+ showToast(errorData.error || "Error al guardar", "error");
+}
 
     } catch (err){
       console.error(err);
-      alert("Error de conexión");
+      showToast("Error de conexión", "error");
     }
 
    
@@ -507,3 +766,112 @@ formData.append(
   });
 
 });
+
+function getHoursData() {
+  const days = ["mon","tue","wed","thu","fri","sat","sun"];
+  const data = {};
+
+  const alwaysOpen = document.getElementById("alwaysOpen")?.checked;
+
+  if (alwaysOpen) {
+    return { always_open: true };
+  }
+
+  days.forEach(day => {
+
+    const dayBlock = document.querySelector(`[data-day="${day}"]`);
+    if (!dayBlock) return;
+
+    const closed = dayBlock.querySelector(".closed")?.checked;
+
+    if (closed) {
+      data[day] = { closed: true };
+      return;
+    }
+
+    const ranges = dayBlock.querySelectorAll(".range");
+
+    data[day] = [];
+
+    ranges.forEach(range => {
+      const open = range.querySelector(".open")?.value;
+      const close = range.querySelector(".close")?.value;
+
+      if (open && close) {
+        data[day].push({ open, close });
+      }
+    });
+
+  });
+
+  return data;
+}
+
+function previewVideo(url, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!url) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const embed = buildEmbed(url);
+
+  if (!embed) {
+    container.innerHTML = `
+      <p style="font-size:12px;color:#dc2626;">
+        Link no reconocido. Usá un link de YouTube o Instagram.
+      </p>`;
+    return;
+  }
+
+  container.innerHTML = embed;
+
+  // Cargar script de Instagram si hace falta
+  if (url.includes("instagram.com") && !document.getElementById("igEmbedScript")) {
+    const script = document.createElement("script");
+    script.id = "igEmbedScript";
+    script.src = "//www.instagram.com/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }
+}
+
+function buildEmbed(url) {
+  // YouTube — watch, youtu.be, shorts
+  const yt = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (yt) {
+    return `
+      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;">
+        <iframe
+          src="https://www.youtube.com/embed/${yt[1]}"
+          style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>`;
+  }
+
+  // Instagram — post, reel, tv
+  const ig = url.match(/instagram\.com\/(p|reel|reels|tv)\/([a-zA-Z0-9_-]+)/);
+  if (ig) {
+    return `
+      <div style="display:flex;justify-content:center;">
+        <blockquote
+          class="instagram-media"
+          data-instgrm-permalink="${url}"
+          data-instgrm-version="14"
+          style="
+            background:#fff;border:0;border-radius:12px;
+            box-shadow:0 0 1px 0 rgba(0,0,0,.5),0 1px 10px 0 rgba(0,0,0,.15);
+            max-width:540px;min-width:280px;width:100%;
+          "
+        ></blockquote>
+      </div>`;
+  }
+
+  return null;
+}

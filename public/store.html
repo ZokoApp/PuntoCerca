@@ -1,41 +1,82 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perfil Tienda - PuntoCerca</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="/css/store.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SEO -->
+  <meta
+    name="description"
+    content="Descubrí productos, servicios, opiniones y contacto directo con esta tienda en PuntoCerca."
+  />
+
+  <!-- Estilos -->
+  <link rel="icon" type="image/png" href="/img/favicon.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="/css/store.css" />
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 </head>
 
 <body class="store-page">
 
- <nav class="store-nav">
-  <div class="store-nav__inner">
+  <!-- ===================================================== -->
+  <!-- NAVBAR                                                -->
+  <!-- ===================================================== -->
+  <nav class="store-nav">
+    <div class="store-nav__inner">
 
-    <a href="/" class="store-nav__brand">
-      PuntoCerca
-    </a>
+      <!-- Logo -->
+      <a href="/" class="store-nav__brand">
+        Punto<span>Cerca</span>
+      </a>
 
-    <div class="store-nav__right">
-  <a href="/" class="store-nav__link">Inicio</a>
+      <!-- ★ Hamburguesa (solo mobile) -->
+      <button id="navToggle" class="store-nav__toggle" type="button" aria-label="Abrir menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
-  <div id="ownerActions" class="store-owner-actions" style="display:none;">
-    <a href="/dashboard" class="store-nav__link">Dashboard</a>
-    <a href="#storeProducts" class="store-nav__link">Mis productos</a>
-    <a href="/new-product" class="store-nav__link">Publicar producto</a>
-    <a href="/edit-store" class="store-nav__link">Editar tienda</a>
-    <button id="logoutBtn" class="store-nav__logout" type="button">Logout</button>
-  </div>
-</div>
+      <!-- Menú -->
+      <div id="navMenu" class="store-nav__right">
 
-  </div>
-</nav>
+        <a href="/" class="store-nav__link">Inicio</a>
+
+        <!-- Acciones del propietario -->
+        <div
+          id="ownerActions"
+          class="store-owner-actions"
+          style="display:none;"
+        >
+          <a href="/dashboard" class="store-nav__link">Dashboard</a>
+          <a href="#storeProducts" class="store-nav__link">Mis productos</a>
+          <a href="/new-product" class="store-nav__link">Publicar producto</a>
+          <a href="/edit-store" class="store-nav__link">Editar tienda</a>
+
+          <button
+            id="logoutBtn"
+            class="store-nav__logout"
+            type="button"
+          >
+            Logout
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===================================================== -->
+  <!-- HERO                                                  -->
+  <!-- ===================================================== -->
   <header class="store-hero">
     <div id="storeCover" class="store-cover">
       <div class="store-cover__overlay"></div>
@@ -46,31 +87,139 @@
     </div>
   </header>
 
+  <!-- ===================================================== -->
+  <!-- CONTENIDO PRINCIPAL                                   -->
+  <!-- ===================================================== -->
   <main class="store-main">
     <section class="store-card">
 
+      <!-- ================================================ -->
+      <!-- INFORMACIÓN PRINCIPAL                            -->
+      <!-- ================================================ -->
       <div class="store-header">
-        <div class="store-header__info">
-          <h1 id="storeName" class="store-title"></h1>
+
+      <div class="store-header__info">
+
+          <div id="pizarraCircleContainer" style="display:none;margin-bottom:16px;"></div>
+
+          <h1 id="storeName" class="store-title">
+            Tienda en PuntoCerca
+          </h1>
+
+          <!-- Texto SEO oculto -->
+          <p id="seoContent" class="seo-only">
+            Negocio local en Argentina. Ver productos, precios,
+            opiniones y contacto directo.
+          </p>
+
+          <div id="storeStatus"></div>
           <div id="storeCategory" class="store-category"></div>
           <div id="storeAddress" class="store-meta"></div>
+        <div id="storeSocialLinks" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
           <div id="storeStats" class="store-stats"></div>
+
+          <!-- ★ Rating interactivo (elementos que faltaban) -->
+          <div class="store-rating">
+            <div id="storeRatingStars" class="store-rating__stars"></div>
+            <p id="storeRatingInfo" class="store-rating__info"></p>
+          </div>
+
+          <!-- Opiniones -->
+          <button
+            id="openStoreCommentsModal"
+            class="store-comments-badge"
+            type="button"
+          >
+            💬 Ver opiniones
+            <span id="commentsCount">0</span>
+          </button>
+
         </div>
 
+        <!-- Botones de acción -->
         <div class="store-header__actions">
-          <a id="whatsappBtn" class="btn btn-whatsapp" target="_blank">WhatsApp</a>
-          <button id="mapButton" class="btn btn-primary" type="button">Ver ubicación</button>
-        
-          <button id="followBtn" class="btn btn-follow" type="button">Seguir</button>
+
+          <a
+            id="whatsappBtn"
+            class="btn btn-whatsapp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp
+          </a>
+
+          <button
+            id="mapButton"
+            class="btn btn-primary"
+            type="button"
+          >
+            Ver ubicación
+          </button>
+
+          <button
+            id="followBtn"
+            class="btn btn-follow"
+            type="button"
+          >
+            Seguir
+          </button>
+
+          <button
+            id="shareCatalogBtn"
+            class="btn btn-share"
+            type="button"
+          >
+            Compartir Perfil
+          </button>
+
         </div>
       </div>
 
+      <!-- ================================================ -->
+      <!-- DESCRIPCIÓN                                      -->
+      <!-- ================================================ -->
       <section class="store-section">
         <h2 class="section-title">Sobre la tienda</h2>
         <p id="storeDescription" class="store-description"></p>
-        <div id="ownerInfo" class="owner-box"></div>
       </section>
 
+<!-- DESTACADOS -->
+      <div id="highlightsSection" style="display:none;padding:20px 0 8px;border-bottom:1px solid #f1f5f9;margin-bottom:8px;">
+        <div id="highlightsStrip" style="display:flex;gap:20px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+      </div>
+      <style>#highlightsStrip::-webkit-scrollbar{display:none}</style>
+
+      <div id="storeVideosSection" style="display:none;padding:16px 0;"></div>
+
+      <!-- ================================================ -->
+      <!-- EVENTOS                                          -->
+      <!-- ================================================ -->
+      <section class="store-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Eventos</h2>
+            <p class="section-subtitle">Promociones y actividades de esta tienda</p>
+          </div>
+        </div>
+        <div id="storeEvents" class="events-scroll">
+          <p style="color:#888;">Cargando eventos...</p>
+        </div>
+      </section>
+
+      <!-- SUCURSALES -->
+      <section id="sucursalesSection" class="store-section" style="display:none;">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Sucursales</h2>
+            <p class="section-subtitle">Otras ubicaciones de este comercio</p>
+          </div>
+        </div>
+        <div id="sucursalesContainer"></div>
+      </section>
+
+      <!-- ================================================ -->
+      <!-- MAPA                                             -->
+      <!-- ================================================ -->
       <section class="store-section">
         <div class="section-header">
           <div>
@@ -78,100 +227,147 @@
             <p class="section-subtitle">Encontrá esta tienda en el mapa</p>
           </div>
         </div>
-
         <div id="storeMap" class="store-map"></div>
       </section>
 
+      <!-- ================================================ -->
+      <!-- CATÁLOGO PDF                                     -->
+      <!-- ================================================ -->
+      <section id="catalogSection" class="store-section hidden">
+        <div class="catalog-card">
+          <div class="catalog-info">
+            <h2 class="section-title">Catálogo digital</h2>
+            <p class="section-subtitle">Consultá el catálogo completo del comercio</p>
+          </div>
+          <button id="openCatalogBtn" class="btn btn-primary" type="button">
+            📘 Ver catálogo PDF
+          </button>
+        </div>
+      </section>
+
+      <!-- Modal PDF -->
+      <div id="catalogModal" class="catalog-modal hidden">
+        <div id="closeCatalogOverlay" class="catalog-modal-overlay"></div>
+        <div class="catalog-modal-content">
+          <button id="closeCatalogBtn" class="catalog-close-btn" type="button">✕</button>
+          <iframe id="catalogFrame" src="" frameborder="0"></iframe>
+        </div>
+      </div>
+
+      <!-- ================================================ -->
+      <!-- PRODUCTOS                                        -->
+      <!-- ================================================ -->
       <section class="store-section products-section">
+
         <div class="section-header">
           <div>
             <h2 class="section-title">Productos</h2>
             <p class="section-subtitle">Explorá lo que ofrece esta tienda</p>
           </div>
 
-          <input 
-  type="text" 
-  id="searchProducts" 
-  placeholder="Buscar productos..."
-  style="width:250px;padding:8px;margin-bottom:15px;border-radius:10px;border:1px solid #ddd;"
-/>
-
-          <button id="addProductBtn" class="btn btn-primary btn-add-product" style="display:none;">
-  + Agregar producto
-</button>
+          <!-- Buscador -->
+          <div class="products-search">
+            <span class="products-search__icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input
+              id="searchProducts"
+              type="text"
+              placeholder="Buscar productos, servicios o palabras clave..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button
+              id="clearSearchProducts"
+              type="button"
+              class="products-search__clear hidden"
+              aria-label="Limpiar búsqueda"
+            >✕</button>
+          </div>
         </div>
 
         <div id="storeProducts" class="products-grid"></div>
+
       </section>
 
     </section>
   </main>
 
-  <div id="productModal" class="modal hidden">
-    <div class="modal-content modal-content--product">
+  <!-- ===================================================== -->
+  <!-- MODAL DE COMENTARIOS                                  -->
+  <!-- ===================================================== -->
+  <div id="storeCommentsModal" class="modal hidden">
+
+    <div class="modal-overlay"></div>
+
+    <div class="modal-box">
+
       <div class="modal-header">
-        <h2>Nuevo producto</h2>
-        <button id="closeModal" class="modal-close cancel" type="button">✕</button>
+        <h2>Opiniones</h2>
+        <button id="closeStoreCommentsModal" type="button" aria-label="Cerrar">✕</button>
       </div>
 
-      <div class="modal-body">
-        <div class="form-grid">
-          <input id="productName" type="text" placeholder="Nombre">
-          <input id="productPrice" type="number" placeholder="Precio">
-          <input id="productBrand" type="text" placeholder="Marca (opcional)">
-          <input id="productSize" type="text" placeholder="Talle / tamaño (opcional)">
-          <input id="productStock" type="number" placeholder="Stock">
-          <input id="productImage" type="text" placeholder="URL imagen">
-        </div>
+      <div id="storeCommentsContainer" class="modal-body"></div>
 
-        <div class="form-checks">
-          <label class="checkbox-row">
-            <input type="checkbox" id="isFood">
-            <span>Producto alimenticio</span>
-          </label>
-
-          <label class="checkbox-row">
-            <input type="checkbox" id="needsPrescription">
-            <span>Requiere receta</span>
-          </label>
-        </div>
+      <div id="storeCommentBox" class="modal-footer hidden">
+        <textarea id="storeCommentInput" placeholder="Escribí tu opinión..."></textarea>
+        <button id="sendStoreComment" type="button">Enviar</button>
       </div>
 
-      <div class="modal-actions">
-        <button id="saveProduct" class="btn btn-primary" type="button">Guardar</button>
-        <button class="btn btn-light cancel" type="button">Cancelar</button>
+      <div id="storeLoginMessage" class="modal-login hidden">
+        <p>Tenés que iniciar sesión para comentar</p>
+        <button id="goLoginBtn" class="login-btn" type="button">Iniciar sesión</button>
       </div>
+
     </div>
   </div>
 
-  <div id="viewProductModal" class="modal hidden">
-    <div class="modal-content modal-content--view">
-      <div class="modal-header">
-        <h2>Detalle del producto</h2>
-        <button id="closeViewModal" class="modal-close cancel" type="button">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <img id="viewImage" class="view-product-image" alt="Producto">
-
-        <div class="view-product-info">
-          <h3 id="viewName" class="view-product-title"></h3>
-          <div id="viewBrand" class="view-product-brand"></div>
-          <div id="viewPrice" class="view-product-price"></div>
-          <div id="viewBadges" class="view-product-badges"></div>
-        </div>
-      </div>
-
-      <div class="modal-actions modal-actions--between">
-        <div id="productActions"></div>
-        <button class="btn btn-light cancel" type="button">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- ===================================================== -->
+  <!-- SCRIPTS                                               -->
+  <!-- ===================================================== -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="/js/store.js"></script>
+  <script type="module" src="/js/store.js"></script>
   <script src="/js/store-products.js"></script>
   <script src="/js/store-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- ★ Hamburguesa toggle -->
+  <script>
+    (function () {
+      const toggle = document.getElementById("navToggle");
+      const menu   = document.getElementById("navMenu");
+
+      if (!toggle || !menu) return;
+
+      toggle.addEventListener("click", function () {
+        const open = menu.classList.toggle("is-open");
+        toggle.classList.toggle("is-open", open);
+        toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      });
+
+      // Cerrar al tocar un link del menú
+      menu.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          menu.classList.remove("is-open");
+          toggle.classList.remove("is-open");
+          toggle.setAttribute("aria-label", "Abrir menú");
+        });
+      });
+
+      // Cerrar al hacer click fuera
+      document.addEventListener("click", function (e) {
+        if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+          menu.classList.remove("is-open");
+          toggle.classList.remove("is-open");
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>

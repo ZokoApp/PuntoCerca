@@ -1,39 +1,82 @@
-window.isOwner = window.isOwner || false;
-window.allProducts = window.allProducts || [];
+window.isOwner = false;
+window.allProducts = [];
 
-document.addEventListener("DOMContentLoaded", init);
+window.isOwner = false;
+window.allProducts = [];
 
-async function init() {
+// 👇 PEGAR ACÁ
+function renderPriceSafe(p){
 
-  const storeId = window.location.pathname.split("/").pop();
+  const price = parseFloat(p.price);
+  const oldPrice = p.old_price ? parseFloat(p.old_price) : null;
 
-  // 🔐 verificar si es dueño
+  if (!price || price <= 0) {
+    return `<span class="consultar">Consultar</span>`;
+  }
+
+  if (oldPrice && oldPrice > price) {
+    return `
+      <span class="old-price">$${oldPrice.toLocaleString("es-AR")}</span>
+      <span class="new-price">$${price.toLocaleString("es-AR")}</span>
+    `;
+  }
+
+  return `<span class="new-price">$${price.toLocaleString("es-AR")}</span>`;
+}
+
+window.initStoreProducts = async function (store) {
+
+  const storeId = store?.id;
+
+  if (!storeId) {
+    console.error("Store ID inválido");
+    return;
+  }
+
+  // 🔐 detectar dueño
   try {
     const resUser = await fetch('/api/me', { credentials: 'include' });
 
     if (resUser.ok) {
       const user = await resUser.json();
 
-      const storeRes = await fetch(`/api/stores/${storeId}`);
-      const store = await storeRes.json();
-
       if (store.user_id === user.id) {
-        isOwner = true;
+        window.isOwner = true;
       }
     }
   } catch {}
 
   // 📦 cargar productos
-  const res = await fetch(`/api/stores/${storeId}/products`);
-  allProducts = await res.json();
+  try {
+    const res = await fetch(`/api/stores/${storeId}/products`);
+    const data = await res.json();
 
-  renderProducts(allProducts);
-}
+    window.allProducts = Array.isArray(data) ? data : [];
+
+    renderProducts(window.allProducts);
+
+  } catch (err) {
+    console.error("Error cargando productos:", err);
+  }
+};
 
 function renderProducts(products) {
 
   const container = document.getElementById("storeProducts");
+
+  if (!container) {
+    console.error("No existe #storeProducts");
+    return;
+  }
+
   container.innerHTML = "";
+
+  if (!products.length) {
+    container.innerHTML = `
+      <p style="color:#888;">Esta tienda todavía no tiene productos</p>
+    `;
+    return;
+  }
 
   products.forEach(p => {
 
@@ -41,12 +84,16 @@ function renderProducts(products) {
     card.className = "product-card";
 
     card.innerHTML = `
-      <div style="position:relative">
+      <div class="card-image">
+
+        ${p.is_offer ? `<span class="badge-offer">OFERTA</span>` : ""}
+
+        <img src="${p.image_url || '/img/no-image.png'}" alt="${p.name}" />
 
         ${
-          isOwner
+          window.isOwner
             ? `
-            <div style="position:absolute;top:5px;right:5px;display:flex;gap:5px;">
+            <div class="card-actions">
               <button class="edit-btn">✏️</button>
               <button class="delete-btn">🗑️</button>
             </div>
@@ -54,70 +101,79 @@ function renderProducts(products) {
             : ""
         }
 
-        <img src="${p.image_url}" />
       </div>
 
-      <h3>${p.name}</h3>
+      <div class="card-body">
 
-      <p class="text-orange-600 font-bold">
-        $${parseFloat(p.price).toLocaleString()}
-      </p>
+        <h3 class="card-title">${p.name}</h3>
 
-      <p class="text-yellow-600 text-sm mt-1">
-        ${
-          p.rating_avg
-            ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
-            : "Sin valoraciones"
-        }
-      </p>
+        <div class="card-price">
+          ${renderPriceSafe(p)}
+        </div>
+
+        <div class="card-rating">
+          ${
+            p.rating_avg
+              ? `⭐ ${parseFloat(p.rating_avg).toFixed(1)} (${p.rating_count || 0})`
+              : "Sin valoraciones"
+          }
+        </div>
+
+        <button class="card-btn">
+  ${p.price && p.price > 0 ? "Ver producto" : "Consultar"}
+</button>
+
+      </div>
     `;
 
-    // 👉 ir al producto
+    // 👉 click en toda la card
     card.onclick = () => {
-      window.location.href = `/product/${p.id}`;
+      window.location.href = `/product/${p.slug || p.id}`;
     };
 
+    // 🔥 botón consultar (evita conflicto click padre)
+    const btn = card.querySelector(".card-btn");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `/product/${p.slug || p.id}`;
+      });
+    }
+
     // ✏️ editar
-    card.querySelector(".edit-btn")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.location.href = `/edit-product/${p.id}`;
-    });
+    const editBtn = card.querySelector(".edit-btn");
+    if (editBtn) {
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `/edit-product/${p.id}`;
+      });
+    }
 
     // 🗑️ eliminar
-    card.querySelector(".delete-btn")?.addEventListener("click", async (e) => {
-      e.stopPropagation();
+    const deleteBtn = card.querySelector(".delete-btn");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
 
-      if (!confirm("¿Eliminar producto?")) return;
+        if (!confirm("¿Eliminar producto?")) return;
 
-      try {
-        const res = await fetch(`/api/products/${p.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
+        try {
+          const res = await fetch(`/api/products/${p.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
 
-        if (!res.ok) throw new Error();
+          if (!res.ok) throw new Error();
 
-        // eliminar del array + re-render
-        allProducts = allProducts.filter(prod => prod.id !== p.id);
-        renderProducts(allProducts);
+          window.allProducts = window.allProducts.filter(prod => prod.id !== p.id);
+          renderProducts(window.allProducts);
 
-      } catch {
-        alert("Error eliminando");
-      }
-    });
+        } catch {
+          alert("Error eliminando");
+        }
+      });
+    }
 
     container.appendChild(card);
   });
 }
-
-// 🔍 buscador
-document.getElementById("searchProducts")?.addEventListener("input", (e) => {
-
-  const value = e.target.value.toLowerCase();
-
-  const filtered = allProducts.filter(p =>
-    p.name.toLowerCase().includes(value)
-  );
-
-  renderProducts(filtered);
-});

@@ -1,68 +1,93 @@
   import { map } from './map.js';
 
-const SUBCATEGORY_MAP = {
-  1: "Restaurante",
-  2: "Pizzería",
-  3: "Bar",
-  4: "Cafetería",
-  5: "Heladería",
-  6: "Ropa",
-  7: "Electrónica",
-  8: "Ferretería",
-  9: "Librería",
-  10: "Peluquería",
-  11: "Barbería",
-  12: "Estética",
-  13: "Spa",
-  14: "Clínica",
-  15: "Odontología",
-  16: "Farmacia",
-  17: "Psicología",
-  18: "Electricista",
-  19: "Plomería",
-  20: "Gasista",
-  21: "Técnico PC",
-  22: "Reparaciones",
-  23: "Taller mecánico",
-  24: "Lavadero",
-  25: "Gomería",
-  26: "Repuestos",
-  27: "Instituto",
-  28: "Clases particulares",
-  29: "Academia",
-  30: "Gimnasio",
-  31: "Escuela deportiva",
-  32: "Club",
-  33: "Veterinaria",
-  34: "Pet Shop",
-  35: "Peluquería canina",
-  36: "Mueblería",
-  37: "Decoración",
-  38: "Construcción",
-  39: "Abogado",
-  40: "Contador",
-  41: "Arquitecto",
-  42: "Marketing",
-43: "Salón de eventos",
-44: "Catering",
-45: "Fotografía",
 
-46: "Verdulería",
-47: "Almacén",
-48: "Kiosco",
-49: "Supermercado",
-50: "Carnicería",
-51: "Panadería",
-52: "Fiambrería",
-53: "Dietética",
-54: "Bebidas",
-55: "Mayorista"
-};
+import { SUBCATEGORY_MAP } from '../data/categories.js';
 
   export let storeMarkers = {};
   export let activeCard = null;
 
   const usedPositions = {};
+
+
+function getStoreStatusInfo(store) {
+
+  if (!store.opening_hours) {
+    return {
+      text: "Sin horarios",
+      color: "#6b7280"
+    };
+  }
+
+  let hours = store.opening_hours;
+
+  if (typeof hours === "string") {
+    try {
+      hours = JSON.parse(hours);
+    } catch {
+      return {
+        text: "Sin horarios",
+        color: "#6b7280"
+      };
+    }
+  }
+
+  if (hours.always_open) {
+    return {
+      text: "Abierto 24hs",
+      color: "#16a34a"
+    };
+  }
+
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  const daysMap = ["sun","mon","tue","wed","thu","fri","sat"];
+  const todayKey = daysMap[now.getDay()];
+  const today = hours[todayKey];
+
+  if (!today || today.closed) {
+    return {
+      text: "Cerrado",
+      color: "#ef4444"
+    };
+  }
+
+  const ranges = Array.isArray(today) ? today : [today];
+
+  for (const range of ranges) {
+
+    if (!range.open || !range.close) continue;
+
+    const [oh, om] = range.open.split(":").map(Number);
+    const [ch, cm] = range.close.split(":").map(Number);
+
+    const openTime = oh * 60 + om;
+    const closeTime = ch * 60 + cm;
+
+  
+    if (closeTime < openTime) {
+      if (current >= openTime || current <= closeTime) {
+        return {
+          text: `Abierto ahora`,
+          color: "#16a34a"
+        };
+      }
+    } else {
+      if (current >= openTime && current <= closeTime) {
+        return {
+          text: `Abierto ahora`,
+          color: "#16a34a"
+        };
+      }
+    }
+  }
+
+  return {
+    text: "Cerrado",
+    color: "#ef4444"
+  };
+}
+
 
 function getPositionKey(lat, lng) {
   return `${Number(lat).toFixed(5)}_${Number(lng).toFixed(5)}`;
@@ -136,7 +161,7 @@ setTimeout(() => {
 
   export async function loadStores(category = null, subcategory_id = null) {
 
-  // 🔥 si no viene del menú, leer selects (si existen)
+
   if (!category) {
     const select = document.getElementById("filterCategory");
     if (select && select.value) {
@@ -205,7 +230,10 @@ if (store.subcategory_ids) {
       ? store.subcategory_ids
       : JSON.parse(store.subcategory_ids);
 
-    subcategories = ids.map(id => SUBCATEGORY_MAP[id]).join(", ");
+    subcategories = ids
+  .map(id => SUBCATEGORY_MAP[Number(id)])
+  .filter(Boolean)
+  .join(" • ");
   } catch (e) {
     console.error("Error parseando subcategorías", e);
   }
@@ -228,28 +256,76 @@ ${subcategories}
           storeMarkers[store.id] = marker;
 
           const card = document.createElement("div");
-  card.className = "card";
-  card.setAttribute("data-id", store.id);
-          card.innerHTML = `
-      <img src="${store.logo_url || 'https://source.unsplash.com/300x200/?store'}" />
-      <h3>${store.name}</h3>
-      <div class="card-buttons">
-          <button class="btn-view">
-              Ver tienda
-          </button>
-          <button class="btn-map">
-              Ver en mapa
-          </button>
-      </div>
-  `;
+  const status = getStoreStatusInfo(store);
+
+    let hours = store.opening_hours;
+
+if (typeof hours === "string") {
+  try {
+    hours = JSON.parse(hours);
+  } catch {}
+}
+
+const is24 = hours?.always_open;
+        
+card.className = "card";
+card.setAttribute("data-id", store.id);
+
+card.innerHTML = `
+  <img src="${store.logo_url || '/img/default.png'}" 
+    style="width:100%;height:160px;object-fit:cover;"
+    onerror="this.src='/img/default.png'">
+
+  <div class="card-content">
+
+    <h3>${store.name}</h3>
+
+   <div class="status-badge ${status.color === '#16a34a' ? 'open' : 'closed'}">
+  <span class="dot"></span>
+  ${status.text}
+</div>
+    <p>${store.street || "Sin dirección"}</p>
+
+    <p class="store-subcats">
+  ${
+    store.subcategory_ids
+      ? (Array.isArray(store.subcategory_ids)
+          ? store.subcategory_ids
+          : JSON.parse(store.subcategory_ids)
+        )
+          .map(id => SUBCATEGORY_MAP[Number(id)])
+          .filter(Boolean)
+          .join(" • ")
+      : ""
+  }
+</p>
+
+    <p>
+      ${
+        store.rating_count > 0
+          ? `⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})`
+          : "Sin valoraciones"
+      }
+    </p>
+
+  </div>
+
+  <div class="card-buttons">
+    <button class="btn-view">Ver</button>
+    <button class="btn-map">Ver en mapa</button>
+  </div>
+`;
 
   const viewBtn = card.querySelector(".btn-view");
   const mapBtn = card.querySelector(".btn-map");
 
   viewBtn.addEventListener("click", () => {
-     window.location.href = store.slug 
-  ? `/${store.slug}` 
-  : `/store/${store.id}`;
+     if (!store.slug) {
+  console.error("Store sin slug:", store);
+  return;
+}
+
+window.location.href = `/${store.slug}`;
   });
 
   mapBtn.addEventListener("click", () => {
@@ -259,6 +335,63 @@ ${subcategories}
 
           container.appendChild(card);
       });
+
+    // ── SUCURSALES EN MAPA ──────────────────────
+      try {
+        const sucRes = await fetch('/api/sucursales/map');
+        const sucursales = await sucRes.json();
+
+        sucursales.forEach(s => {
+          const adjustedLatLng = getAdjustedLatLng(s.lat, s.lng);
+          bounds.push(adjustedLatLng);
+
+          const icon = L.divIcon({
+            className: 'custom-store-marker',
+            html: `
+              <div style="position:relative;width:48px;height:48px;">
+                <div style="
+                  width:44px;height:44px;border-radius:50%;
+                  border:2.5px solid #ea580c;
+                  background:${s.store_logo
+                    ? `url('${s.store_logo}') center/cover no-repeat`
+                    : 'linear-gradient(135deg,#ea580c,#f97316)'};
+                  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+                "></div>
+                <div style="
+                  position:absolute;bottom:-1px;right:-1px;
+                  width:18px;height:18px;
+                  background:#ea580c;
+                  border-radius:50%;
+                  border:2px solid white;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:8px;font-weight:900;color:white;
+                ">S</div>
+              </div>
+            `,
+            iconSize: [48, 48],
+            iconAnchor: [24, 48],
+            popupAnchor: [0, -50]
+          });
+
+          const addressParts = [s.street, s.local ? `Local ${s.local}` : null, s.city]
+            .filter(Boolean).join(' · ');
+
+          const marker = L.marker(adjustedLatLng, { icon })
+            .addTo(map)
+            .bindPopup(`
+              <b>${s.name}</b><br>
+              <span style="font-size:12px;color:#6b7280;">${s.store_name}</span><br>
+              ${addressParts ? `<span style="font-size:11px;color:#9ca3af;">${addressParts}</span>` : ''}
+            `);
+
+          marker.on('click', () => {
+            window.location.href = `/${s.store_slug}`;
+          });
+        });
+      } catch(e) {
+        console.error('Error cargando sucursales en mapa:', e);
+      }
+      // ────────────────────────────────────────────
 
       if(bounds.length){
           map.fitBounds(bounds, {
@@ -271,22 +404,46 @@ ${subcategories}
   async function showStorePreview(store){
 
     const preview = document.getElementById("storePreview");
-    const res = await fetch(`/api/stores/${store.id}/products`);
+    if (!store.id) {
+  console.error("Store sin ID:", store);
+  return;
+}
+
+const res = await fetch(`/api/stores/${store.id}/products`);
   const products = await res.json();
 
 
   const productsHTML = products.length
-    ? products.slice(0,3).map(p => `
-        <div class="mini-product">
-          <img src="${p.image_url}" />
-          <span>$${p.price}</span>
-        </div>
-      `).join('') 
-    : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
+  ? products.slice(0,3).map(p => {
 
+    const priceHTML = window.renderPriceHTML
+      ? window.renderPriceHTML(p)
+      : (p.price ? `$${Number(p.price).toLocaleString("es-AR")}` : "Consultar");
+
+    return `
+      <div class="mini-product" onclick='goToProduct(${JSON.stringify(p)})'>
+        <img src="${p.image_url || "/img/default.png"}" />
+        
+        <div class="mini-price">
+          ${priceHTML}
+        </div>
+      </div>
+    `;
+    
+  }).join('')
+  : `<span style="font-size:12px;color:#888;">Sin productos</span>`;
+        
+    const status = getStoreStatusInfo(store);
     preview.innerHTML = `
     <button class="close-preview">✕</button>
-    <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
+    <div class="preview-image-wrapper">
+  <img src="${store.cover_url || store.logo_url || 'https://source.unsplash.com/600x300/?store'}" />
+
+  <div class="preview-status ${status.color === '#16a34a' ? 'open' : 'closed'}">
+  <span class="dot"></span>
+  ${status.text}
+</div>
+</div>
 
     
 
@@ -312,7 +469,7 @@ if (store.subcategory_ids) {
       : JSON.parse(store.subcategory_ids);
 
     subcats = ids
-      .map(id => SUBCATEGORY_MAP[id])
+      .map(id => SUBCATEGORY_MAP[Number(id)])
       .filter(Boolean)
       .join(" · ");
   } catch (e) {
@@ -326,11 +483,11 @@ if (store.subcategory_ids) {
   return `
     <div class="store-meta">
       ${
-        store.rating_count > 0
-          ? `⭐ ${store.rating_avg}`
-          : "Sin valoraciones"
-      }
-      · ${subcats || store.category}
+  store.rating_count > 0
+    ? `<span class="rating">⭐ ${parseFloat(store.rating_avg).toFixed(1)} (${store.rating_count})</span>`
+    : `<span class="no-rating">Sin valoraciones</span>`
+}
+      · ${subcats}
     </div>
   `;
 })()}
@@ -339,7 +496,7 @@ if (store.subcategory_ids) {
         ${productsHTML}
       </div>
 
-      <a href="/${store.slug}" class="btn-primary">
+      <a href="${store.slug ? `/${store.slug}` : `/store/${store.id}`}" class="btn-primary">
   Ver tienda
 </a>
 

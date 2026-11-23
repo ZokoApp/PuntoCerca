@@ -3,297 +3,332 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PuntoCerca</title>
+<title>PuntoCerca | Encontrá negocios y servicios cerca tuyo</title>
 
+ <meta name="description" content="PuntoCerca te ayuda a encontrar negocios reales, servicios y productos cerca tuyo. Descubrí comercios locales fácilmente.">
+<link rel="stylesheet" href="/css/components/cards-clean.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<link rel="stylesheet" href="/css/output.css">
+<!-- <link rel="stylesheet" href="/css/output.css"> -->
+ <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/css/components/map.css">
-<link rel="stylesheet" href="/css/components/cards.css">
-<link rel="stylesheet" href="/css/components/offers.css">
+ <link rel="stylesheet" href="/css/components/cards.css">
+<link rel="stylesheet" href="/css/styles.css">
+
+ <link rel="icon" type="image/png" href="/img/favicon.png">
 </head>
 
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-<!-- ================= NAVBAR ================= -->
-<nav class="sticky top-0 z-50 bg-white">
+ <body class="index-page bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
- 
-  
-  <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center"> 
+<!-- ================= HEADER + HERO ================= -->
+<header class="sticky top-0 z-50 bg-white shadow-sm">
 
-    <a href="/" class="flex items-center gap-2">
-      <img src="/img/logo.png" alt="PuntoCerca" style="height: 180px;">
-    </a>
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:h-20 md:gap-6">
 
-    <div id="navRight" class="flex items-center gap-6">
+  <!-- FILA 1 MOBILE: logo + auth -->
+  <div class="flex items-center justify-between w-full md:w-auto">
 
-      <a href="/" class="hover:text-orange-600 transition">Inicio</a>
-
-      <a href="/login" id="loginLink"
-        class="hover:text-orange-600 transition">
-        Login
-      </a>
-
-      <a href="/register.html" id="registerLink"
-        class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700 transition">
-        Registrate
-      </a>
-
-      <div id="userMenu" class="hidden relative">
-
-        <button id="userMenuBtn"
-          class="flex items-center gap-2 font-semibold text-gray-700 hover:text-orange-600 transition">
-          <span id="userName"></span>
-          <span>▾</span>
-        </button>
-
-        <div id="userDropdown"
-          class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg hidden">
-
-          <a id="myStoreLink" href="#"
-            class="block px-4 py-2 hover:bg-gray-50">
-            Mi tienda
-          </a>
-
-          <a href="#"
-  id="dashboardLink"
-  class="block px-4 py-2 hover:bg-gray-50">
-  Dashboard
+   <a href="/" class="flex items-center">
+  <img src="/img/logo.svg" style="height:44px;width:auto;">
 </a>
 
-          <button id="logoutBtn"
-            class="w-full text-left px-4 py-2 hover:bg-gray-50">
-            Logout
-          </button>
+  <!-- AUTH solo visible en mobile -->
+<div id="mobileAuth" class="flex items-center gap-3 md:hidden text-sm">
+  <a id="loginLinkMobile" href="/login" class="hover:text-orange-600">Login</a>
+  <a id="registerLinkMobile" href="/register.html"
+    class="bg-orange-600 text-white px-3 py-1.5 rounded-full text-sm hover:bg-orange-700">
+    Registrate
+  </a>
+<!-- Usuario logueado mobile -->
+<div id="userMenuMobile" class="hidden items-center gap-2">
 
+  <!-- CAMPANITA MOBILE -->
+  <div class="relative">
+    <button id="notifBtnMobile" class="relative p-2 rounded-full hover:bg-gray-100 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#6b7280">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+      </svg>
+      <span id="notifCountMobile"
+        style="position:absolute;top:-2px;right:-2px;background:#ef4444;color:white;font-size:10px;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;">
+        0
+      </span>
+    </button>
+    <div id="notifDropdownMobile"
+      class="absolute right-0 top-full mt-2 w-72 bg-white border rounded-xl shadow-lg hidden z-[9999] max-h-80 overflow-y-auto">
+      <div class="p-3 font-semibold border-b text-sm">Notificaciones</div>
+      <div id="notifListMobile" class="divide-y text-sm"></div>
+    </div>
+  </div>
+
+  <!-- PERFIL MOBILE -->
+  <div class="relative">
+    <button id="userMenuBtnMobile"
+      class="flex items-center justify-center w-9 h-9 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 transition overflow-hidden">
+      <img id="userAvatarMobile" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;">
+      <svg id="userIconMobile" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ea580c">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+      </svg>
+    </button>
+    <div id="userDropdownMobile"
+      class="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-xl hidden z-[9999] p-2">
+    </div>
+  </div>
+
+  <span id="userNameMobile" class="hidden"></span>
+</div>
+</div>
+
+  </div>
+
+  <!-- BUSCADOR: fila 2 en mobile, centro en desktop -->
+  <div class="w-full md:flex-1 md:max-w-xl relative">
+    <input 
+      id="searchInput"
+      type="text" 
+      placeholder="Buscar negocios, productos..."
+      class="w-full px-5 py-2.5 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+    />
+    <div id="searchResults" 
+         class="absolute left-0 top-full mt-2 bg-white w-full rounded-xl shadow-lg hidden z-50">
+    </div>
+  </div>
+
+ <!-- AUTH desktop (oculto en mobile) -->
+  <div id="navAuth" class="hidden md:flex items-center gap-4 text-sm">
+    <a href="/" class="hover:text-orange-600">Inicio</a>
+    <a id="loginLink" href="/login" class="hover:text-orange-600">Login</a>
+    <a id="registerLink" href="/register.html"
+      class="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700">
+      Registrate
+    </a>
+
+    <!-- USER MENU (logueado) -->
+    <div id="userMenu" class="relative hidden">
+      <button id="userMenuBtn"
+        class="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-2 rounded-full hover:bg-orange-100 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+        <span id="userName" class="font-semibold text-orange-600 max-w-[120px] truncate"></span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      <div id="userDropdown"
+        class="absolute right-0 mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-xl hidden z-50 p-2 overflow-hidden">
+      </div>
+    </div>
+
+
+  <!-- NOTIFICACIONES -->
+<div id="notifWrapper" class="relative" style="display:none;">
+      <button id="notifBtn" class="relative p-2 rounded-full hover:bg-gray-100 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+        <span id="notifCount"
+          class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center hidden">
+          0
+        </span>
+      </button>
+
+      <div id="notifDropdown"
+        class="absolute right-0 mt-2 w-80 bg-white border rounded-xl shadow-lg hidden z-50 max-h-96 overflow-y-auto">
+        <div class="p-3 font-semibold border-b text-sm">Notificaciones</div>
+        <div id="notifList" class="divide-y text-sm"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+ <!-- MENU -->
+<div class="border-t border-gray-200">
+  <div class="max-w-7xl mx-auto px-2 md:px-6 py-2 flex justify-around md:justify-center md:gap-10 text-sm font-medium text-gray-700">
+
+    <a href="/stores.html" class="flex flex-col md:flex-row items-center gap-1 md:gap-2 hover:text-orange-600 transition text-xs md:text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" d="M3 9l1-4h16l1 4M5 9h14v10H5z" />
+      </svg>
+      Tiendas
+    </a>
+
+    <a href="/offers" class="flex flex-col md:flex-row items-center gap-1 md:gap-2 hover:text-orange-600 transition text-xs md:text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" d="M7 7h.01M3 11l8-8 10 10-8 8L3 11z" />
+      </svg>
+      Ofertas
+    </a>
+
+    <a href="/products" class="flex flex-col md:flex-row items-center gap-1 md:gap-2 hover:text-orange-600 transition text-xs md:text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" d="M5 7h14l-1 12H6L5 7zM9 7a3 3 0 016 0" />
+      </svg>
+      Productos
+    </a>
+
+    <a href="/map.html" class="flex flex-col md:flex-row items-center gap-1 md:gap-2 hover:text-orange-600 transition text-xs md:text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" d="M9 20l-5-2V6l5 2 6-2 5 2v12l-5-2-6 2z" />
+      </svg>
+      Mapa
+    </a>
+
+  </div>
+</div>
+
+</header>
+<main style="padding-top: 130px;">
+<!-- ================= HERO ================= -->
+<section id="pc-hero-new" style="
+  background: radial-gradient(ellipse at 60% 0%, rgba(234,88,12,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse at 0% 100%, rgba(249,115,22,0.04) 0%, transparent 60%),
+              white;
+  padding:36px 24px 40px;
+  border-bottom:1px solid #f1f5f9;
+  position:relative;
+  overflow:hidden;
+">
+  <div style="max-width:1280px;margin:0 auto;">
+
+    <!-- TÍTULO -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#fff7ed;border:1px solid #fed7aa;padding:6px 16px;border-radius:999px;margin-bottom:20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        <span style="font-size:13px;font-weight:700;color:#ea580c;">Cerca tuyo, siempre</span>
+      </div>
+
+     <h1 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;color:#111827;letter-spacing:-0.04em;line-height:1.05;margin:0 0 12px;">
+        Negocios, productos<br>y servicios cerca tuyo
+      </h1>
+
+      <p style="font-size:1.1rem;color:#6b7280;max-width:520px;margin:0 auto 40px;line-height:1.7;">
+        Encontrá comercios reales, precios y ofertas. Contacto directo por WhatsApp.
+      </p>
+
+     
+
+    <!-- 3 CARDS DE PROPUESTA DE VALOR -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;" id="heroCards">
+
+      <!-- CARD 1: Explorar negocios -->
+      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.08)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('explore')">
+        <div style="width:48px;height:48px;background:#fff7ed;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#ea580c">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-0.02em;">Explorá negocios</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Encontrá comercios, servicios y productos cerca tuyo en el mapa.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#ea580c;">
+          Ver negocios
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CARD 2: Catálogo digital -->
+      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.08)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('catalog')">
+        <div style="width:48px;height:48px;background:#fff7ed;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#ea580c">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:800;color:#111827;margin:0 0 8px;letter-spacing:-0.02em;">Catálogo digital</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Subí tu carta, menú o lista de precios en PDF. Tus clientes lo ven desde tu perfil.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#ea580c;" id="heroCatalogAction">
+          Subir catálogo
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CARD 3: PuntoEnvío -->
+      <div style="background:#111827;border:1px solid #1f2937;border-radius:20px;padding:28px 24px;transition:all 0.2s ease;cursor:pointer;"
+        onmouseover="this.style.boxShadow='0 12px 30px rgba(0,0,0,0.20)';this.style.transform='translateY(-3px)'"
+        onmouseout="this.style.boxShadow='none';this.style.transform='none'"
+        onclick="heroAction('envio')">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <h3 style="font-size:17px;font-weight:800;color:white;margin:0;letter-spacing:-0.02em;">
+            <span style="color:white;">Punto</span><span style="color:#f97316;">Envío</span>
+          </h3>
+          <span style="background:rgba(249,115,22,0.2);color:#fb923c;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;">BETA</span>
+        </div>
+        <p style="font-size:13px;color:#9ca3af;margin:0 0 20px;line-height:1.6;">Seguimiento en tiempo real para tus repartos. Sin apps, sin complicaciones.</p>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#f97316;" id="heroEnvioAction">
+          Crear envío
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
         </div>
       </div>
 
     </div>
   </div>
+</section>
+ <!-- ================= ESTADOS DEL DÍA ================= -->
+<section id="storiesSection" style="display:none;
+  padding:16px 0 8px;border-bottom:1px solid #f1f5f9;background:white;">
+  <div style="max-width:1280px;margin:0 auto;padding:0 16px;">
+    <div style="
+      display:flex;align-items:center;gap:6px;
+      margin-bottom:14px;
+    ">
+      <span style="font-size:13px;font-weight:700;color:#111827;">
+        🖊️ Pizarras de hoy
+      </span>
+      <span style="font-size:11px;color:#9ca3af;">de tiendas que seguís</span>
+    </div>
+    <div id="storiesStrip" style="
+      display:flex;gap:16px;overflow-x:auto;
+      padding:4px 0 12px;scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    "></div>
+  </div>
+  <style>#storiesStrip::-webkit-scrollbar{display:none}</style>
+</section>
+<!-- ================= CATEGORÍAS ================= -->
+<section class="pc-categories-section">
+  <div class="pc-section-inner">
 
-</nav>
+    <div class="pc-section-head">
+      <div>
+        <span class="pc-section-kicker">Explorá PuntoCerca</span>
+        <h2>Buscá por categorías</h2>
+        <p>Elegí un rubro y descubrí comercios, productos y servicios cerca tuyo.</p>
+      </div>
+    </div>
 
-  <section class="bg-gray-50 border-t border-gray-200"> 
-  <div class="max-w-7xl mx-auto px-6 py-3 flex justify-center gap-10 text-sm font-medium text-gray-700">
+    <div id="categoriesContainer" class="pc-categories-grid"></div>
 
-    <a href="/stores" class="hover:text-orange-600 transition">
-      Tiendas destacadas
-    </a>
-
-    <a href="/offers" class="hover:text-orange-600 transition">
-      Ofertas del día
-    </a>
-
-    <a href="/products" class="hover:text-orange-600 transition">
-      Productos
-    </a>
-
-    <a href="/map" class="hover:text-orange-600 transition">
-      Ver mapa
-    </a>
+    <div id="subcategoriesContainer" class="pc-subcategories-wrap hidden">
+      <div id="subcategoriesList" class="pc-subcategories-list"></div>
+    </div>
 
   </div>
 </section>
-
-<!-- CONTENIDO PRINCIPAL -->
-<main class="flex-grow">
-
-  <!-- ================= HERO ================= -->
-  <section class="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-24">
-    <div class="max-w-4xl mx-auto text-center px-6">
-      
-      <h1 class="text-4xl md:text-5xl font-bold mb-6">
-        Encuentra Servicios cerca de ti
-      </h1>
-
-      <p class="text-lg mb-8 opacity-90">
-        Descubre negocios locales, explora productos y conecta fácilmente.
-      </p>
-
-      <div class="flex flex-col md:flex-row justify-center gap-4">
-  <input 
-    id="searchInput"
-    type="text" 
-    placeholder="Busca Negocios, Productos, Marcas y Más"
-    class="px-6 py-3 rounded-full text-gray-700 w-full md:w-96 focus:outline-none shadow-md"
-  >
-  <button 
-    id="searchBtn"
-    class="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition shadow-md"
-  >
-    Buscar
-  </button>
-</div>
-
-    </div>
-  </section>
-
-  <!-- ================= MENÚ CATEGORÍAS MARKETPLACE ================= -->
-<section class="bg-white relative z-[9999]">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center gap-8 py-4 text-sm font-medium text-gray-700">
-
-<!-- GASTRONOMÍA -->
-<div class="relative group">
-<button onclick="loadStores('Gastronomía'); return false;" class="hover:text-orange-600 transition">
-Gastronomía
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Gastronomía',1); return false;" class="block px-4 py-2 hover:bg-gray-50">Restaurante</a>
-<a href="#" onclick="loadStores('Gastronomía',2); return false;" class="block px-4 py-2 hover:bg-gray-50">Pizzería</a>
-<a href="#" onclick="loadStores('Gastronomía',3); return false;" class="block px-4 py-2 hover:bg-gray-50">Bar</a>
-<a href="#" onclick="loadStores('Gastronomía',4); return false;" class="block px-4 py-2 hover:bg-gray-50">Cafetería</a>
-<a href="#" onclick="loadStores('Gastronomía',5); return false;" class="block px-4 py-2 hover:bg-gray-50">Heladería</a>
-</div>
-</div>
-
-<!-- COMERCIO -->
-<div class="relative group">
-<button onclick="loadStores('Comercio'); return false;" class="hover:text-orange-600 transition">
-Comercio
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Comercio',6); return false;" class="block px-4 py-2 hover:bg-gray-50">Ropa</a>
-<a href="#" onclick="loadStores('Comercio',7); return false;" class="block px-4 py-2 hover:bg-gray-50">Electrónica</a>
-<a href="#" onclick="loadStores('Comercio',8); return false;" class="block px-4 py-2 hover:bg-gray-50">Ferretería</a>
-<a href="#" onclick="loadStores('Comercio',9); return false;" class="block px-4 py-2 hover:bg-gray-50">Librería</a>
-</div>
-</div>
-
-<!-- BELLEZA -->
-<div class="relative group">
-<button onclick="loadStores('Belleza'); return false;" class="hover:text-orange-600 transition">
-Belleza
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Belleza',10); return false;" class="block px-4 py-2 hover:bg-gray-50">Peluquería</a>
-<a href="#" onclick="loadStores('Belleza',11); return false;" class="block px-4 py-2 hover:bg-gray-50">Barbería</a>
-<a href="#" onclick="loadStores('Belleza',12); return false;" class="block px-4 py-2 hover:bg-gray-50">Estética</a>
-<a href="#" onclick="loadStores('Belleza',13); return false;" class="block px-4 py-2 hover:bg-gray-50">Spa</a>
-</div>
-</div>
-
-<!-- SALUD -->
-<div class="relative group">
-<button onclick="loadStores('Salud'); return false;" class="hover:text-orange-600 transition">
-Salud
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Salud',14); return false;" class="block px-4 py-2 hover:bg-gray-50">Clínica</a>
-<a href="#" onclick="loadStores('Salud',15); return false;" class="block px-4 py-2 hover:bg-gray-50">Odontología</a>
-<a href="#" onclick="loadStores('Salud',16); return false;" class="block px-4 py-2 hover:bg-gray-50">Farmacia</a>
-<a href="#" onclick="loadStores('Salud',17); return false;" class="block px-4 py-2 hover:bg-gray-50">Psicología</a>
-</div>
-</div>
-
-<!-- SERVICIOS -->
-<div class="relative group">
-<button onclick="loadStores('Servicios'); return false;" class="hover:text-orange-600 transition">
-Servicios
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Servicios',18); return false;" class="block px-4 py-2 hover:bg-gray-50">Electricista</a>
-<a href="#" onclick="loadStores('Servicios',19); return false;" class="block px-4 py-2 hover:bg-gray-50">Plomería</a>
-<a href="#" onclick="loadStores('Servicios',20); return false;" class="block px-4 py-2 hover:bg-gray-50">Gasista</a>
-<a href="#" onclick="loadStores('Servicios',21); return false;" class="block px-4 py-2 hover:bg-gray-50">Técnico PC</a>
-<a href="#" onclick="loadStores('Servicios',22); return false;" class="block px-4 py-2 hover:bg-gray-50">Reparaciones</a>
-</div>
-</div>
-
-<!-- AUTOMOTOR -->
-<div class="relative group">
-<button onclick="loadStores('Automotor'); return false;" class="hover:text-orange-600 transition">
-Automotor
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Automotor',23); return false;" class="block px-4 py-2 hover:bg-gray-50">Taller mecánico</a>
-<a href="#" onclick="loadStores('Automotor',24); return false;" class="block px-4 py-2 hover:bg-gray-50">Lavadero</a>
-<a href="#" onclick="loadStores('Automotor',25); return false;" class="block px-4 py-2 hover:bg-gray-50">Gomería</a>
-<a href="#" onclick="loadStores('Automotor',26); return false;" class="block px-4 py-2 hover:bg-gray-50">Repuestos</a>
-</div>
-</div>
-
-<!-- EDUCACIÓN -->
-<div class="relative group">
-<button onclick="loadStores('Educación'); return false;" class="hover:text-orange-600 transition">
-Educación
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Educación',27); return false;" class="block px-4 py-2 hover:bg-gray-50">Instituto</a>
-<a href="#" onclick="loadStores('Educación',28); return false;" class="block px-4 py-2 hover:bg-gray-50">Clases particulares</a>
-<a href="#" onclick="loadStores('Educación',29); return false;" class="block px-4 py-2 hover:bg-gray-50">Academia</a>
-</div>
-</div>
-
-<!-- DEPORTES -->
-<div class="relative group">
-<button onclick="loadStores('Deportes'); return false;" class="hover:text-orange-600 transition">
-Deportes
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Deportes',30); return false;" class="block px-4 py-2 hover:bg-gray-50">Gimnasio</a>
-<a href="#" onclick="loadStores('Deportes',31); return false;" class="block px-4 py-2 hover:bg-gray-50">Escuela deportiva</a>
-<a href="#" onclick="loadStores('Deportes',32); return false;" class="block px-4 py-2 hover:bg-gray-50">Club</a>
-</div>
-</div>
-
-<!-- MASCOTAS -->
-<div class="relative group">
-<button onclick="loadStores('Mascotas'); return false;" class="hover:text-orange-600 transition">
-Mascotas
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Mascotas',33); return false;" class="block px-4 py-2 hover:bg-gray-50">Veterinaria</a>
-<a href="#" onclick="loadStores('Mascotas',34); return false;" class="block px-4 py-2 hover:bg-gray-50">Pet Shop</a>
-<a href="#" onclick="loadStores('Mascotas',35); return false;" class="block px-4 py-2 hover:bg-gray-50">Peluquería canina</a>
-</div>
-</div>
-
-<!-- HOGAR -->
-<div class="relative group">
-<button onclick="loadStores('Hogar'); return false;" class="hover:text-orange-600 transition">
-Hogar
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Hogar',36); return false;" class="block px-4 py-2 hover:bg-gray-50">Mueblería</a>
-<a href="#" onclick="loadStores('Hogar',37); return false;" class="block px-4 py-2 hover:bg-gray-50">Decoración</a>
-<a href="#" onclick="loadStores('Hogar',38); return false;" class="block px-4 py-2 hover:bg-gray-50">Construcción</a>
-</div>
-</div>
-
-<!-- PROFESIONALES -->
-<div class="relative group">
-<button onclick="loadStores('Profesionales'); return false;" class="hover:text-orange-600 transition">
-Profesionales
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Profesionales',39); return false;" class="block px-4 py-2 hover:bg-gray-50">Abogado</a>
-<a href="#" onclick="loadStores('Profesionales',40); return false;" class="block px-4 py-2 hover:bg-gray-50">Contador</a>
-<a href="#" onclick="loadStores('Profesionales',41); return false;" class="block px-4 py-2 hover:bg-gray-50">Arquitecto</a>
-<a href="#" onclick="loadStores('Profesionales',42); return false;" class="block px-4 py-2 hover:bg-gray-50">Marketing</a>
-</div>
-</div>
-
-<!-- EVENTOS -->
-<div class="relative group">
-<button onclick="loadStores('Eventos'); return false;" class="hover:text-orange-600 transition">
-Eventos
-</button>
-<div class="absolute left-0 top-full w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-<a href="#" onclick="loadStores('Eventos',43); return false;" class="block px-4 py-2 hover:bg-gray-50">Salón de eventos</a>
-<a href="#" onclick="loadStores('Eventos',44); return false;" class="block px-4 py-2 hover:bg-gray-50">Catering</a>
-<a href="#" onclick="loadStores('Eventos',45); return false;" class="block px-4 py-2 hover:bg-gray-50">Fotografía</a>
-</div>
-</div>
-
-</div>
-</div>
-</section>
   <!-- ================= MAPA ================= -->
-<section class="py-12 bg-gray-50">
+<section class="py-12 bg-gray-50 relative z-0">
   <div class="max-w-7xl mx-auto px-6">
-    <div class="rounded-2xl overflow-hidden shadow-xl border border-gray-200 relative">
+    <div class="rounded-2xl shadow-xl border border-gray-200 relative overflow-visible">
       <div id="map" class="h-[500px] w-full"></div>
 
       <div id="storePreview" class="store-preview hidden"></div>
@@ -301,20 +336,47 @@ Eventos
   </div>
 </section>
 
-  <!-- ================= OFERTAS ================= -->
-  <section id="ofertas" class="py-16">
+  <!-- ================= EVENTOS ================= -->
+<section id="eventos" class="py-16 bg-white">
   <div class="max-w-7xl mx-auto px-6">
-    <h2 class="text-3xl font-bold mb-8 text-orange-600">
-      🔥 Ofertas del Día
-    </h2>
+
+   <div class="flex items-center gap-3 mb-8">
+  <div class="w-1 h-8 bg-orange-500 rounded-full"></div>
+  <h2 class="text-2xl font-bold text-gray-800">Eventos cerca tuyo</h2>
+</div>
 
     <div class="relative">
-      <button id="prevOffers"
+
+      <button id="prevEvents"
         class="absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
         ❮
       </button>
 
-      <div id="dailyOffers" class="flex gap-6 overflow-x-auto scroll-smooth pb-4"></div>
+      <div id="eventsContainer" class="cards-scroll"></div>
+
+      <button id="nextEvents"
+        class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❯
+      </button>
+
+    </div>
+  </div>
+</section>
+
+  <!-- ================= OFERTAS ================= -->
+  <section id="ofertas" class="py-16">
+<div class="flex items-center gap-3 mb-8">
+  <div class="w-1 h-8 bg-orange-500 rounded-full"></div>
+  <h2 class="text-2xl font-bold text-gray-800">Ofertas del Día</h2>
+</div>
+
+    <div class="relative">
+      <button id="prevOffers"
+        class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
+        ❮
+      </button>
+
+     <div id="dailyOffers" class="cards-scroll"></div>
 
       <button id="nextOffers"
         class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition z-10">
@@ -326,10 +388,10 @@ Eventos
 
   <!-- ================= TIENDAS ================= -->
   <section id="tiendas" class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-6">
-      <h2 class="text-3xl font-bold mb-8">
-        Tiendas Destacadas
-      </h2>
+    <div class="flex items-center gap-3 mb-8">
+  <div class="w-1 h-8 bg-orange-500 rounded-full"></div>
+  <h2 class="text-2xl font-bold text-gray-800">Tiendas Destacadas</h2>
+</div>
 
       <div class="relative">
         <button id="prevStores"
@@ -349,10 +411,10 @@ Eventos
 
   <!-- ================= PRODUCTOS ================= -->
   <section class="py-16">
-    <div class="max-w-7xl mx-auto px-6">
-      <h2 class="text-3xl font-bold mb-8">
-        Productos Destacados
-      </h2>
+   <div class="flex items-center gap-3 mb-8">
+  <div class="w-1 h-8 bg-orange-500 rounded-full"></div>
+  <h2 class="text-2xl font-bold text-gray-800">Productos Destacados</h2>
+</div>
 
       <div class="relative">
         <button id="prevProducts"
@@ -360,7 +422,7 @@ Eventos
           ❮
         </button>
 
-        <div id="products" class="flex gap-6 overflow-x-auto scroll-smooth pb-4"></div>
+       <div id="products" class="cards-scroll"></div>
 
         <button id="nextProducts"
           class="absolute right-0 top-1/2 -translate-y-1/2 bg-orange-600 text-white w-10 h-10 rounded-full shadow-lg hover:bg-orange-700 transition">
@@ -370,47 +432,328 @@ Eventos
     </div>
   </section>
 
-</main>
+ <!-- ================= PUNTOENVÍO FEATURE ================= -->
+<section style="
+  background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#111827 100%);
+  padding:80px 24px;
+  position:relative;
+  overflow:hidden;
+">
 
-<!-- ================= FOOTER ================= -->
-<footer class="bg-gray-900 text-gray-300 py-10 mt-12">
-  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+  <!-- FONDO DECORATIVO -->
+  <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+    <div style="
+      position:absolute;top:-120px;right:-120px;
+      width:500px;height:500px;
+      background:radial-gradient(circle,rgba(234,88,12,0.12) 0%,transparent 70%);
+      border-radius:50%;
+    "></div>
+    <div style="
+      position:absolute;bottom:-80px;left:-80px;
+      width:350px;height:350px;
+      background:radial-gradient(circle,rgba(249,115,22,0.07) 0%,transparent 70%);
+      border-radius:50%;
+    "></div>
+  </div>
 
+  <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;position:relative;z-index:1;">
+
+    <!-- IZQUIERDA: TEXTO -->
     <div>
-      <h3 class="text-white font-semibold mb-3">PuntoCerca</h3>
-      <p class="text-sm text-gray-400">
-        Plataforma que conecta comercios locales con personas cercanas.
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(234,88,12,0.15);border:1px solid rgba(234,88,12,0.3);padding:6px 14px;border-radius:999px;margin-bottom:24px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:#f97316;animation:pulseDot 1.5s infinite;"></div>
+        <span style="font-size:12px;font-weight:800;color:#fb923c;letter-spacing:0.06em;text-transform:uppercase;">Exclusivo PuntoCerca</span>
+      </div>
+
+      <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:900;color:white;letter-spacing:-0.04em;line-height:1.05;margin:0 0 8px;">
+        <span style="color:white;">Punto</span><span style="color:#f97316;">Envío</span>
+      </h2>
+
+      <p style="font-size:1.1rem;font-weight:600;color:#94a3b8;margin:0 0 24px;line-height:1.5;">
+        Seguimiento en tiempo real para tus repartos.<br>Sin apps. Sin complicaciones.
       </p>
-    </div>
 
-    <div>
-      <h3 class="text-white font-semibold mb-3">Enlaces</h3>
-      <ul class="space-y-2 text-sm">
-        <li><a href="/" class="hover:text-white transition">Inicio</a></li>
-        <li><a href="/register.html" class="hover:text-white transition">Crear Cuenta</a></li>
-        <li><a href="/login" class="hover:text-white transition">Login</a></li>
+      <ul style="list-style:none;padding:0;margin:0 0 36px;display:flex;flex-direction:column;gap:14px;">
+        <li style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(249,115,22,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+          </div>
+          <span style="color:#cbd5e1;font-size:15px;">Link único para el repartidor y el cliente</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(249,115,22,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+            </svg>
+          </div>
+          <span style="color:#cbd5e1;font-size:15px;">Ruta recomendada en tiempo real</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(249,115,22,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 4.5h3" />
+            </svg>
+          </div>
+          <span style="color:#cbd5e1;font-size:15px;">Sin apps — funciona desde cualquier celular</span>
+        </li>
+        <li style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;background:rgba(249,115,22,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+            </svg>
+          </div>
+          <span style="color:#cbd5e1;font-size:15px;">Compartí por WhatsApp en un toque</span>
+        </li>
       </ul>
+
+      <button onclick="heroAction('envio')" style="
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        color:white;
+        border:none;
+        padding:16px 32px;
+        border-radius:14px;
+        font-size:16px;
+        font-weight:800;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        box-shadow:0 8px 28px rgba(234,88,12,0.4);
+        transition:all 0.2s ease;
+        letter-spacing:-0.01em;
+      "
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 14px 36px rgba(234,88,12,0.5)'"
+      onmouseout="this.style.transform='none';this.style.boxShadow='0 8px 28px rgba(234,88,12,0.4)'"
+      >
+        Crear mi primer envío
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </button>
     </div>
 
-    <div>
-      <h3 class="text-white font-semibold mb-3">Contacto</h3>
-      <p class="text-sm text-gray-400">
-        soporte@puntocerca.com
-      </p>
+    <!-- DERECHA: ILUSTRACIÓN SVG ANIMADA -->
+    <div style="display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:100%;max-width:420px;">
+
+        <!-- TELÉFONO -->
+        <div style="
+          background:#1e293b;
+          border:2px solid #334155;
+          border-radius:32px;
+          padding:20px;
+          box-shadow:0 40px 80px rgba(0,0,0,0.5);
+          position:relative;
+        ">
+          <!-- HEADER DEL TELÉFONO -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #334155;">
+            <div style="width:36px;height:36px;background:linear-gradient(135deg,#ea580c,#f97316);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+              </svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:900;color:white;letter-spacing:-0.02em;">
+                <span>Punto</span><span style="color:#f97316;">Envío</span>
+              </div>
+              <div style="font-size:10px;color:#64748b;">por PuntoCerca</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulseDot 1.5s infinite;"></div>
+              <span style="font-size:11px;color:#22c55e;font-weight:700;">En camino</span>
+            </div>
+          </div>
+
+          <!-- MAPA SIMULADO -->
+          <div style="
+            background:#0f172a;
+            border-radius:16px;
+            height:180px;
+            position:relative;
+            overflow:hidden;
+            margin-bottom:16px;
+          ">
+            <!-- GRID DE CALLES -->
+            <svg width="100%" height="100%" style="position:absolute;inset:0;opacity:0.3;">
+              <line x1="0" y1="60" x2="100%" y2="60" stroke="#334155" stroke-width="1"/>
+              <line x1="0" y1="120" x2="100%" y2="120" stroke="#334155" stroke-width="1"/>
+              <line x1="80" y1="0" x2="80" y2="100%" stroke="#334155" stroke-width="1"/>
+              <line x1="200" y1="0" x2="200" y2="100%" stroke="#334155" stroke-width="1"/>
+              <line x1="320" y1="0" x2="320" y2="100%" stroke="#334155" stroke-width="1"/>
+            </svg>
+            <!-- RUTA ANIMADA -->
+            <svg width="100%" height="100%" style="position:absolute;inset:0;">
+              <path id="routePath" d="M 60 160 L 60 90 L 180 90 L 180 40 L 320 40" 
+                stroke="#f97316" stroke-width="3" fill="none" stroke-linecap="round"
+                stroke-dasharray="400" stroke-dashoffset="400"
+                style="animation:drawRoute 2s ease forwards 0.5s;">
+              </path>
+            </svg>
+            <!-- MOTO ANIMADA -->
+            <div id="motoIcon" style="
+              position:absolute;
+              bottom:20px;left:40px;
+              width:40px;height:40px;
+              background:linear-gradient(135deg,#ea580c,#f97316);
+              border-radius:50%;
+              border:2px solid white;
+              display:flex;align-items:center;justify-content:center;
+              box-shadow:0 4px 16px rgba(234,88,12,0.5);
+              animation:motoMove 3s ease-in-out infinite;
+            ">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="white">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+              </svg>
+            </div>
+            <!-- DESTINO -->
+            <div style="
+              position:absolute;top:24px;right:30px;
+              width:36px;height:36px;
+              background:white;
+              border-radius:50%;
+              border:2px solid #ea580c;
+              display:flex;align-items:center;justify-content:center;
+            ">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ea580c">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- BOTONES SIMULADOS -->
+          <div style="display:grid;gap:8px;">
+            <div style="background:#0f172a;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#64748b;">Link del repartidor</span>
+              <span style="background:#ea580c;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;">Copiar</span>
+            </div>
+            <div style="background:#0f172a;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#64748b;">Link del cliente</span>
+              <span style="background:#25D366;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;">WhatsApp</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
   </div>
 
-  <div class="border-t border-gray-700 mt-8 pt-4 text-center text-sm text-gray-500">
-    © 2026 PuntoLocal - Todos los derechos reservados
+  <!-- MOBILE -->
+  <style>
+    @media (max-width: 768px) {
+      #puntoenvio-grid {
+        grid-template-columns: 1fr !important;
+      }
+      #puntoenvio-phone {
+        display: none !important;
+      }
+    }
+    @keyframes drawRoute {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes motoMove {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(60px, -40px); }
+      100% { transform: translate(0, 0); }
+    }
+  </style>
+
+</section>
+
+
+</main>
+
+<footer class="bg-gray-900 text-gray-300">
+  <div class="max-w-7xl mx-auto px-6 py-14">
+
+    <div class="grid md:grid-cols-4 gap-10">
+
+      <!-- Marca -->
+      <div>
+        <h3 class="text-3xl font-extrabold text-white mb-3">
+          <span class="text-orange-500">Punto</span>Cerca
+        </h3>
+        <p class="text-gray-400 leading-relaxed">
+          Conectando personas con comercios y servicios reales cerca suyo en toda Argentina.
+        </p>
+      </div>
+
+      <!-- Plataforma -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Plataforma</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/products" class="hover:text-white">Productos</a></li>
+          <li><a href="/offers" class="hover:text-white">Ofertas del Día</a></li>
+          <li><a href="/stores" class="hover:text-white">Tiendas</a></li>
+          <li><a href="/register" class="hover:text-white">Registrarse</a></li>
+        </ul>
+      </div>
+
+      <!-- Contacto -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Contacto</h4>
+        <ul class="space-y-2 text-sm">
+          <li>
+            <a href="https://wa.me/5493417819577"
+               target="_blank"
+               class="hover:text-green-400">
+              WhatsApp
+            </a>
+          </li>
+          <li>
+            <a href="https://www.instagram.com/puntocerca"
+               target="_blank"
+               class="hover:text-pink-400">
+              Instagram
+            </a>
+          </li>
+          <li>
+            <a href="mailto:contacto@puntocerca.com.ar"
+               class="hover:text-white">
+              contacto@puntocerca.com.ar
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Legal</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/privacy.html" class="hover:text-white">Política de privacidad</a></li>
+          <li><a href="/terms.html" class="hover:text-white">Términos y condiciones</a></li>
+          <li><a href="/contact.html" class="hover:text-white">Contacto</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Línea inferior -->
+  <div class="border-t border-gray-800 mt-10 pt-6 text-center text-sm text-gray-500">
+  © PuntoCerca. Todos los derechos reservados.
+  <div style="display:flex;justify-content:center;margin-top:16px;">
+  <svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.5;">
+    <circle cx="16" cy="14" r="14" fill="#FF6A00"/>
+    <circle cx="16" cy="14" r="6" fill="white"/>
+    <path d="M9 22 Q16 36 23 22 Z" fill="#FF6A00"/>
+  </svg>
+</div>
+</div>
+
   </div>
 </footer>
 
 
 
-
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] space-y-3"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="/js/stories-feed.js"></script>
+  <script src="/js/utils/carousel.js"></script>
+  <script src="/js/delivery-monitor.js"></script>
+ <script src="/js/utils/prices.js"></script>
 <script type="module" src="/js/app.js"></script>
 <script src="/js/core/auth.js"></script>
 

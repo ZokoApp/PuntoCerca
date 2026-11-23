@@ -3,35 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resultados de búsqueda</title>
-
+<title>Resultados - PuntoCerca</title>
 <link rel="stylesheet" href="/css/output.css">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+body { background:#f8fafc; color:#1f2937; min-height:100vh; display:flex; flex-direction:column; }
 
+/* NAVBAR */
+.navbar { background:white; border-bottom:1px solid #e5e7eb; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; box-shadow:0 1px 8px rgba(0,0,0,0.05); }
+.navbar-brand { display:flex; align-items:center; gap:8px; text-decoration:none; }
+.navbar-brand img { height:28px; width:28px; }
+.navbar-brand span { color:#ea580c; font-weight:800; font-size:18px; }
+.navbar a.nav-link { color:#6b7280; font-size:14px; text-decoration:none; font-weight:500; }
+.navbar a.nav-link:hover { color:#ea580c; }
+
+/* HERO SEARCH */
+.search-hero { background:linear-gradient(135deg,#ea580c,#f97316); padding:32px 24px; text-align:center; }
+.search-hero p { color:rgba(255,255,255,0.85); font-size:13px; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; }
+.search-hero h1 { color:white; font-size:22px; font-weight:900; }
+.search-hero h1 span { background:rgba(255,255,255,0.2); padding:2px 10px; border-radius:6px; }
+
+/* MAIN */
+main { flex:1; max-width:1100px; margin:0 auto; width:100%; padding:32px 20px; }
+
+/* SECTION HEADER */
+.section-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #f1f5f9; }
+.section-header svg { flex-shrink:0; }
+.section-header h2 { font-size:13px; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; }
+.section-header .count { background:#f1f5f9; color:#6b7280; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:auto; }
+
+/* GRID */
+.results-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; margin-bottom:40px; }
+
+/* CARDS */
+.store-card { background:white; border-radius:14px; overflow:hidden; cursor:pointer; border:1px solid #e5e7eb; transition:all 0.22s ease; text-decoration:none; color:inherit; display:block; }
+.store-card:hover { box-shadow:0 12px 28px rgba(0,0,0,0.10); transform:translateY(-3px); border-color:#fed7aa; }
+.store-image { position:relative; height:120px; }
+.store-image img { width:100%; height:100%; object-fit:cover; }
+.store-status { position:absolute; top:8px; left:8px; padding:3px 10px; border-radius:999px; font-size:10px; font-weight:800; color:white; letter-spacing:0.04em; }
+.store-status.open { background:#16a34a; }
+.store-status.closed { background:#dc2626; }
+.store-content { padding:12px; }
+.store-name { font-size:14px; font-weight:700; color:#111827; margin-bottom:4px; }
+.store-meta { font-size:11px; color:#9ca3af; line-height:1.5; }
+.store-rating { font-size:11px; color:#f59e0b; margin-top:6px; font-weight:700; }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:40px 20px; color:#9ca3af; }
+.empty-state svg { margin:0 auto 12px; opacity:0.4; }
+.empty-state p { font-size:14px; }
+
+/* FOOTER */
+footer { background:#111827; color:#9ca3af; padding:28px 24px; text-align:center; font-size:13px; margin-top:auto; }
+footer strong { color:#f97316; font-weight:800; }
+footer a { color:#9ca3af; text-decoration:none; margin:0 10px; }
+footer a:hover { color:white; }
+footer .footer-links { margin-top:10px; }
+</style>
 </head>
+<body>
 
-<body class="bg-gray-50 text-gray-800">
-
-<!-- NAV -->
-<nav class="bg-white shadow p-4 flex justify-between">
-  <a href="/" class="font-bold text-orange-600">PuntoCerca</a>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <img src="/img/favicon.png" alt="PuntoCerca">
+    <span>PuntoCerca</span>
+  </a>
+  <a href="/" class="nav-link">Inicio</a>
 </nav>
 
+<!-- HERO -->
+<div class="search-hero">
+  <p>Resultados de búsqueda</p>
+  <h1 id="searchTitle"></h1>
+</div>
+
 <!-- CONTENIDO -->
-<main class="max-w-6xl mx-auto px-6 py-10">
+<main>
 
-  <h1 id="searchTitle" class="text-2xl font-bold mb-6">
-    Resultados
-  </h1>
+  <!-- PRODUCTOS -->
+  <section style="margin-bottom:40px;">
+    <div class="section-header">
+      <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+      </svg>
+      <h2>Productos</h2>
+      <span class="count" id="productsCount">0</span>
+    </div>
+    <div id="productsResults" class="results-grid"></div>
+  </section>
 
- <h2 class="text-xl font-semibold mb-4">🛒 Productos</h2>
-<div id="productsResults" class="grid md:grid-cols-3 gap-6 mb-10"></div>
-
-<h2 class="text-xl font-semibold mb-4">🏪 Tiendas</h2>
-<div id="storesResults" class="grid md:grid-cols-3 gap-6"></div>
+  <!-- TIENDAS -->
+  <section>
+    <div class="section-header">
+      <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f97316">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l1-4h16l1 4M5 9h14v10H5z" />
+      </svg>
+      <h2>Tiendas</h2>
+      <span class="count" id="storesCount">0</span>
+    </div>
+    <div id="storesResults" class="results-grid"></div>
+  </section>
 
 </main>
 
-<script src="/js/search.js"></script>
+<!-- FOOTER -->
+<footer>
+  <div>© 2026 <strong>PuntoCerca</strong> · Plataforma de comercios locales</div>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacidad</a>
+    <a href="/terms.html">Términos</a>
+    <a href="/contact.html">Contacto</a>
+  </div>
+</footer>
 
+<script src="/js/search.js"></script>
 </body>
 </html>

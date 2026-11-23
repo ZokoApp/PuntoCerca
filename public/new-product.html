@@ -3,207 +3,588 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nuevo producto</title>
-
+<title>Nuevo producto - PuntoCerca</title>
 <link rel="stylesheet" href="/css/output.css">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+}
+
+.navbar {
+  background: white;
+  border-bottom: 1px solid #ebebeb;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.form-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+  align-items: start;
+}
+
+.form-col { display: flex; flex-direction: column; }
+
+@media (max-width: 768px) {
+  .form-columns { grid-template-columns: 1fr; }
+}
+.main .submit-btn {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e5e5;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #111;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title-dot {
+  width: 4px;
+  height: 16px;
+  background: #ea580c;
+  border-radius: 4px;
+}
+
+.form-field { margin-bottom: 14px; }
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111;
+  background: white;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus { border-color: #ea580c; }
+
+.form-field textarea { min-height: 90px; resize: vertical; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* PRICE TOGGLE */
+.price-wrap { position: relative; }
+
+.price-wrap input { padding-left: 28px; }
+
+.price-symbol {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #888;
+  font-weight: 600;
+}
+
+.price-on-request {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+}
+
+.price-on-request input { width: auto; }
+
+/* TOGGLE FIELDS */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f1f1;
+  cursor: pointer;
+}
+
+.toggle-row:last-child { border-bottom: none; }
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.toggle-switch {
+  width: 40px;
+  height: 22px;
+  background: #e0e0e0;
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-switch.on { background: #ea580c; }
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.toggle-switch.on::after { transform: translateX(18px); }
+
+.toggle-extra {
+  display: none;
+  padding: 12px 0 4px;
+}
+
+.toggle-extra.show { display: block; }
+
+/* UPLOAD */
+.upload-area {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.upload-area:hover { border-color: #ea580c; background: #fff7ed; }
+
+.upload-area input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.upload-icon {
+  width: 40px;
+  height: 40px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.upload-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.upload-sub { font-size: 12px; color: #aaa; }
+
+.upload-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.upload-preview img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e5e5e5;
+}
+
+/* OFERTA */
+.offer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.offer-label { font-size: 14px; color: #333; font-weight: 600; }
+.offer-desc { font-size: 12px; color: #888; margin-top: 2px; }
+
+/* SUBMIT */
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: #ea580c;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: -0.01em;
+  margin-top: 8px;
+}
+
+.submit-btn:hover { background: #c2410c; }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #888;
+  text-decoration: none;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.back-link:hover { color: #ea580c; }
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .main { padding: 24px 16px 60px; }
+}
+</style>
 </head>
 
-<body class="bg-gray-50">
+<body>
 
-<!-- NAV -->
-<nav class="bg-white border-b shadow-sm">
-  <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between">
-    <a href="/" class="text-xl font-bold text-orange-600">PuntoCerca</a>
-  </div>
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;">
+    <img src="/img/logo.svg" style="height:40px;width:auto;">
+  </a>
+  <a href="/dashboard" style="font-size:13px;color:#888;text-decoration:none;font-weight:600;">
+    Volver al dashboard
+  </a>
 </nav>
 
-<!-- CONTENIDO -->
-<main class="max-w-3xl mx-auto px-6 py-10">
+<main class="main">
 
-  <div class="bg-white rounded-2xl shadow-sm border p-8">
+  <a href="/dashboard" class="back-link">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    Volver
+  </a>
 
-    <h1 class="text-2xl font-bold mb-6">Crear nuevo producto</h1>
+  <p class="page-title">Nuevo producto</p>
+  <p class="page-sub">Completá los datos para publicar en tu tienda</p>
 
-    <form id="productForm" class="space-y-4">
+  <form id="productForm">
+  <div class="form-columns">
 
-      <input type="text" id="name" placeholder="Nombre"
-        class="w-full border rounded-lg p-3">
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="form-col">
 
-      <input type="number" id="price" placeholder="Precio"
-        class="w-full border rounded-lg p-3">
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Información básica</div>
+        <div class="form-field">
+          <label>Nombre del producto <span style="color:#ea580c;">*</span></label>
+          <input type="text" id="name" placeholder="Ej: Zapatillas Nike Air Max">
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Marca</label>
+            <input type="text" id="brand" placeholder="Ej: Nike">
+          </div>
+          <div class="form-field">
+            <label>Modelo</label>
+            <input type="text" id="model" placeholder="Ej: Air Max 90">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Descripción</label>
+          <textarea id="description" placeholder="Describí el producto..."></textarea>
+        </div>
+      </div>
 
-      <input type="text" id="brand" placeholder="Marca"
-        class="w-full border rounded-lg p-3">
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Categoría</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Categoría <span style="color:#ea580c;">*</span></label>
+            <select id="category"><option value="">Seleccioná</option></select>
+          </div>
+          <div class="form-field">
+            <label>Subcategoría <span style="color:#ea580c;">*</span></label>
+            <select id="subcategory"><option value="">Seleccioná</option></select>
+          </div>
+        </div>
+      </div>
 
-      <input type="text" id="size" placeholder="Talles (ej: 40,41,42)"
-        class="w-full border rounded-lg p-3">
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Precio</div>
+        <div class="form-field">
+          <label>Precio <span style="color:#ea580c;">*</span></label>
+          <div class="price-wrap">
+            <span class="price-symbol">$</span>
+            <input type="number" id="price" placeholder="0">
+          </div>
+          <label class="price-on-request">
+            <input type="checkbox" id="priceOnRequest">
+            Precio a consultar
+          </label>
+        </div>
+        <div class="offer-toggle">
+          <div>
+            <div class="offer-label">Producto en oferta</div>
+            <div class="offer-desc">Aparecerá destacado en la sección de ofertas</div>
+          </div>
+          <div class="toggle-switch" id="offerSwitch" onclick="toggleOffer()"></div>
+          <input type="checkbox" id="isOffer" style="display:none;">
+        </div>
+      </div>
 
-      <div>
-  <label class="text-sm text-gray-600">Colores disponibles</label>
+    </div>
 
-  <select id="colors" multiple
-    class="w-full border rounded-lg p-3 h-32">
+    <!-- COLUMNA DERECHA -->
+    <div class="form-col">
 
-    <option value="Negro">Negro</option>
-    <option value="Blanco">Blanco</option>
-    <option value="Gris">Gris</option>
-    <option value="Azul">Azul</option>
-    <option value="Rojo">Rojo</option>
-    <option value="Verde">Verde</option>
-    <option value="Amarillo">Amarillo</option>
-    <option value="Rosa">Rosa</option>
-    <option value="Marrón">Marrón</option>
-    <option value="Beige">Beige</option>
-    <option value="Naranja">Naranja</option>
-    <option value="Violeta">Violeta</option>
-    <option value="Plateado">Plateado</option>
-    <option value="Dorado">Dorado</option>
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Imágenes</div>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="productImages" multiple accept="image/*" onchange="previewImages(this)">
+          <div class="upload-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+          <p class="upload-title">Subí hasta 5 imágenes</p>
+          <p class="upload-sub">JPG, PNG o WEBP · Máximo 5MB cada una</p>
+        </div>
+        <div class="upload-preview" id="uploadPreview"></div>
+        <div class="form-field" style="margin-top:12px;">
+          <label>O pegá una URL de imagen</label>
+          <input type="text" id="image_url" placeholder="https://...">
+        </div>
+      </div>
 
-  </select>
+     <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Video del producto</div>
 
-  <p class="text-xs text-gray-400 mt-1">
-    Mantén Ctrl (o Cmd en Mac) para seleccionar varios
-  </p>
-</div>
+        <!-- SUBIR VIDEO (autoplay) -->
+        <div class="form-field">
+          <label>Subir video <span style="color:#aaa;font-weight:400;">(recomendado · autoplay)</span></label>
+          <div class="upload-area" id="videoUploadArea" style="padding:16px;">
+            <input type="file" id="video_file" accept="video/mp4,video/mov,video/webm"
+              onchange="previewVideo(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+            <div class="upload-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 00-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909" />
+              </svg>
+            </div>
+            <p class="upload-title">MP4, MOV o WEBM</p>
+            <p class="upload-sub">Máximo 50MB · Se reproduce automático</p>
+          </div>
+          <div id="videoPreview" style="margin-top:10px;display:none;">
+            <video id="videoPreviewEl" controls style="width:100%;border-radius:10px;max-height:200px;"></video>
+            <button type="button" onclick="clearVideo()" style="margin-top:6px;font-size:12px;color:#ef4444;background:none;border:none;cursor:pointer;">✕ Quitar video</button>
+          </div>
+        </div>
 
-        <input type="file" id="productImages" multiple accept="image/*">  
+        <!-- SEPARADOR -->
+        <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+          <div style="flex:1;height:1px;background:#e5e5e5;"></div>
+          <span style="font-size:12px;color:#aaa;">o pegá un link</span>
+          <div style="flex:1;height:1px;background:#e5e5e5;"></div>
+        </div>
 
-      <select id="category" class="w-full border rounded-lg p-3">
+        <!-- LINK EXTERNO -->
+        <div class="form-field">
+          <label>YouTube · Instagram · TikTok <span style="color:#aaa;font-weight:400;">(opcional)</span></label>
+          <input type="text" id="video_url" placeholder="https://youtube.com/watch?v=...">
+          <p style="font-size:12px;color:#aaa;margin-top:6px;">Sin autoplay — requiere click del usuario</p>
+        </div>
+      </div>
 
-  <option value="">Seleccionar categoría</option>
+      <div class="card">
+        <div class="card-title"><div class="card-title-dot"></div>Atributos opcionales</div>
 
-  <optgroup label="COMERCIO">
-    <option>Ropa y moda</option>
-    <option>Calzado</option>
-    <option>Accesorios</option>
-    <option>Electrónica</option>
-    <option>Electrodomésticos</option>
-    <option>Celulares</option>
-    <option>Computación</option>
-    <option>Hogar y decoración</option>
-    <option>Muebles</option>
-    <option>Iluminación</option>
-    <option>Ferretería</option>
-    <option>Construcción</option>
-    <option>Pinturería</option>
-    <option>Juguetería</option>
-    <option>Librería</option>
-    <option>Deportes y fitness</option>
-    <option>Mascotas</option>
-    <option>Perfumería</option>
-    <option>Cosmética</option>
-    <option>Regalería</option>
-  </optgroup>
+        <div class="toggle-row" onclick="toggleAttr('checkSizes','sizesField',this)">
+          <span class="toggle-label">Talles</span>
+          <div class="toggle-switch" id="switchSizes"></div>
+          <input type="checkbox" id="checkSizes" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="sizesField">
+          <input type="text" id="sizes" placeholder="Ej: 38, 39, 40, 41, 42" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        </div>
 
-  <optgroup label="GASTRONOMÍA">
-    <option>Restaurantes</option>
-    <option>Comida rápida</option>
-    <option>Pizzerías</option>
-    <option>Heladerías</option>
-    <option>Panaderías</option>
-    <option>Cafeterías</option>
-    <option>Rotiserías</option>
-    <option>Comida casera</option>
-    <option>Dietética</option>
-  </optgroup>
+        <div class="toggle-row" onclick="toggleAttr('checkColors','colorsField',this)">
+          <span class="toggle-label">Colores</span>
+          <div class="toggle-switch" id="switchColors"></div>
+          <input type="checkbox" id="checkColors" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="colorsField">
+          <select id="colors" multiple style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;height:120px;">
+            <option>Negro</option><option>Blanco</option><option>Gris</option>
+            <option>Azul</option><option>Rojo</option><option>Verde</option>
+            <option>Amarillo</option><option>Rosa</option><option>Marrón</option><option>Beige</option>
+          </select>
+          <p style="font-size:12px;color:#aaa;margin-top:6px;">Mantenés Ctrl o Cmd para seleccionar varios</p>
+        </div>
 
-  <optgroup label="BELLEZA Y CUIDADO PERSONAL">
-    <option>Peluquerías</option>
-    <option>Barberías</option>
-    <option>Estética</option>
-    <option>Uñas</option>
-    <option>Spa</option>
-    <option>Masajes</option>
-  </optgroup>
+        <div class="toggle-row" onclick="toggleAttr('checkSKU','skuField',this)">
+          <span class="toggle-label">Código SKU</span>
+          <div class="toggle-switch" id="switchSKU"></div>
+          <input type="checkbox" id="checkSKU" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="skuField">
+          <input type="text" id="sku" placeholder="Código interno del producto" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        </div>
 
-  <optgroup label="SALUD">
-    <option>Farmacias</option>
-    <option>Clínicas</option>
-    <option>Consultorios</option>
-    <option>Odontología</option>
-    <option>Kinesiología</option>
-    <option>Psicología</option>
-  </optgroup>
+        <div class="toggle-row" onclick="toggleAttr('checkMaterial','materialField',this)">
+          <span class="toggle-label">Material</span>
+          <div class="toggle-switch" id="switchMaterial"></div>
+          <input type="checkbox" id="checkMaterial" style="display:none;">
+        </div>
+        <div class="toggle-extra" id="materialField">
+          <input type="text" id="material" placeholder="Ej: Algodón, Cuero, Plástico" style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+        </div>
+      </div>
 
-  <optgroup label="SERVICIOS">
-    <option>Electricistas</option>
-    <option>Plomeros</option>
-    <option>Gasistas</option>
-    <option>Técnicos en refrigeración</option>
-    <option>Mecánicos</option>
-    <option>Cerrajeros</option>
-    <option>Albañiles</option>
-    <option>Carpinteros</option>
-    <option>Pintores</option>
-    <option>Fumigación</option>
-    <option>Limpieza</option>
-    <option>Mudanzas</option>
-    <option>Seguridad</option>
-  </optgroup>
-
-  <optgroup label="AUTOMOTOR">
-    <option>Talleres mecánicos</option>
-    <option>Gomerías</option>
-    <option>Repuestos</option>
-    <option>Lavaderos</option>
-    <option>Accesorios</option>
-  </optgroup>
-
-  <optgroup label="PROFESIONALES">
-    <option>Abogados</option>
-    <option>Contadores</option>
-    <option>Arquitectos</option>
-    <option>Diseñadores</option>
-    <option>Programadores</option>
-    <option>Marketing</option>
-  </optgroup>
-
-  <optgroup label="EDUCACIÓN">
-    <option>Institutos</option>
-    <option>Clases particulares</option>
-    <option>Cursos</option>
-  </optgroup>
-
-  <optgroup label="EVENTOS">
-    <option>Salones</option>
-    <option>Catering</option>
-    <option>Fotografía</option>
-    <option>Sonido e iluminación</option>
-  </optgroup>
-
-  <optgroup label="VARIOS">
-    <option>Emprendimientos</option>
-    <option>Servicios varios</option>
-  </optgroup>
-
-</select>
-
-      <input type="number" id="stock" placeholder="Stock"
-        class="w-full border rounded-lg p-3">
-
-      <input type="text" id="image_url" placeholder="URL imagen (Opcional)"
-        class="w-full border rounded-lg p-3">
-
-      <textarea id="extra" placeholder="Descripción"
-  class="w-full border rounded-lg p-3"></textarea>
-
-<label class="flex items-center gap-2 text-sm text-gray-700">
-  <input type="checkbox" id="isOffer">
-  Producto de oferta
-</label>
-
-<button
-  class="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold">
-  Crear producto
-</button>
-
-    </form>
-
+    </div>
   </div>
+
+  <button type="submit" class="submit-btn" id="submitBtn" style="margin-top:8px;">
+    Publicar producto
+  </button>
+
+</form>
 
 </main>
 
-<script src="/js/new-product.js"></script>
+<div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:999999;display:flex;flex-direction:column;gap:10px;"></div>
+
+<script>
+function showToast(message, type = "success") {
+  const bg = { success:"#22c55e", error:"#ef4444", warning:"#f59e0b" };
+  const toast = document.createElement("div");
+  toast.style.cssText = `background:${bg[type]};color:white;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.12);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;min-width:260px;`;
+  toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:white;font-size:16px;cursor:pointer;">✕</button>`;
+  document.getElementById("toastContainer").appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+  function previewVideo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('videoPreview');
+  const el = document.getElementById('videoPreviewEl');
+  el.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+}
+
+function clearVideo() {
+  document.getElementById('video_file').value = '';
+  const el = document.getElementById('videoPreviewEl');
+  el.src = '';
+  document.getElementById('videoPreview').style.display = 'none';
+}
+
+function toggleAttr(checkId, fieldId, row) {
+  const check = document.getElementById(checkId);
+  const field = document.getElementById(fieldId);
+  const switchEl = row.querySelector('.toggle-switch');
+  check.checked = !check.checked;
+  field.classList.toggle('show', check.checked);
+  switchEl.classList.toggle('on', check.checked);
+}
+
+function toggleOffer() {
+  const sw = document.getElementById('offerSwitch');
+  const cb = document.getElementById('isOffer');
+  cb.checked = !cb.checked;
+  sw.classList.toggle('on', cb.checked);
+}
+
+function previewImages(input) {
+  const preview = document.getElementById('uploadPreview');
+  preview.innerHTML = '';
+  const files = Array.from(input.files).slice(0, 5);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+<script type="module" src="/js/new-product.js"></script>
 
 </body>
 </html>
