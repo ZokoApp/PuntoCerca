@@ -1,8 +1,7 @@
   import { map } from './map.js';
-window._pcMap = map;
-
-
 import { SUBCATEGORY_MAP } from '../data/categories.js';
+
+window._pcMap = map;
 
   export let storeMarkers = {};
   export let activeCard = null;
