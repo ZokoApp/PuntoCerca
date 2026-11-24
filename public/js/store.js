@@ -921,7 +921,9 @@ function setupMap(store) {
   storeMap = L.map("storeMap").setView([lat, lng], 16);
 
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 19
+    maxNativeZoom: 16,
+    maxZoom: 22,
+    attribution: 'Tiles &copy; Esri'
   }).addTo(storeMap);
 
   L.marker([lat, lng]).addTo(storeMap).bindPopup(store.name);

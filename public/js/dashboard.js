@@ -477,6 +477,9 @@ async function initDeliveryMap() {
       .setView([-32.9442, -60.6505], 13);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxNativeZoom: 16,
+    maxZoom: 22,
+    attribution: \'Tiles &copy; Esri\',
     }).addTo(deliveryMap);
 
     deliveryMap.on('click', async (e) => {
@@ -1126,6 +1129,9 @@ async function initSucursalMap(lat, lng, address) {
         .setView([lat, lng], lat === -32.9442 ? 13 : 16);
 
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxNativeZoom: 16,
+    maxZoom: 22,
+    attribution: \'Tiles &copy; Esri\',
       }).addTo(sucursalMap);
 
       sucursalMarker = L.marker([lat, lng], { draggable: true }).addTo(sucursalMap);

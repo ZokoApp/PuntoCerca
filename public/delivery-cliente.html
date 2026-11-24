@@ -321,6 +321,9 @@ async function updateMap(lat, lng, delivery) {
       .setView([lat, lng], 16);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxNativeZoom: 16,
+    maxZoom: 22,
+    attribution: \'Tiles &copy; Esri\',
     }).addTo(map);
 
     L.control.zoom({ position: 'topright' }).addTo(map);
