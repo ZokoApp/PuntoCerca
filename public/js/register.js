@@ -37,8 +37,7 @@ document.addEventListener("DOMContentLoaded", function(){
   const map = L.map('mapSelector').setView([selectedLat, selectedLng], 13);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-  maxNativeZoom: 16,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   maxZoom: 19
 }).addTo(map);
 

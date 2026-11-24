@@ -8,9 +8,8 @@ if (typeof L !== "undefined" && document.getElementById("map")) {
   });
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-  maxNativeZoom: 16,
-    maxZoom: 22
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
   }).addTo(map);
 
   // GEOLOCALIZACIÓN
