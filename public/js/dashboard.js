@@ -476,7 +476,7 @@ async function initDeliveryMap() {
     deliveryMap = L.map('deliveryMap', { zoomControl: true, attributionControl: false })
       .setView([-32.9442, -60.6505], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     }).addTo(deliveryMap);
 
     deliveryMap.on('click', async (e) => {
@@ -1125,7 +1125,7 @@ async function initSucursalMap(lat, lng, address) {
       sucursalMap = L.map('sucursalMap', { zoomControl: true, attributionControl: false })
         .setView([lat, lng], lat === -32.9442 ? 13 : 16);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
       }).addTo(sucursalMap);
 
       sucursalMarker = L.marker([lat, lng], { draggable: true }).addTo(sucursalMap);

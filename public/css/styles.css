@@ -985,5 +985,5 @@ header {
    MAPA — ESTILO GRIS SUAVE (tipo Uber)
 ================================ */
 .leaflet-tile-pane {
-  filter: grayscale(0.3) brightness(1.05) saturate(0.8);
+  filter: brightness(1.02) contrast(0.95);
 }
