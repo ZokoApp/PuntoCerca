@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const map = L.map('mapSelector').setView([selectedLat, selectedLng], 13);
 
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
   maxNativeZoom: 16,
   maxZoom: 19

@@ -920,10 +920,9 @@ function setupMap(store) {
 
   storeMap = L.map("storeMap").setView([lat, lng], 16);
 
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-    maxNativeZoom: 16,
-    maxZoom: 22,
-    attribution: 'Tiles &copy; Esri'
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
   }).addTo(storeMap);
 
   L.marker([lat, lng]).addTo(storeMap).bindPopup(store.name);

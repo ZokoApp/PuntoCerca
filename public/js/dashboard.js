@@ -476,11 +476,10 @@ async function initDeliveryMap() {
     deliveryMap = L.map('deliveryMap', { zoomControl: true, attributionControl: false })
       .setView([-32.9442, -60.6505], 13);
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    maxNativeZoom: 16,
-    maxZoom: 22,
-    attribution: \'Tiles &copy; Esri\',
-    }).addTo(deliveryMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(deliveryMap);
 
     deliveryMap.on('click', async (e) => {
       const { lat, lng } = e.latlng;
@@ -1128,11 +1127,10 @@ async function initSucursalMap(lat, lng, address) {
       sucursalMap = L.map('sucursalMap', { zoomControl: true, attributionControl: false })
         .setView([lat, lng], lat === -32.9442 ? 13 : 16);
 
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    maxNativeZoom: 16,
-    maxZoom: 22,
-    attribution: \'Tiles &copy; Esri\',
-      }).addTo(sucursalMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(sucursalMap);
 
       sucursalMarker = L.marker([lat, lng], { draggable: true }).addTo(sucursalMap);
 
